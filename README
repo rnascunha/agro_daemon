@@ -1,1 +1,3 @@
-Async libray to work on top of Asio
+# Agro Daemon
+
+Daemon that will receive data from devices.
