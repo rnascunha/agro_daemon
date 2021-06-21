@@ -4,3 +4,12 @@
 [submodule "third/coap-te"]
 	path = third/coap-te
 	url = https://github.com/rnascunha/coap-te
+[submodule "third/boost"]
+	path = third/boost
+	url = https://github.com/boostorg/boost.git
+[submodule "third/tree_trunks"]
+	path = third/tree_trunks
+	url = https://github.com/rnascunha/tree_trunks.git
+[submodule "third/rapidjson"]
+	path = third/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
