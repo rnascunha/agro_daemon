@@ -3,18 +3,19 @@
 
 #include "boost/asio.hpp"
 #include "my_async.hpp"
+#include "my_async/util/static_shareable.hpp"
 #include <string>
 
 template<bool UseSSL>
 class Websocket final :
-		public My_Async::Websocket::Session_Base<Websocket<UseSSL>, UseSSL, Byte_Array>
-		, public Static_Shareable<Websocket<UseSSL>, false>
+		public My_Async::Websocket::Session_Base<Websocket<UseSSL>, UseSSL, std::string>
+		, public My_Async::Util::Static_Shareable<Websocket<UseSSL>, false>
 		, public std::enable_shared_from_this<Websocket<UseSSL>>
 {
 		using self_type = Websocket<UseSSL>;
 		using base_type = My_Async::Websocket::Session_Base<
-				Websocket<UseSSL>, UseSSL, Byte_Array>;
-		using shared_type = Static_Shareable<Websocket<UseSSL>, false>;
+				Websocket<UseSSL>, UseSSL, std::string>;
+		using shared_type = My_Async::Util::Static_Shareable<Websocket<UseSSL>, false>;
 	public:
 		using base_type::Session_Base;
 		~Websocket();

@@ -12,7 +12,7 @@ endfunction()
 
 #------------DEFINING VARS-----------------
 
-set(BOOST_ROOT 			third/boost)
+set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
 set(USE_SSL				0)
@@ -155,6 +155,12 @@ set(MY_LIBS_DIR	${SRC_DIR}/libs)
 #					${SRC_DIR}/core/include
 #					${ARGH_ROOT})
 
+###########################
+# tree trunks
+###########################
+
+include_directories(third/tree_trunks/src/include/)
+
 #########################
 # CoAP-te 
 #########################
@@ -167,14 +173,7 @@ add_definitions(-DCOAP_TE_LOG_COLOR=1
 				-DCOAP_TE_USE_ERROR_MESSAGES=1)
 
 add_subdirectory(third/coap-te)
-#include_directories(third/coap-te/src third/coap-te/third/tree_trunks/src/include)		
 include_directories(third/coap-te/src)		
-
-###########################
-# tree trunks
-###########################
-
-include_directories(third/tree_trunks/src/include/)
 
 ###########################
 # My async
