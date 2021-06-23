@@ -15,6 +15,11 @@ void print_error(ErrorType ec, const char* what = "")
 			<< ec.message() << " [" << what << "]\n";
 }
 
+extern engine::resource_node res_route;
+extern engine::resource_node res_status;
+extern engine::resource_node res_config;
+extern engine::resource_node res_full_config;
+
 int main()
 {
 	boost::system::error_code ec;
@@ -49,7 +54,7 @@ int main()
 
 	udp_conn conn;
 
-	udp_conn::endpoint ep{5655};
+	udp_conn::endpoint ep{5683};
 	CoAP::Error ecp;
 	conn.open(ecp);
 	if(ec)
@@ -66,6 +71,12 @@ int main()
 	}
 
 	engine coap_engine{std::move(conn), CoAP::Message::message_id{CoAP::random_generator()}};
+	coap_engine.root_node().add_child(res_route,
+									res_status,
+									res_config,
+									res_full_config);
+
+	Websocket<false>::coap_engine(coap_engine);
 
 	while(coap_engine.run<50>(ecp))
 	{

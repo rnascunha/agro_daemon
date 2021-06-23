@@ -183,12 +183,28 @@ add_subdirectory(third/my_async/src)
 include_directories(third/my_async/include)
 
 ###########################
+# rapidjson
+###########################
+
+include_directories(${RAPIDJSON_ROOT})
+
+###########################
 
 if(${USE_SSL} EQUAL 1)
 	message("Enable SSL support")
 endif()
 
-set(MAIN_SRC ${SRC_DIR}/main.cpp)
+set(RESOURCE_DIR	${SRC_DIR}/resources)
+
+set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
+					${RESOURCE_DIR}/status.cpp
+					${RESOURCE_DIR}/config.cpp
+					${RESOURCE_DIR}/full_config.cpp)	
+
+set(MAIN_SRC ${SRC_DIR}/main.cpp 
+			${SRC_DIR}/error.cpp
+			${SRC_DIR}/process_request.cpp 
+			${RESOURCE_DIR}/data_to_json.cpp ${RESOURCE_SRC})
 
 if(USE_SSL)
 	list(APPEND MAIN_SRC ${SRC_DIR}/helpers/load_certificate.cpp)

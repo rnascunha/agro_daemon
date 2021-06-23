@@ -2,6 +2,7 @@
 #define AGRO_MESH_WEBSOCKET_HPP__
 
 #include "boost/asio.hpp"
+#include "coap_engine.hpp"
 #include "my_async.hpp"
 #include "my_async/util/static_shareable.hpp"
 #include <string>
@@ -20,13 +21,21 @@ class Websocket final :
 		using base_type::Session_Base;
 		~Websocket();
 
+		static void coap_engine(engine& eng) noexcept { coap_engine_ = &eng; }
+		static engine& coap_engine() noexcept { return *coap_engine_; }
+
 		static void write_all(std::string const data) noexcept;
 		static void write_all(std::string const data, bool text) noexcept;
 	protected:
+		static engine* coap_engine_;
+
 		void on_open() noexcept override;
 		void read_handler(std::string data) noexcept override;
 		void fail(boost::system::error_code ec, char const* what) noexcept override;
 };
+
+template<bool UseSSL>
+engine* Websocket<UseSSL>::coap_engine_ = nullptr;
 
 #include "impl/websocket_impl.hpp"
 

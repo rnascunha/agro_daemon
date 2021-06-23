@@ -4,6 +4,8 @@
 #include "../websocket.hpp"
 #include "boost/beast.hpp"
 #include <iostream>
+#include <utility>
+#include "../process_request.hpp"
 
 template<bool UseSSL>
 Websocket<UseSSL>::~Websocket()
@@ -20,7 +22,7 @@ write_all(std::string const data) noexcept
 		std::bind(
 			&self_type::write_share,
 			std::placeholders::_1,
-			std::make_shared<Byte_Array const>(std::move(data))
+			std::make_shared<std::string const>(std::move(data))
 		)
 	);
 }
@@ -34,7 +36,7 @@ write_all(std::string const data, bool text) noexcept
 		std::bind(
 			&self_type::write_share2,
 			std::placeholders::_1,
-			std::make_shared<Byte_Array const>(std::move(data)),
+			std::make_shared<std::string const>(std::move(data)),
 			text
 		)
 	);
@@ -65,28 +67,8 @@ Websocket<UseSSL>::
 read_handler(std::string data) noexcept
 {
 	std::cout << "Received[" << data.size() << "]: " << data << "\n";
-//	rapidjson::Document d;
-//
-//	std::string json(data.to_string());
-//	if (d.Parse(json.c_str()).HasParseError() || !d.IsObject())
-//	{
-//		fail_message(Message::App::main, make_error_code(Message_Errc::ILL_FORMED));
-//		//fail_message(this->shared_from_this(), Message::App::main, make_error_code(Message_Errc::ILL_FORMED));
-//		return;
-//	}
-//
-//	//Echoing to the other users (and... same user)
-//	Propagator_Websocket::write_all(Byte_Array(std::move(Message::Factory::add_mid<true>(d))));
-//
-//	Message::Main_Data main;
-//	if(!Apps::Main::parser_main(d, main)){
-//		fail_message(Message::App::main, make_error_code(Message_Errc::ILL_FORMED));
-//		return;
-//	}
-//	Util::print_json(d);
-//
-//	if(!Core::Dispatcher::exec(main.app, this->shared_from_this(), main, d))
-//		fail_message(Message::App::main, make_error_code(Message_Errc::APP_NOT_FOUND));
+
+	process_request(*coap_engine_, std::move(data));
 }
 
 template<bool UseSSL>
