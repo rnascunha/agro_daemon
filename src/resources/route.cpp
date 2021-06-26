@@ -1,7 +1,8 @@
 #include "../coap_engine.hpp"
 #include "types.hpp"
 #include <cstdio>
-#include "data_to_json.hpp"
+//#include "data_to_json.hpp"
+#include "../message/resource_requests.hpp"
 
 #include "../websocket.hpp"
 
@@ -28,7 +29,8 @@ static void put_route_handler(engine::message const& request,
 	std::size_t children_size = request.payload_len - sizeof(route);
 	const std::uint8_t* children = static_cast<const uint8_t*>(request.payload) + sizeof(route);
 
-	std::string str{route_to_json(response.endpoint(), uri_host, *rt, children, children_size)};
+	std::string str{Message::route_to_json(response.endpoint(), request, uri_host.value,
+											*rt, children, children_size)};
 	std::printf("JSON: %s", str.c_str());
 
 	Websocket<false>::write_all(str);

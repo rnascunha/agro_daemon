@@ -36,4 +36,10 @@ struct __attribute__((packed)) full_config{
 	route			froute;
 };
 
+struct __attribute__((packed)) board_config{
+	std::uint8_t	has_temp_sensor:1;
+	std::uint8_t	has_rtc:1;
+	std::uint8_t	:6;
+};
+
 #endif /* AGRO_DAEMON_NET_MESSAGES_TYPES_HPP__ */

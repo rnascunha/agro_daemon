@@ -19,6 +19,7 @@ extern engine::resource_node res_route;
 extern engine::resource_node res_status;
 extern engine::resource_node res_config;
 extern engine::resource_node res_full_config;
+extern engine::resource_node res_board_config;
 
 int main()
 {
@@ -74,7 +75,8 @@ int main()
 	coap_engine.root_node().add_child(res_route,
 									res_status,
 									res_config,
-									res_full_config);
+									res_full_config,
+									res_board_config);
 
 	Websocket<false>::coap_engine(coap_engine);
 

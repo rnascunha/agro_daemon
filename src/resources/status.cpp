@@ -1,8 +1,9 @@
 #include "../coap_engine.hpp"
 #include "types.hpp"
 #include <cstdio>
+#include "../message/resource_requests.hpp"
 
-#include "data_to_json.hpp"
+//#include "data_to_json.hpp"
 #include "../websocket.hpp"
 
 static void put_status_handler(engine::message const& request,
@@ -25,7 +26,8 @@ static void put_status_handler(engine::message const& request,
 	}
 
 	status const* rt = static_cast<status const*>(request.payload);
-	std::string str{status_to_json(response.endpoint(), uri_host, *rt)};
+	std::string str{Message::status_to_json(response.endpoint(), request,
+											uri_host.value, *rt)};
 	std::printf("JSON: %s", str.c_str());
 
 	Websocket<false>::write_all(str);

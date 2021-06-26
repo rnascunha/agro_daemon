@@ -1,7 +1,9 @@
 #include "../coap_engine.hpp"
 #include "types.hpp"
 #include <cstdio>
-#include "data_to_json.hpp"
+//#include "data_to_json.hpp"
+#include "../message/resource_requests.hpp"
+
 #include "../error.hpp"
 
 #include "../websocket.hpp"
@@ -26,7 +28,8 @@ static void put_config_handler(engine::message const& request,
 	}
 
 	config const* rt = static_cast<config const*>(request.payload);
-	std::string str{config_to_json(response.endpoint(), uri_host, *rt)};
+	std::string str{Message::config_to_json(response.endpoint(),
+										request, uri_host.value, *rt)};
 	std::printf("JSON: %s", str.c_str());
 
 	Websocket<false>::write_all(str);
