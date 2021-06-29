@@ -3,15 +3,10 @@
 
 #include <cstdint>
 
-#ifndef MACSTR
-#define MACSTR "%02x:%02x:%02x:%02x:%02x:%02x"
-#endif /* MACSTR */
-#ifndef MAC2STR
-#define MAC2STR(a) (a)[0], (a)[1], (a)[2], (a)[3], (a)[4], (a)[5]
-#endif /* MAC2STR */
+namespace Resource{
 
 struct mesh_addr_t{
-    std::uint8_t addr[6];    /**< mac address */
+	std::uint8_t addr[6];    /**< mac address */
 };
 
 struct __attribute__((packed)) route{
@@ -41,5 +36,7 @@ struct __attribute__((packed)) board_config{
 	std::uint8_t	has_rtc:1;
 	std::uint8_t	:6;
 };
+
+}//Resource
 
 #endif /* AGRO_DAEMON_NET_MESSAGES_TYPES_HPP__ */

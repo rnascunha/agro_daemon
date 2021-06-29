@@ -5,6 +5,7 @@
 
 enum class Error{
 	ill_formed = 0,
+	invalid_value,
 };
 
 struct Message_Err_Category : public std::error_category{

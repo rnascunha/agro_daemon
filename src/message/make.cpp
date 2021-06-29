@@ -1,4 +1,5 @@
 #include "make.hpp"
+#include "../device/helper.hpp"
 #include "coap-te/helper/json/util.hpp"
 #include "rapidjson/writer.h" // for stringify JSON
 
@@ -6,15 +7,11 @@ namespace Message{
 
 bool add_type(rapidjson::Document& doc, type type) noexcept
 {
-	const char* str = type == type::resource ?
-						"resource" :
-						(type == type::response ?
-								"response" :
-								(type == type::error ? "error" : nullptr));
+	const type_config* t = get_config(type);
 
-	if(!str) return false;
+	if(!t) return false;
 
-	doc.AddMember("type", STRING_TO_JSON_VALUE(str, doc), doc.GetAllocator());
+	doc.AddMember("type", STRING_TO_JSON_VALUE(t->name, doc), doc.GetAllocator());
 	return true;
 }
 
@@ -47,6 +44,17 @@ void add_device(rapidjson::Document& doc, CoAP::Message::Option::option const& o
 			rapidjson::Value(static_cast<const char*>(op.value), op.length,
 				doc.GetAllocator()).Move(),
 				doc.GetAllocator());
+}
+
+
+void add_device(rapidjson::Document& doc, mesh_addr_t const& mesh) noexcept
+{
+	char addr[18];
+	snprintf(addr, 18, MACSTR, MAC2STR(mesh.addr));
+	doc.AddMember("device",
+				rapidjson::Value(addr,
+					doc.GetAllocator()).Move(),
+					doc.GetAllocator());
 }
 
 void add_data(rapidjson::Document& doc, rapidjson::Value& data) noexcept

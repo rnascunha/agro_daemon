@@ -4,20 +4,17 @@
 #include "coap-te.hpp"
 #include "rapidjson/document.h"
 #include <string>
+#include "../device/types.hpp"
+#include "types.hpp"
 
 namespace Message{
-
-enum type{
-	resource = 0,
-	response,
-	error
-};
 
 std::string stringify(rapidjson::Document const&) noexcept;
 
 template<typename Message>
 bool add_device(rapidjson::Document&, Message const&) noexcept;
 void add_device(rapidjson::Document&, CoAP::Message::Option::option const& op) noexcept;
+void add_device(rapidjson::Document&, mesh_addr_t const&) noexcept;
 
 template<typename Endpoint>
 void add_endpoint(rapidjson::Document&, Endpoint const&) noexcept;

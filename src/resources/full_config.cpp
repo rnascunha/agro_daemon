@@ -2,12 +2,15 @@
 #include "types.hpp"
 #include <cstdio>
 #include "../message/resource_requests.hpp"
-//#include "data_to_json.hpp"
 
 #include "../websocket.hpp"
+#include "../device/list.hpp"
 
-static void put_full_config_handler(engine::message const& request,
-								engine::response& response, void*) noexcept
+namespace Resource{
+
+void put_full_config_handler(engine::message const& request,
+								engine::response& response, void*,
+								Device_List& device_list) noexcept
 {
 	std::printf("Put Full Config Handler\n");
 
@@ -45,8 +48,4 @@ static void put_full_config_handler(engine::message const& request,
 	}
 }
 
-engine::resource_node res_full_config{"full_config",
-								"Get all device configuration",
-								nullptr,
-								nullptr,
-								put_full_config_handler};
+}//Resource

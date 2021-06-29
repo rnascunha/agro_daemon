@@ -10,6 +10,7 @@ std::string Message_Err_Category::message(int ev) const
 	switch(static_cast<Error>(ev))
 	{
 		case Error::ill_formed: return "Ill formed message";
+		case Error::invalid_value: return "Invalid value";
 		default:
 			return "(unrecognized error)";
 	}

@@ -1,6 +1,7 @@
 #ifndef AGRO_DAEMON_COAP_ENGINE_HPP__
 #define AGRO_DAEMON_COAP_ENGINE_HPP__
 
+#include <functional>
 #include "coap-te.hpp"			//Convenient header
 #include "coap-te/transmission/transaction_list_vector.hpp"
 
@@ -33,7 +34,7 @@ using engine = CoAP::Transmission::engine<
 		>,
 		CoAP::disable,		//default callback disabled
 		CoAP::Resource::resource<
-			CoAP::Resource::callback<endpoint>,
+			CoAP::Resource::callback_functional<endpoint>,
 			true
 		>
 	>;

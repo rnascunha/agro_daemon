@@ -5,10 +5,14 @@
 
 #include "../error.hpp"
 
+#include "../device/list.hpp"
 #include "../websocket.hpp"
 
-static void put_board_config_handler(engine::message const& request,
-								engine::response& response, void*) noexcept
+namespace Resource{
+
+void put_board_config_handler(engine::message const& request,
+								engine::response& response, void*,
+								Device_List& device_list) noexcept
 {
 	std::printf("Put Board Config Handler\n");
 
@@ -46,8 +50,4 @@ static void put_board_config_handler(engine::message const& request,
 	}
 }
 
-engine::resource_node res_board_config{"board",
-								"Get board configuration",
-								nullptr,
-								nullptr,
-								put_board_config_handler};
+}//Resource

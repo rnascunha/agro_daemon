@@ -1,13 +1,17 @@
 #include "../coap_engine.hpp"
 #include "types.hpp"
 #include <cstdio>
-//#include "data_to_json.hpp"
 #include "../message/resource_requests.hpp"
+#include "../message/device.hpp"
 
+#include "../device/list.hpp"
 #include "../websocket.hpp"
 
-static void put_route_handler(engine::message const& request,
-								engine::response& response, void*) noexcept
+namespace Resource{
+
+void put_route_handler(engine::message const& request,
+								engine::response& response, void*,
+								Device_List& device_list) noexcept
 {
 	std::printf("Put Route Handler\n");
 
@@ -31,7 +35,12 @@ static void put_route_handler(engine::message const& request,
 
 	std::string str{Message::route_to_json(response.endpoint(), request, uri_host.value,
 											*rt, children, children_size)};
-	std::printf("JSON: %s", str.c_str());
+	std::printf("JSON: %s\n", str.c_str());
+
+	Error ec;
+	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
+	auto& dev = device_list.update(host, response.endpoint(), *rt, children, children_size);
+	std::printf("DEVICE: %s\n", Message::device_to_json(dev).c_str());
 
 	Websocket<false>::write_all(str);
 
@@ -45,8 +54,4 @@ static void put_route_handler(engine::message const& request,
 	}
 }
 
-engine::resource_node res_route{"route",
-								"Get devices route",
-								nullptr,
-								nullptr,
-								put_route_handler};
+}//Resource

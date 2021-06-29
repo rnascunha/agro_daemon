@@ -199,6 +199,7 @@ endif()
 
 set(RESOURCE_DIR	${SRC_DIR}/resources)
 set(MESSAGE_DIR		${SRC_DIR}/message)
+set(DEVICE_DIR		${SRC_DIR}/device)
 
 set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/status.cpp
@@ -210,6 +211,12 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${SRC_DIR}/error.cpp
 			${SRC_DIR}/process_request.cpp 
 			${MESSAGE_DIR}/make.cpp
+			${MESSAGE_DIR}/device.cpp
+			${DEVICE_DIR}/device.cpp
+			${DEVICE_DIR}/helper.cpp
+			${DEVICE_DIR}/types.cpp
+			${DEVICE_DIR}/list.cpp
+			${RESOURCE_DIR}/init.cpp
 			${RESOURCE_SRC}
 			)
 

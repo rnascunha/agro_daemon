@@ -1,15 +1,18 @@
 #include "../coap_engine.hpp"
 #include "types.hpp"
 #include <cstdio>
-//#include "data_to_json.hpp"
 #include "../message/resource_requests.hpp"
 
 #include "../error.hpp"
 
+#include "../device/list.hpp"
 #include "../websocket.hpp"
 
-static void put_config_handler(engine::message const& request,
-								engine::response& response, void*) noexcept
+namespace Resource{
+
+void put_config_handler(engine::message const& request,
+								engine::response& response, void*,
+								Device_List& device_list) noexcept
 {
 	std::printf("Put Config Handler\n");
 
@@ -43,8 +46,4 @@ static void put_config_handler(engine::message const& request,
 	}
 }
 
-engine::resource_node res_config{"config",
-								"Get devices configuration",
-								nullptr,
-								nullptr,
-								put_config_handler};
+}//Resource

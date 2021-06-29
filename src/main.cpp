@@ -4,6 +4,9 @@
 #include <iostream>
 #include "tt/tt.hpp"
 #include "websocket.hpp"
+#include "device/list.hpp"
+#include "resources/init.hpp"
+#include <functional>
 
 #define WEBSOCKET_ADDRESS		"0.0.0.0"
 #define WEBSOCKET_PORT			8081
@@ -14,12 +17,6 @@ void print_error(ErrorType ec, const char* what = "")
 	std::cerr << "ERROR! [" << ec.value() << "] "
 			<< ec.message() << " [" << what << "]\n";
 }
-
-extern engine::resource_node res_route;
-extern engine::resource_node res_status;
-extern engine::resource_node res_config;
-extern engine::resource_node res_full_config;
-extern engine::resource_node res_board_config;
 
 int main()
 {
@@ -71,12 +68,12 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	Device_List device_list;
+
 	engine coap_engine{std::move(conn), CoAP::Message::message_id{CoAP::random_generator()}};
-	coap_engine.root_node().add_child(res_route,
-									res_status,
-									res_config,
-									res_full_config,
-									res_board_config);
+
+	std::vector<engine::resource_node> vresource;
+	Resource::init(coap_engine, device_list, vresource);
 
 	Websocket<false>::coap_engine(coap_engine);
 

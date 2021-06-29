@@ -1,6 +1,7 @@
 #ifndef AGRO_DAEMON_RESOURCE_REQUESTS_IMPL_HPP__
 #define AGRO_DAEMON_RESOURCE_REQUESTS_IMPL_HPP__
 
+#include "../../device/helper.hpp"
 #include "../resource_requests.hpp"
 
 namespace Message{
@@ -10,7 +11,7 @@ template<typename Endpoint,
 std::string config_to_json(Endpoint const& ep,
 							Message const& msg,
 							CoAP::Message::Option::option const& uri_host,
-							config const& cfg) noexcept
+							Resource::config const& cfg) noexcept
 {
 	rapidjson::Document doc;
 	rapidjson::Value data;
@@ -39,7 +40,7 @@ template<typename Endpoint,
 std::string status_to_json(Endpoint const& ep,
 						Message const& msg,
 						CoAP::Message::Option::option const& uri_host,
-						status const& sts) noexcept
+						Resource::status const& sts) noexcept
 {
 	rapidjson::Document doc;
 	rapidjson::Value data;
@@ -58,7 +59,7 @@ template<typename Endpoint,
 std::string route_to_json(Endpoint const& ep,
 						Message const& msg,
 						CoAP::Message::Option::option const& uri_host,
-						route const& config,
+						Resource::route const& config,
 						const uint8_t* children,
 						std::size_t children_size) noexcept
 {
@@ -96,7 +97,7 @@ template<typename Endpoint,
 std::string full_config_to_json(Endpoint const& ep,
 						Message const& msg,
 						CoAP::Message::Option::option const& uri_host,
-						full_config const& config,
+						Resource::full_config const& config,
 						const uint8_t* children,
 						std::size_t children_size) noexcept
 {
@@ -151,7 +152,7 @@ template<typename Endpoint,
 std::string board_config_to_json(Endpoint const& ep,
 						Message const& msg,
 						CoAP::Message::Option::option const& uri_host,
-						board_config const& cfg,
+						Resource::board_config const& cfg,
 						const char* version,
 						std::size_t version_len) noexcept
 {
