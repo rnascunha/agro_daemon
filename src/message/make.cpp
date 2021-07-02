@@ -5,9 +5,9 @@
 
 namespace Message{
 
-bool add_type(rapidjson::Document& doc, type type) noexcept
+bool add_type(rapidjson::Document& doc, type type_) noexcept
 {
-	const type_config* t = get_config(type);
+	config<type> const * t = get_type_config(type_);
 
 	if(!t) return false;
 

@@ -5,6 +5,7 @@
 #include <vector>
 #include "../resources/types.hpp"
 #include "../error.hpp"
+#include <system_error>
 
 struct mesh_addr_t{
 	static constexpr const unsigned str_size = 18;
@@ -14,12 +15,15 @@ struct mesh_addr_t{
 	mesh_addr_t();
 	mesh_addr_t(mesh_addr_t const&);
 	mesh_addr_t(std::uint8_t const*);
-	mesh_addr_t(const char*, unsigned, Error&);
+	mesh_addr_t(const char*, unsigned, std::error_code&);
 
     bool set(const char*, unsigned) noexcept;
 
     bool operator==(mesh_addr_t const& rhs) const noexcept;
 	bool operator!=(mesh_addr_t const& rhs) const noexcept;
+	/**
+	 * Needed to be used as a key to a map
+	 */
 	bool operator<(mesh_addr_t const& rhs) const noexcept;
 
 	mesh_addr_t& operator=(mesh_addr_t const&) noexcept;
@@ -49,13 +53,19 @@ class Value_List{
 		void add(Number) noexcept;
 		std::size_t size() const noexcept;
 
+		/**
+		 * It will add only if a change of the value happened
+		 */
+		bool add_change(value_time, Number) noexcept;
+		bool add_change(Number) noexcept;
+
 		typedef typename std::vector<value>::iterator iterator;
 		iterator begin();
 		iterator end();
 
 		typedef typename std::vector<value>::const_iterator const_iterator;
-		const_iterator cbegin() const;
-		const_iterator cend() const;
+		const_iterator begin() const;
+		const_iterator end() const;
 
 		value const& operator[](unsigned) const;
 	private:

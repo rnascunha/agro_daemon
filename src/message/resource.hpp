@@ -50,6 +50,6 @@ std::string board_config_to_json(Endpoint const&,
 
 }//Message
 
-#include "impl/resource_request_impl.hpp"
+#include "impl/resource_impl.hpp"
 
 #endif /* AGRO_DAEMON_RESOURCE_REQUESTS_HPP__ */

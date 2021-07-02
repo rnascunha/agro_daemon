@@ -15,9 +15,13 @@ template<typename Message>
 bool add_device(rapidjson::Document&, Message const&) noexcept;
 void add_device(rapidjson::Document&, CoAP::Message::Option::option const& op) noexcept;
 void add_device(rapidjson::Document&, mesh_addr_t const&) noexcept;
+template<typename Allocator>
+void add_device(rapidjson::Value&, mesh_addr_t const&, Allocator&) noexcept;
 
 template<typename Endpoint>
 void add_endpoint(rapidjson::Document&, Endpoint const&) noexcept;
+template<typename Endpoint, typename Allocator>
+void add_endpoint(rapidjson::Value&, Endpoint const&, Allocator&) noexcept;
 
 template<typename Message>
 void add_resource(rapidjson::Document&, Message const&) noexcept;
@@ -29,6 +33,11 @@ void add_response_status(rapidjson::Document&, CoAP::Message::code) noexcept;
 template<typename Message>
 void add_payload(rapidjson::Document&, Message const&) noexcept;
 void add_data(rapidjson::Document&, rapidjson::Value&) noexcept;
+
+template<typename Number, unsigned Max, typename Allocator>
+void make_value_list_array(rapidjson::Value&,
+							Value_List<Number, Max> const&,
+							Allocator&) noexcept;
 
 template<typename Message,
 		typename Endpoint>

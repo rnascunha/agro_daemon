@@ -19,18 +19,33 @@ bool add_device(rapidjson::Document& doc, Message const& msg) noexcept
 	return true;
 }
 
+template<typename Allocator>
+void add_device(rapidjson::Value& data, mesh_addr_t const& addr, Allocator& alloc) noexcept
+{
+	char buf[18];
+	data.AddMember("device",
+			rapidjson::Value(addr.to_string(buf, 18), alloc).Move(),
+			alloc);
+}
+
 template<typename Endpoint>
 void add_endpoint(rapidjson::Document& doc, Endpoint const& ep) noexcept
+{
+	add_endpoint(doc, ep, doc.GetAllocator());
+}
+
+template<typename Endpoint, typename Allocator>
+void add_endpoint(rapidjson::Value& data, Endpoint const& ep, Allocator& alloc) noexcept
 {
 	rapidjson::Value epv;
 	epv.SetObject();
 
 	char buffer[50];
 	ep.address(buffer, 50);
-	epv.AddMember("addr", STRING_TO_JSON_VALUE(buffer, doc), doc.GetAllocator());
-	epv.AddMember("port", ep.port(), doc.GetAllocator());
+	epv.AddMember("addr", rapidjson::Value(buffer, alloc).Move(), alloc);
+	epv.AddMember("port", ep.port(), alloc);
 
-	doc.AddMember("endpoint", epv, doc.GetAllocator());
+	data.AddMember("endpoint", epv, alloc);
 }
 
 template<typename Message>
@@ -58,6 +73,23 @@ template<typename Message>
 void add_payload(rapidjson::Document& doc, Message const& msg) noexcept
 {
 	CoAP::Helper::payload_to_json(doc, msg.payload, msg.payload_len);
+}
+
+template<typename Number, unsigned Max, typename Allocator>
+void make_value_list_array(rapidjson::Value& data,
+							Value_List<Number, Max> const& list,
+							Allocator& alloc) noexcept
+{
+	data.SetArray();
+	for(auto const& r : list)
+	{
+		rapidjson::Value v;
+		v.SetObject();
+		v.AddMember("time", r.time, alloc);
+		v.AddMember("value", r.value, alloc);
+
+		data.PushBack(v, alloc);
+	}
 }
 
 template<typename Message,

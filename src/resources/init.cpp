@@ -40,6 +40,13 @@ void init(engine& coap_engine, Device_List& list, std::vector<engine::resource_n
 			std::bind(put_full_config_handler,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
 				std::ref(list)));
+	vresource.emplace_back("sensor",
+			"Get device sensor data",
+			nullptr,
+			nullptr,
+			std::bind(put_sensor_data_handler,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+				std::ref(list)));
 
 	for(auto& res : vresource)
 	{

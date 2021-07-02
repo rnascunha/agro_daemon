@@ -12,7 +12,7 @@
 
 class Device{
 	public:
-		Device();			//Must be default constructible to use map
+		Device();			//Must be default constructable to use map
 		Device(mesh_addr_t const& mac_);
 		Device(const char* mac_str, unsigned, Error& ec);
 
@@ -27,11 +27,12 @@ class Device{
 		endpoint const& get_endpoint() const noexcept;
 
 		std::string name() const noexcept;
+		void name(std::string const& name) noexcept;
 
 		std::uint8_t channel_config() const noexcept;
 		std::uint8_t channel() const noexcept;
 
-		std::uint8_t layer() const noexcept;
+		int layer() const noexcept;
 
 		std::vector<mesh_addr_t> const& children_table() const noexcept;
 		std::vector<mesh_addr_t> const& children() const noexcept;
@@ -44,6 +45,10 @@ class Device{
 		bool has_rtc() const noexcept;
 		bool has_temperature_sensor() const noexcept;
 
+		std::uint32_t last_packet_time() const noexcept;
+		Value_List<float> const& temperature() const noexcept;
+		Value_List<std::uint8_t> const& gpios() const noexcept;
+
 		/**
 		 * Updates
 		 */
@@ -55,6 +60,9 @@ class Device{
 				const uint8_t* children, std::size_t children_size) noexcept;
 		void update(endpoint const&, Resource::board_config const&,
 				const char* version, std::size_t version_len) noexcept;
+		void update(endpoint const&, Resource::sensor_data const&) noexcept;
+
+		bool update_ac_load(unsigned index, bool value) noexcept;
 	private:
 		void update_endpoint(endpoint const& ep) noexcept;
 
@@ -70,7 +78,7 @@ class Device{
 		std::uint8_t ch_config_ = 0;
 		std::uint8_t ch_conn_ = 0;
 
-		std::uint8_t layer_ = 0;
+		int layer_ = -1;
 		std::vector<mesh_addr_t> children_table_;
 		std::vector<mesh_addr_t> children_;
 
@@ -80,8 +88,13 @@ class Device{
 		std::string fw_version_ = "";
 		std::string hw_version_ = "";
 
+		std::uint32_t	last_packet_time_ = 0;
+
 		bool has_rtc_ = false;
 		bool has_sensor_temp_ = false;
+
+		Value_List<float> temp_;
+		Value_List<std::uint8_t> gpios_;
 };
 
 #endif /* AGRO_DAEMON_DEVICE_HPP__ */

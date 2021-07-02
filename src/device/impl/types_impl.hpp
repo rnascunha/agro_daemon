@@ -37,6 +37,40 @@ std::size_t Value_List<Number, Max>::size() const noexcept
 
 template<typename Number,
 		unsigned Max>
+bool Value_List<Number, Max>::add_change(value_time time, Number value) noexcept
+{
+	if(list_.size() == 0)
+	{
+		add(time, value);
+		return true;
+	}
+
+	Number v = list_.back().value;
+	if(v == value) return false;
+
+	add(time, value);
+	return true;
+}
+
+template<typename Number,
+		unsigned Max>
+bool Value_List<Number, Max>::add_change(Number value) noexcept
+{
+	if(list_.size() == 0)
+	{
+		add(value);
+		return true;
+	}
+
+	Number v = list_.back().value;
+	if(v == value) return false;
+
+	add(value);
+	return true;
+}
+
+template<typename Number,
+		unsigned Max>
 typename Value_List<Number, Max>::iterator Value_List<Number, Max>::begin()
 {
 	return list_.begin();
@@ -51,14 +85,14 @@ typename Value_List<Number, Max>::iterator Value_List<Number, Max>::end()
 
 template<typename Number,
 		unsigned Max>
-typename Value_List<Number, Max>::const_iterator Value_List<Number, Max>::cbegin() const
+typename Value_List<Number, Max>::const_iterator Value_List<Number, Max>::begin() const
 {
 	return list_.cbegin();
 }
 
 template<typename Number,
 		unsigned Max>
-typename Value_List<Number, Max>::const_iterator Value_List<Number, Max>::cend() const
+typename Value_List<Number, Max>::const_iterator Value_List<Number, Max>::end() const
 {
 	return list_.cend();
 }

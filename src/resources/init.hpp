@@ -23,6 +23,9 @@ void put_config_handler(engine::message const& request,
 void put_full_config_handler(engine::message const& request,
 								engine::response& response, void*,
 								Device_List& device_list) noexcept;
+void put_sensor_data_handler(engine::message const& request,
+								engine::response& response, void*,
+								Device_List& device_list) noexcept;
 
 }//Resource
 

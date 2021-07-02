@@ -2,7 +2,7 @@
 #define AGRO_DAEMON_RESOURCE_REQUESTS_IMPL_HPP__
 
 #include "../../device/helper.hpp"
-#include "../resource_requests.hpp"
+#include "../resource.hpp"
 
 namespace Message{
 

@@ -205,17 +205,21 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/status.cpp
 					${RESOURCE_DIR}/config.cpp
 					${RESOURCE_DIR}/full_config.cpp
-					${RESOURCE_DIR}/board_config.cpp)	
+					${RESOURCE_DIR}/board_config.cpp
+					${RESOURCE_DIR}/sensor_data.cpp)	
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
-			${SRC_DIR}/error.cpp
-			${SRC_DIR}/process_request.cpp 
+			${SRC_DIR}/error.cpp 
 			${MESSAGE_DIR}/make.cpp
 			${MESSAGE_DIR}/device.cpp
+			${MESSAGE_DIR}/commands.cpp
+			${MESSAGE_DIR}/request.cpp
+			${MESSAGE_DIR}/process.cpp
 			${DEVICE_DIR}/device.cpp
 			${DEVICE_DIR}/helper.cpp
 			${DEVICE_DIR}/types.cpp
 			${DEVICE_DIR}/list.cpp
+			${RESOURCE_DIR}/process.cpp
 			${RESOURCE_DIR}/init.cpp
 			${RESOURCE_SRC}
 			)

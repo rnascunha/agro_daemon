@@ -11,9 +11,19 @@ class Device_List{
 	public:
 		Device_List();
 
+		std::map<mesh_addr_t, Device> const& list() const noexcept;
+
+		Device* operator[](mesh_addr_t const&) noexcept;
+		Device const* operator[](mesh_addr_t const&) const noexcept;
+
+		Device* operator[](const char*) noexcept;
+		Device const* operator[](const char*) const noexcept;
+
 		/**
 		 * Updates
 		 */
+		Device& update_name(mesh_addr_t const&, std::string const&) noexcept;
+		Device& update_ac_load(mesh_addr_t const&, unsigned index, bool value) noexcept;
 		Device& update(mesh_addr_t const&, endpoint const&, Resource::status const&) noexcept;
 		Device& update(mesh_addr_t const&, endpoint const&, Resource::config const&) noexcept;
 		Device& update(mesh_addr_t const&, endpoint const&, Resource::route const&,
@@ -22,6 +32,7 @@ class Device_List{
 				const uint8_t* children, std::size_t children_size) noexcept;
 		Device& update(mesh_addr_t const&, endpoint const&, Resource::board_config const&,
 				const char* version, std::size_t version_len) noexcept;
+		Device& update(mesh_addr_t const&, endpoint const&, Resource::sensor_data const&) noexcept;
 	private:
 		std::map<mesh_addr_t, Device> list_;
 };

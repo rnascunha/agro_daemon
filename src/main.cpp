@@ -1,12 +1,16 @@
-#include "boost/asio.hpp"
-#include "coap_engine.hpp"
 #include <cstdio>
 #include <iostream>
+#include <functional>
+
+#include "boost/asio.hpp"
+
 #include "tt/tt.hpp"
+
+#include "coap_engine.hpp"
 #include "websocket.hpp"
+
 #include "device/list.hpp"
 #include "resources/init.hpp"
-#include <functional>
 
 #define WEBSOCKET_ADDRESS		"0.0.0.0"
 #define WEBSOCKET_PORT			8081
@@ -41,7 +45,7 @@ int main()
 
 	std::cout << "Socket opened\n";
 
-	    // Capture SIGINT and SIGTERM to perform a clean shutdown
+	// Capture SIGINT and SIGTERM to perform a clean shutdown
 	boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
 	signals.async_wait(
 		[&ioc](boost::system::error_code const&, int){
@@ -75,14 +79,14 @@ int main()
 	std::vector<engine::resource_node> vresource;
 	Resource::init(coap_engine, device_list, vresource);
 
-	Websocket<false>::coap_engine(coap_engine);
+	Websocket<false>::data(coap_engine, device_list);
 
 	while(coap_engine.run<50>(ecp))
 	{
 		ioc.run_for(std::chrono::milliseconds(50));
 	}
 
-	if(ec)
+	if(ecp)
 	{
 		print_error(ecp, "run");
 	}

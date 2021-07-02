@@ -29,7 +29,9 @@ using engine = CoAP::Transmission::engine<
 		CoAP::Transmission::transaction_list_vector<
 					CoAP::Transmission::transaction<
 						BUFFER_LEN,
-						CoAP::Transmission::transaction_cb,
+						std::function<void(void const*,
+										CoAP::Message::message const*,
+										void*)>,
 						endpoint>
 		>,
 		CoAP::disable,		//default callback disabled

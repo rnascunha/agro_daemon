@@ -18,11 +18,11 @@ mesh_addr_t::mesh_addr_t(std::uint8_t const* addr)
 	std::memcpy(this->addr, addr, sizeof(this->addr));
 }
 
-mesh_addr_t::mesh_addr_t(const char* str, unsigned size, Error& ec)
+mesh_addr_t::mesh_addr_t(const char* str, unsigned size, std::error_code& ec)
 {
 	if(!set(str, size))
 	{
-		ec = Error::invalid_value;
+		ec = make_error_code(Error::invalid_value);
 		std::memset(addr, 0, sizeof(this->addr));
 	}
 }

@@ -3,14 +3,20 @@
 Device::Device(){}
 
 Device::Device(mesh_addr_t const& mac)
-	: mac_(mac){}
+	: mac_(mac)
+{
+	char buf[18];
+	name_ = mac.to_string(buf, 18);
+}
 
 Device::Device(const char* mac_str, unsigned size, Error& ec)
 {
 	if(!mac_.set(mac_str, size))
 	{
 		ec = Error::invalid_value;
+		return;
 	}
+	name_ = mac_str;
 }
 
 mesh_addr_t const& Device::mac() const noexcept
@@ -43,6 +49,11 @@ std::string Device::name() const noexcept
 	return name_;
 }
 
+void Device::name(std::string const& name) noexcept
+{
+	name_ = name;
+}
+
 std::uint8_t Device::channel_config() const noexcept
 {
 	return ch_config_;
@@ -53,7 +64,7 @@ std::uint8_t Device::channel() const noexcept
 	return ch_conn_;
 }
 
-std::uint8_t Device::layer() const noexcept
+int Device::layer() const noexcept
 {
 	return layer_;
 }
@@ -93,6 +104,21 @@ bool Device::has_temperature_sensor() const noexcept
 	return has_sensor_temp_;
 }
 
+std::uint32_t Device::last_packet_time() const noexcept
+{
+	return last_packet_time_;
+}
+
+Value_List<float> const& Device::temperature() const noexcept
+{
+	return temp_;
+}
+
+Value_List<std::uint8_t> const& Device::gpios() const noexcept
+{
+	return gpios_;
+}
+
 void Device::update(endpoint const& ep, Resource::status const& sts) noexcept
 {
 	update_endpoint(ep);
@@ -114,7 +140,7 @@ void Device::update(endpoint const& ep, Resource::route const& route,
 {
 	update_endpoint(ep);
 
-	layer_ = route.layer;
+	layer_ = static_cast<int>(ntohs(route.layer));
 	parent_ = route.parent;
 
 	children_table_.clear();
@@ -135,7 +161,7 @@ void Device::update(endpoint const& ep, Resource::full_config const& cfg,
 	mac_ap_ = cfg.fconfig.mac_ap;
 	net_id_ = cfg.fconfig.net_id;
 
-	layer_ = cfg.froute.layer;
+	layer_ = static_cast<int>(ntohs(cfg.froute.layer));
 	parent_ = cfg.froute.parent;
 
 	children_table_.clear();
@@ -164,6 +190,50 @@ void Device::update(endpoint const&, Resource::board_config const& cfg,
 		fw_version_ = std::string{static_cast<const char*>(version), version_len};
 		hw_version_ = "";
 	}
+}
+
+void Device::update(endpoint const& ep, Resource::sensor_data const& data) noexcept
+{
+	update_endpoint(ep);
+
+	last_packet_time_ = data.time;
+	std::uint8_t gpios_value = data.wl1 | (data.wl2 << 1) |
+								(data.wl3 << 2) | (data.wl4 << 3) |
+								(data.ac1 << 4) | (data.ac2 << 5) |
+								(data.ac3 << 6);
+
+	if(has_rtc_)
+	{
+		rssi_.add(data.time, data.rssi);
+		if(data.temp != -127.0)	//Invalid read
+			temp_.add(data.time, data.temp);
+
+		gpios_.add_change(data.time, gpios_value);
+	}
+	else
+	{
+		rssi_.add(data.rssi);
+		if(data.temp != -127.0)	//Invalid read
+			temp_.add(data.temp);
+
+		gpios_.add_change(gpios_value);
+	}
+}
+
+bool Device::update_ac_load(unsigned index, bool value) noexcept
+{
+	if(index > 2) return false;
+	unsigned nindex = 4 + index;
+	if(gpios_.size() == 0)
+	{
+		std::uint8_t gpios_value = value << nindex;
+		gpios_.add(gpios_value);
+	}
+	std::uint8_t v = (*gpios_.begin()).value;
+	v = (v & ~(1UL << nindex)) | (value << nindex);
+	gpios_.add_change(v);
+
+	return true;
 }
 
 void Device::update_endpoint(endpoint const& ep) noexcept

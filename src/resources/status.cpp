@@ -1,11 +1,6 @@
 #include "../coap_engine.hpp"
-#include "types.hpp"
-#include <cstdio>
-#include "../message/resource_requests.hpp"
-#include "../message/device.hpp"
-
-#include "../websocket.hpp"
 #include "../device/list.hpp"
+#include "process.hpp"
 
 namespace Resource{
 
@@ -17,32 +12,26 @@ void put_status_handler(engine::message const& request,
 
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
-	CoAP::Message::Option::node uri_host{op};
 
-	if(request.payload_len < sizeof(status))
+	std::error_code ec;
+	if(!process_status(device_list,
+					response.endpoint(),
+					op,
+					request.payload, request.payload_len,
+					ec))
 	{
+		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(CoAP::Message::code::bad_request)
 			.add_option(uri_host)
-			.payload("value too small")
+			.payload(ec.message().c_str())
 			.serialize();
 		return;
 	}
 
-	status const* rt = static_cast<status const*>(request.payload);
-	std::string str{Message::status_to_json(response.endpoint(), request,
-											uri_host.value, *rt)};
-	std::printf("JSON: %s\n", str.c_str());
-
-	Error ec;
-	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
-	auto& dev = device_list.update(host, response.endpoint(), *rt);
-	std::printf("DEVICE: %s\n", Message::device_to_json(dev).c_str());
-
-	Websocket<false>::write_all(str);
-
 	if(request.mtype == CoAP::Message::type::confirmable)
 	{
+		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(CoAP::Message::code::success)
 			.add_option(uri_host)

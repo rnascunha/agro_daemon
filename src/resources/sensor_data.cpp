@@ -1,22 +1,25 @@
 #include "../coap_engine.hpp"
 #include "../device/list.hpp"
 #include "process.hpp"
+#include <cstdio>
 
 namespace Resource{
 
-void put_route_handler(engine::message const& request,
+void put_sensor_data_handler(engine::message const& request,
 								engine::response& response, void*,
 								Device_List& device_list) noexcept
 {
+	printf("Resource Sensor data handler\n");
+
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
 
 	std::error_code ec;
-	if(!process_route(device_list,
-						response.endpoint(),
-						op,
-						request.payload, request.payload_len,
-						ec))
+	if(!process_sensor_data(device_list,
+					response.endpoint(),
+					op,
+					request.payload, request.payload_len,
+					ec))
 	{
 		CoAP::Message::Option::node uri_host{op};
 		response
