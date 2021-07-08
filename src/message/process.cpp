@@ -6,6 +6,9 @@
 #include "rapidjson/document.h"
 
 #include "types.hpp"
+#include "ota.hpp"
+
+#include "../websocket.hpp"
 
 namespace Message{
 
@@ -40,11 +43,15 @@ void process(engine& coap_engine,
 			break;
 		case Message::type::device:
 		case Message::type::device_list:
+			Websocket<false>::write_all(Message::device_list_to_json(dlist));
 			break;
 		case Message::type::command:
 			process_commands(d, dlist);
 			break;
-		case Message::type::error:
+		case Message::type::image:
+			process_image(d);
+			break;
+		case Message::type::info:
 			break;
 		default:
 			break;

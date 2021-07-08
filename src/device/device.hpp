@@ -49,6 +49,9 @@ class Device{
 		Value_List<float> const& temperature() const noexcept;
 		Value_List<std::uint8_t> const& gpios() const noexcept;
 
+		Value<value_time> const& rtc_time() const noexcept;
+		Value<int64_t> const& uptime() const noexcept;
+
 		/**
 		 * Updates
 		 */
@@ -63,6 +66,8 @@ class Device{
 		void update(endpoint const&, Resource::sensor_data const&) noexcept;
 
 		bool update_ac_load(unsigned index, bool value) noexcept;
+		void update_uptime(int64_t) noexcept;
+		void update_rtc_time(value_time) noexcept;
 	private:
 		void update_endpoint(endpoint const& ep) noexcept;
 
@@ -95,6 +100,9 @@ class Device{
 
 		Value_List<float> temp_;
 		Value_List<std::uint8_t> gpios_;
+
+		Value<int64_t>		uptime_;
+		Value<value_time>	rtc_time_;
 };
 
 #endif /* AGRO_DAEMON_DEVICE_HPP__ */

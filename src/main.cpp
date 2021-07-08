@@ -12,6 +12,8 @@
 #include "device/list.hpp"
 #include "resources/init.hpp"
 
+#include "ota/ota.hpp"
+
 #define WEBSOCKET_ADDRESS		"0.0.0.0"
 #define WEBSOCKET_PORT			8081
 
@@ -24,6 +26,8 @@ void print_error(ErrorType ec, const char* what = "")
 
 int main()
 {
+	init_ota();
+
 	boost::system::error_code ec;
 	auto const address = boost::asio::ip::make_address(WEBSOCKET_ADDRESS, ec);
 	if(ec)
@@ -44,13 +48,6 @@ int main()
 	}
 
 	std::cout << "Socket opened\n";
-
-	// Capture SIGINT and SIGTERM to perform a clean shutdown
-	boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
-	signals.async_wait(
-		[&ioc](boost::system::error_code const&, int){
-			ioc.stop();
-		});
 
 	tt::status("Init code");
 
@@ -80,6 +77,14 @@ int main()
 	Resource::init(coap_engine, device_list, vresource);
 
 	Websocket<false>::data(coap_engine, device_list);
+
+	// Capture SIGINT and SIGTERM to perform a clean shutdown
+	boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
+	signals.async_wait(
+		[&ioc, &coap_engine](boost::system::error_code const&, int){
+			ioc.stop();
+			coap_engine.get_connection().close();
+		});
 
 	while(coap_engine.run<50>(ecp))
 	{

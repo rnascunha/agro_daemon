@@ -2,7 +2,24 @@
 #define AGRO_MESH_DEVICE_TYPES_IMPL_HPP__
 
 #include "../types.hpp"
-#include <chrono>
+
+template<typename Number>
+Value<Number>::Value(value_time t, Number n)
+	: time(t), value(n){}
+
+template<typename Number>
+void Value<Number>::update(Number val) noexcept
+{
+	time = get_time();
+	value = val;
+}
+
+template<typename Number>
+void Value<Number>::update(value_time t, Number val) noexcept
+{
+	time = t;
+	value = val;
+}
 
 template<typename Number,
 		unsigned Max>
@@ -19,9 +36,7 @@ template<typename Number,
 		unsigned Max>
 void Value_List<Number, Max>::add(Number value) noexcept
 {
-	list_.emplace_back(static_cast<value_time>(std::chrono::duration_cast<std::chrono::seconds>(
-							std::chrono::system_clock::now().time_since_epoch()).count()),
-					std::remove_reference_t<Number>{value});
+	list_.emplace_back(get_time(), std::remove_reference_t<Number>{value});
 	if(list_.size() > Max)
 	{
 		list_.erase(list_.begin());
@@ -99,7 +114,7 @@ typename Value_List<Number, Max>::const_iterator Value_List<Number, Max>::end() 
 
 template<typename Number,
 		unsigned Max>
-typename Value_List<Number, Max>::value const& Value_List<Number, Max>::operator[](unsigned index) const
+typename Value_List<Number, Max>::value const& Value_List<Number, Max>::operator[](unsigned index) const noexcept
 {
 	return list_[index];
 }

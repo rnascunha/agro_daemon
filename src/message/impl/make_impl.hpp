@@ -75,6 +75,18 @@ void add_payload(rapidjson::Document& doc, Message const& msg) noexcept
 	CoAP::Helper::payload_to_json(doc, msg.payload, msg.payload_len);
 }
 
+template<typename Number, typename Allocator>
+rapidjson::Value& make_value(rapidjson::Value& v,
+		Value<Number> const& value,
+		Allocator& alloc) noexcept
+{
+	v.SetObject();
+	v.AddMember("time", value.time, alloc);
+	v.AddMember("value", value.value, alloc);
+
+	return v;
+}
+
 template<typename Number, unsigned Max, typename Allocator>
 void make_value_list_array(rapidjson::Value& data,
 							Value_List<Number, Max> const& list,

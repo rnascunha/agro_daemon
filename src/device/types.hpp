@@ -30,17 +30,23 @@ struct mesh_addr_t{
 	mesh_addr_t& operator=(Resource::mesh_addr_t const&) noexcept;
 
 	char* to_string(char*, unsigned = 18) const noexcept;
+	std::string to_string() const noexcept;
 };
 
 using value_time = std::uint32_t;
 
+value_time get_time() noexcept;
+
 template<typename Number>
 struct Value{
-	Value(value_time t, Number n)
-		: time(t), value(n){}
+	Value() = default;
+	Value(value_time t, Number n);
 
-	value_time		time;
-	Number			value;
+	value_time		time = 0;
+	Number			value = 0;
+
+	void update(Number) noexcept;
+	void update(value_time, Number) noexcept;
 };
 
 template<typename Number,
@@ -67,7 +73,7 @@ class Value_List{
 		const_iterator begin() const;
 		const_iterator end() const;
 
-		value const& operator[](unsigned) const;
+		value const& operator[](unsigned) const noexcept;
 	private:
 		std::vector<value> list_;
 };

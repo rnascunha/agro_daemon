@@ -89,6 +89,36 @@ Device& Device_List::update_ac_load(mesh_addr_t const& addr, unsigned index, boo
 	return resp->second;
 }
 
+Device& Device_List::update_rtc_time(mesh_addr_t const& addr, value_time time) noexcept
+{
+	auto dev = list_.find(addr);
+	if(dev != list_.end())
+	{
+		dev->second.update_rtc_time(time);
+		return dev->second;
+	}
+
+	auto resp = list_.emplace(addr, Device{addr}).first;
+	resp->second.update_rtc_time(time);
+
+	return resp->second;
+}
+
+Device& Device_List::update_uptime(mesh_addr_t const& addr, int64_t uptime) noexcept
+{
+	auto dev = list_.find(addr);
+	if(dev != list_.end())
+	{
+		dev->second.update_uptime(uptime);
+		return dev->second;
+	}
+
+	auto resp = list_.emplace(addr, Device{addr}).first;
+	resp->second.update_uptime(uptime);
+
+	return resp->second;
+}
+
 Device& Device_List::update(mesh_addr_t const& addr,
 		endpoint const& ep,
 		Resource::status const& sts) noexcept

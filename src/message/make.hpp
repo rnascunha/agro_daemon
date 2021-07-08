@@ -34,6 +34,9 @@ template<typename Message>
 void add_payload(rapidjson::Document&, Message const&) noexcept;
 void add_data(rapidjson::Document&, rapidjson::Value&) noexcept;
 
+template<typename Number, typename Allocator>
+rapidjson::Value& make_value(rapidjson::Value&, Value<Number> const&, Allocator&) noexcept;
+
 template<typename Number, unsigned Max, typename Allocator>
 void make_value_list_array(rapidjson::Value&,
 							Value_List<Number, Max> const&,

@@ -176,6 +176,77 @@ std::string device_gpios_to_json(Device const& dev) noexcept
 	return std::string{stringify(doc)};
 }
 
+void device_uptime_to_json(rapidjson::Document& doc, Device const& dev) noexcept
+{
+	doc.SetObject();
+	add_type(doc, type::device);
+	add_device(doc, dev.mac());
+
+	rapidjson::Value data;
+	data.SetObject();
+	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	rapidjson::Value v;
+	data.AddMember("uptime", make_value(v, dev.uptime(), doc.GetAllocator()), doc.GetAllocator());
+
+	add_data(doc, data);
+}
+
+std::string device_uptime_to_json(Device const& dev) noexcept
+{
+	rapidjson::Document doc;
+	device_uptime_to_json(doc, dev);
+
+	return std::string{stringify(doc)};
+}
+
+void device_rtc_time_to_json(rapidjson::Document& doc, Device const& dev) noexcept
+{
+	doc.SetObject();
+	add_type(doc, type::device);
+	add_device(doc, dev.mac());
+
+	rapidjson::Value data;
+	data.SetObject();
+	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	rapidjson::Value v;
+	data.AddMember("rtc", make_value(v, dev.rtc_time(), doc.GetAllocator()), doc.GetAllocator());
+
+	add_data(doc, data);
+}
+
+std::string device_rtc_time_to_json(Device const& dev) noexcept
+{
+	rapidjson::Document doc;
+	device_rtc_time_to_json(doc, dev);
+
+	return std::string{stringify(doc)};
+}
+
+void device_ota_to_json(rapidjson::Document& doc,
+		Device const& dev,
+		std::string const& version) noexcept
+{
+	doc.SetObject();
+	add_type(doc, type::device);
+	add_device(doc, dev.mac());
+
+	rapidjson::Value data;
+	data.SetObject();
+	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	rapidjson::Value v;
+	data.AddMember("ota_version", STRING_TO_JSON_VALUE(version.c_str(), doc), doc.GetAllocator());
+
+	add_data(doc, data);
+}
+
+std::string device_ota_to_json(Device const& dev, std::string const& version) noexcept
+{
+	rapidjson::Document doc;
+	device_ota_to_json(doc, dev, version);
+
+	return std::string{stringify(doc)};
+}
+
 void device_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();

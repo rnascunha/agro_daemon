@@ -5,6 +5,7 @@
 #include "make.hpp"
 #include "../websocket.hpp"
 #include "../resources/process.hpp"
+#include "info.hpp"
 
 namespace Message{
 
@@ -21,10 +22,39 @@ static CoAP::Message::code string_to_method(const char* method_str)
 
 static void process_ac_load(Device_List& device_list,
 		mesh_addr_t const& host,
-		unsigned index, bool value)
+		unsigned index, bool value) noexcept
 {
 	auto& dev = device_list.update_ac_load(host, index, value);
 	Websocket<false>::write_all(device_gpios_to_json(dev));
+}
+
+static void process_rtc_time(Device_List& device_list,
+		mesh_addr_t const& host,
+		value_time time) noexcept
+{
+	auto& dev = device_list.update_rtc_time(host, time);
+	Websocket<false>::write_all(device_rtc_time_to_json(dev));
+}
+
+static void process_uptime(Device_List& device_list,
+		mesh_addr_t const& host,
+		int64_t uptime) noexcept
+{
+	auto& dev = device_list.update_uptime(host, uptime);
+	Websocket<false>::write_all(device_uptime_to_json(dev));
+}
+
+static void process_ota(Device_List& device_list,
+		mesh_addr_t const& host,
+		std::string&& version) noexcept
+{
+	auto const dev = device_list[host];
+	if(!dev)
+	{
+		std::cerr << "Device " << host.to_string() << " not found\n";
+		return;
+	}
+	Websocket<false>::write_all(device_ota_to_json(*dev, version));
 }
 
 static void request_response(
@@ -111,6 +141,23 @@ static void request_response(
 		}
 		break;
 		case requests::uptime:
+		{
+			std::string time{static_cast<const char*>(response.payload), response.payload_len};
+			process_uptime(device_list, host, std::strtoll(time.c_str(), nullptr, 10));
+		}
+			break;
+		case requests::get_rtc:
+			process_rtc_time(device_list, host, *static_cast<const value_time*>(response.payload));
+			break;
+		case requests::update_rtc:
+			Websocket<false>::write_all(make_info(info::success, host, "RTC update"));
+			break;
+		case requests::get_ota:
+			process_ota(device_list, host,
+					std::string{static_cast<const char*>(response.payload), response.payload_len});
+			break;
+		case requests::update_ota:
+			Websocket<false>::write_all(make_info(info::info, host, "OTA update initiated"));
 			break;
 		default:
 			break;
@@ -197,8 +244,13 @@ static void process_custom_request(rapidjson::Document const& d,
 
 	if(d.HasMember("payload") && !d["payload"].IsNull())
 	{
-		msg.payload = reinterpret_cast<const uint8_t*>(d["payload"].GetString());
-		msg.payload_len = std::strlen(reinterpret_cast<const char*>(msg.payload));
+		msg.payload = [](rapidjson::Document const& d, void* buf, std::size_t size){
+			const char* payload = d["payload"].GetString();
+			std::size_t s = std::strlen(payload);
+
+			std::memcpy(buf, payload, s);
+			return s;
+		};
 	}
 }
 
@@ -208,7 +260,8 @@ static void send_request(
 		Message::requests request_type,
 		Message::request_message const& msg,
 		engine& coap_engine,
-		Device_List& dev_list) noexcept
+		Device_List& dev_list,
+		rapidjson::Document const& doc) noexcept
 {
 	engine::request req{ep};
 	req.header(msg.mtype, msg.method);
@@ -225,9 +278,15 @@ static void send_request(
 		req.add_option(op);
 	}
 
-	if(msg.payload && msg.payload_len > 0)
+	std::uint8_t buffer[engine::packet_size];
+	std::size_t size = 0;
+	if(msg.payload)
 	{
-		req.payload(msg.payload, msg.payload_len);
+		size = msg.payload(doc, buffer, engine::packet_size);
+		if(size > 0)
+		{
+			req.payload(buffer, size);
+		}
 	}
 
 	req.callback(std::bind(request_cb,
@@ -288,13 +347,15 @@ void process_request(rapidjson::Document const& doc,
 		}
 		req = &custom_req;
 	}
+	std::cout << "Req: " << static_cast<int>(config->mtype) << " " << config->name << "\n";
 
 	send_request(doc["device"].GetString(),
 			dev->get_endpoint(),
 			config->mtype,
 			*req,
 			coap_engine,
-			device_list);
+			device_list,
+			doc);
 }
 
 }//Message

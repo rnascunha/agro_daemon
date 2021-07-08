@@ -119,6 +119,16 @@ Value_List<std::uint8_t> const& Device::gpios() const noexcept
 	return gpios_;
 }
 
+Value<value_time> const& Device::rtc_time() const noexcept
+{
+	return rtc_time_;
+}
+
+Value<int64_t> const& Device::uptime() const noexcept
+{
+	return uptime_;
+}
+
 void Device::update(endpoint const& ep, Resource::status const& sts) noexcept
 {
 	update_endpoint(ep);
@@ -228,12 +238,22 @@ bool Device::update_ac_load(unsigned index, bool value) noexcept
 	{
 		std::uint8_t gpios_value = value << nindex;
 		gpios_.add(gpios_value);
+		return true;
 	}
-	std::uint8_t v = (*gpios_.begin()).value;
-	v = (v & ~(1UL << nindex)) | (value << nindex);
-	gpios_.add_change(v);
+	std::uint8_t v = gpios_[gpios_.size() - 1].value;
+	gpios_.add_change((v & ~(1UL << nindex)) | (value << nindex));
 
 	return true;
+}
+
+void Device::update_uptime(int64_t time) noexcept
+{
+	uptime_.update(time);
+}
+
+void Device::update_rtc_time(value_time time) noexcept
+{
+	rtc_time_.update(time);
 }
 
 void Device::update_endpoint(endpoint const& ep) noexcept

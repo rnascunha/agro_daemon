@@ -2,6 +2,13 @@
 #include "helper.hpp"
 #include <cstring>
 #include <cstdio>
+#include <chrono>
+
+value_time get_time() noexcept
+{
+	return static_cast<value_time>(std::chrono::duration_cast<std::chrono::seconds>(
+								std::chrono::system_clock::now().time_since_epoch()).count());
+}
 
 mesh_addr_t::mesh_addr_t()
 {
@@ -65,4 +72,10 @@ char* mesh_addr_t::to_string(char* str, unsigned size) const noexcept
 	std::snprintf(str, size, MACSTR, MAC2STR(addr));
 
 	return str;
+}
+
+std::string mesh_addr_t::to_string() const noexcept
+{
+	char buf[18];
+	return std::string{to_string(buf, 18)};
 }

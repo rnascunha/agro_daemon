@@ -146,15 +146,6 @@ set(SRC_DIR ./src)
 
 set(MY_LIBS_DIR	${SRC_DIR}/libs)
 
-#include_directories(${RAPIDJSON_ROOT}
-#					${MY_LIBS_DIR}/byte_array/include 
-#					${MY_LIBS_DIR}/my_async/include
-#					${MY_LIBS_DIR}/utility/include
-#					${MY_LIBS_DIR}/system_info/include
-#					${SRC_DIR}/helpers/include
-#					${SRC_DIR}/core/include
-#					${ARGH_ROOT})
-
 ###########################
 # tree trunks
 ###########################
@@ -181,7 +172,7 @@ add_definitions(-DCOAP_TE_LOG_COLOR=1
 
 set(RAPIDJSON_PATH 	${RAPIDJSON_ROOT})
 
-add_subdirectory(third/coap-te)
+add_subdirectory(third/coap-te)#
 include_directories(third/coap-te/src)		
 
 ###########################
@@ -200,13 +191,17 @@ endif()
 set(RESOURCE_DIR	${SRC_DIR}/resources)
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(DEVICE_DIR		${SRC_DIR}/device)
+set(OTA_DIR			${SRC_DIR}/ota)
 
 set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/status.cpp
 					${RESOURCE_DIR}/config.cpp
 					${RESOURCE_DIR}/full_config.cpp
 					${RESOURCE_DIR}/board_config.cpp
-					${RESOURCE_DIR}/sensor_data.cpp)	
+					${RESOURCE_DIR}/sensor_data.cpp
+					${RESOURCE_DIR}/time.cpp
+					${RESOURCE_DIR}/ota.cpp
+					${RESOURCE_DIR}/info.cpp)	
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
 			${SRC_DIR}/error.cpp 
@@ -215,6 +210,8 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${MESSAGE_DIR}/commands.cpp
 			${MESSAGE_DIR}/request.cpp
 			${MESSAGE_DIR}/process.cpp
+			${MESSAGE_DIR}/ota.cpp
+			${MESSAGE_DIR}/info.cpp
 			${DEVICE_DIR}/device.cpp
 			${DEVICE_DIR}/helper.cpp
 			${DEVICE_DIR}/types.cpp
@@ -222,6 +219,7 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${RESOURCE_DIR}/process.cpp
 			${RESOURCE_DIR}/init.cpp
 			${RESOURCE_SRC}
+			${OTA_DIR}/ota.cpp
 			)
 
 if(USE_SSL)
@@ -236,7 +234,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_EXTENSIONS ON
 )
 
-#target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 
 if(USE_SSL)
 	target_link_libraries(${PROJECT_NAME} OpenSSL::SSL)
