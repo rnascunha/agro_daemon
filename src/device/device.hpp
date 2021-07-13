@@ -52,6 +52,12 @@ class Device{
 		Value<value_time> const& rtc_time() const noexcept;
 		Value<int64_t> const& uptime() const noexcept;
 
+		std::int32_t fuse() const noexcept;
+		void fuse(std::int32_t) noexcept;
+
+		void jobs(std::uint8_t const* jobs, std::size_t size) noexcept;
+		std::vector<job> const& jobs() const noexcept;
+
 		/**
 		 * Updates
 		 */
@@ -103,6 +109,9 @@ class Device{
 
 		Value<int64_t>		uptime_;
 		Value<value_time>	rtc_time_;
+		std::int32_t 		fuse_ = 0;
+
+		std::vector<job>	jobs_;
 };
 
 #endif /* AGRO_DAEMON_DEVICE_HPP__ */

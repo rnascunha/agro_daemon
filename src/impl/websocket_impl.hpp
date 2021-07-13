@@ -13,21 +13,41 @@
 
 #include <fstream>
 
+static constexpr const std::size_t image_name_max_size = 30;
+
 template<typename Stream>
 void get_image_file(Stream& stream,
 		const char* first_block, std::size_t block_size,
 		std::filesystem::path const& images_path) noexcept
 {
 	std::size_t name_size = (std::uint8_t)first_block[0];
-	std::string name(&first_block[1], name_size);
+	if(name_size >= image_name_max_size)
+	{
+		std::stringstream ss;
+		ss << "size=" << name_size << "/max=" << (image_name_max_size - 1);
+		Websocket<false>::write_all(Message::make_info(Message::info::warning,
+				Message::info_category::image, "Invalid image name size", ss.str().c_str()));
+		/**
+		 * Clear buffer
+		 */
+		char buffer[1024];
+		do
+		{
+			stream.read_some(boost::asio::buffer(buffer, 1024));
+		}
+		while(!stream.is_message_done());
+		return;
+	}
 
+	std::string name(&first_block[1], name_size);
 	std::string path = images_path;
 			path += "/";
 			path += name;
 
 	if(std::filesystem::exists(path))
 	{
-		Websocket<false>::write_all(Message::make_info(Message::info::error, "Image already uploaded"));
+		Websocket<false>::write_all(Message::make_info(Message::info::warning,
+				Message::info_category::image, "Image already uploaded", name.c_str()));
 		/**
 		 * Clear buffer
 		 */
@@ -51,6 +71,14 @@ void get_image_file(Stream& stream,
 	}
 	while(!stream.is_message_done());
 	t.close();
+
+	if(!check_image(path))
+	{
+		Websocket<false>::write_all(Message::make_info(Message::info::error,
+				Message::info_category::image, "Uploaded Image hash not match",
+				name.c_str()));
+		std::filesystem::remove(path);
+	}
 
 	Websocket<false>::write_all(Message::ota_image_list(ota_path()));
 }
@@ -111,7 +139,7 @@ read_handler(std::string data) noexcept
 		/**
 		 * Is a image
 		 */
-		std::cout << "Received binary: " << data.size() << "|" << data.length() << "\n";
+		std::cout << "Received binary: " << data.size() << "\n";
 		get_image_file(base_type::stream_,
 				data.data(), data.length(),
 				ota_path());

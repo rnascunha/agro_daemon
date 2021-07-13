@@ -78,6 +78,28 @@ class Value_List{
 		std::vector<value> list_;
 };
 
+struct job{
+	static constexpr const std::size_t packet_size = 7;
+	struct time{
+		std::uint8_t	hour = 0;
+		std::uint8_t	minute = 0;
+	};
+
+	job(std::uint8_t const* data)
+	 : time_before{data[0], data[1]},
+	   time_after{data[2], data[3]},
+	   dow{data[4]},
+	   priority{data[5]},
+	   active{data[6]}
+	   {}
+
+	time			time_before;
+	time			time_after;
+	std::uint8_t	dow;
+	std::uint8_t	priority;
+	std::uint8_t	active;
+};
+
 #include "impl/types_impl.hpp"
 
 #endif /* AGRO_MESH_DEVICE_TYPES_HPP__ */

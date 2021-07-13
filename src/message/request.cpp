@@ -36,6 +36,14 @@ static void process_rtc_time(Device_List& device_list,
 	Websocket<false>::write_all(device_rtc_time_to_json(dev));
 }
 
+static void process_fuse(Device_List& device_list,
+		mesh_addr_t const& host,
+		std::int32_t time) noexcept
+{
+	auto& dev = device_list.update_fuse(host, time);
+	Websocket<false>::write_all(device_fuse_to_json(dev));
+}
+
 static void process_uptime(Device_List& device_list,
 		mesh_addr_t const& host,
 		int64_t uptime) noexcept
@@ -55,6 +63,14 @@ static void process_ota(Device_List& device_list,
 		return;
 	}
 	Websocket<false>::write_all(device_ota_to_json(*dev, version));
+}
+
+static void process_get_jobs(Device_List& device_list,
+		mesh_addr_t const& host,
+		std::uint8_t const* data, std::size_t size) noexcept
+{
+	auto& dev = device_list.update_jobs(host, data, size);
+	Websocket<false>::write_all(device_jobs_to_json(dev));
 }
 
 static void request_response(
@@ -147,17 +163,95 @@ static void request_response(
 		}
 			break;
 		case requests::get_rtc:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "Get RTC error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::warning, host, p.c_str())
+				);
+				return;
+			}
 			process_rtc_time(device_list, host, *static_cast<const value_time*>(response.payload));
 			break;
 		case requests::update_rtc:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "RTC update error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::warning, host, p.c_str())
+				);
+				return;
+			}
 			Websocket<false>::write_all(make_info(info::success, host, "RTC update"));
+			break;
+		case requests::get_fuse:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "Get FUSE error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::warning, host, p.c_str())
+				);
+				return;
+			}
+			process_fuse(device_list, host, *static_cast<const int32_t*>(response.payload));
+			break;
+		case requests::update_fuse:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "Update FUSE error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::warning, host, p.c_str())
+				);
+				return;
+			}
+			Websocket<false>::write_all(make_info(info::success, host, "Fuse update"));
 			break;
 		case requests::get_ota:
 			process_ota(device_list, host,
 					std::string{static_cast<const char*>(response.payload), response.payload_len});
 			break;
 		case requests::update_ota:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "Update OTA error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::warning, host, p.c_str())
+				);
+				return;
+			}
 			Websocket<false>::write_all(make_info(info::info, host, "OTA update initiated"));
+			break;
+		case requests::send_job:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "Update JOB error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::error, host, p.c_str())
+				);
+				return;
+			}
+			Websocket<false>::write_all(make_info(info::info, host, "Jobs updated"));
+			break;
+		case requests::get_job:
+			if(CoAP::Message::is_error(response.mcode))
+			{
+				std::string p{static_cast<const char*>(response.payload), response.payload_len};
+				std::cerr << "Get JOB error[" << response.payload_len << "]: " << p << "\n";
+				Websocket<false>::write_all(
+						make_info(info::error, host, p.c_str())
+				);
+				return;
+			}
+			process_get_jobs(device_list, host, static_cast<std::uint8_t const*>(response.payload), response.payload_len);
+			break;
+		case requests::delete_job:
+			Websocket<false>::write_all(make_info(info::info, host, "Jobs deleted"));
 			break;
 		default:
 			break;
@@ -244,7 +338,7 @@ static void process_custom_request(rapidjson::Document const& d,
 
 	if(d.HasMember("payload") && !d["payload"].IsNull())
 	{
-		msg.payload = [](rapidjson::Document const& d, void* buf, std::size_t size){
+		msg.payload = [](rapidjson::Document const& d, void* buf, std::size_t size, std::error_code&){
 			const char* payload = d["payload"].GetString();
 			std::size_t s = std::strlen(payload);
 
@@ -270,7 +364,9 @@ static void send_request(
 
 	std::vector<CoAP::Message::Option::node> v;
 	for(auto const& op : msg.options)
+	{
 		v.emplace_back(op);
+	}
 
 	req.add_option(host);
 	for(auto& op : v)
@@ -282,7 +378,9 @@ static void send_request(
 	std::size_t size = 0;
 	if(msg.payload)
 	{
-		size = msg.payload(doc, buffer, engine::packet_size);
+		std::error_code ec;
+		size = msg.payload(doc, buffer, engine::packet_size, ec);
+		if(ec) return;
 		if(size > 0)
 		{
 			req.payload(buffer, size);

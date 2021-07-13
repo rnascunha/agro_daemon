@@ -4,24 +4,12 @@
 #include "../ota.hpp"
 #include "rapidjson/document.h"
 #include "../../ota/types.hpp"
-#include <ostream>
+#include "../../ota/ota.hpp"
 #include <fstream>
-#include <iomanip>
+
+#include "../../helper/sha256.hpp"
 
 namespace Message {
-
-static std::string sha256_string(const uint8_t *data)
-{
-	std::ostringstream hash;
-    for (int i = 0; i < 32; ++i)
-    {
-    	hash << std::hex
-    				<< std::setfill('0')
-    				<< std::setw(2)
-    				<< (int)data[i];
-    }
-    return hash.str();
-}
 
 template<typename Allocator>
 rapidjson::Value& make_image(std::string const& name,
@@ -53,22 +41,26 @@ rapidjson::Value& make_image_list(std::filesystem::path const& path,
 	data.SetArray();
 	for(auto const& f : std::filesystem::directory_iterator(path))
 	{
-		if(!std::filesystem::is_regular_file(f)) continue;
-
-		std::size_t size = std::filesystem::file_size(f);
-		if(size < (sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t)))
-			continue;
-
-		std::ifstream ifs{f.path(), std::ios::binary};
-		if(!ifs)
-		{
-			continue;
-		}
-
 		esp_app_desc_t image_description;
-		ifs.seekg(sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t), ifs.beg);
-		ifs.read((char*)&image_description, sizeof(esp_app_desc_t));
-		ifs.close();
+		if(!get_image_description(f.path(), image_description)) continue;
+		std::size_t size = std::filesystem::file_size(f);
+
+//		if(!std::filesystem::is_regular_file(f)) continue;
+//
+//		std::size_t size = std::filesystem::file_size(f);
+//		if(size < (sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t)))
+//			continue;
+//
+//		std::ifstream ifs{f.path(), std::ios::binary};
+//		if(!ifs)
+//		{
+//			continue;
+//		}
+//
+//		esp_app_desc_t image_description;
+//		ifs.seekg(sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t), ifs.beg);
+//		ifs.read((char*)&image_description, sizeof(esp_app_desc_t));
+//		ifs.close();
 
 		std::string name = f.path();
 		name = name.substr(name.find_last_of('/') + 1);

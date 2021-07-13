@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include "../ota/ota.hpp"
+#include <iostream>
 
 #include "coap-te-debug.hpp"
 
@@ -25,6 +26,7 @@ void get_ota_handler(engine::message const& request,
 
 	if(!std::filesystem::exists(p) || !std::filesystem::is_regular_file(p))
 	{
+		std::cout << "File not found: " << p << "\n";
 		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(code::internal_server_error)
@@ -93,6 +95,7 @@ void get_ota_handler(engine::message const& request,
 	std::ifstream ifs{p, std::ios::binary};
 	if(!ifs)
 	{
+		std::cout << "File not found: " << p << "\n";
 		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(code::internal_server_error)

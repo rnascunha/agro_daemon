@@ -20,6 +20,10 @@ static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocato
 template<typename Allocator>
 static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
+static void make_job(rapidjson::Value& data, job const&, Allocator& alloc) noexcept;
+template<typename Allocator>
+static void make_jobs(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
+template<typename Allocator>
 static void make_device_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 
 void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
@@ -222,6 +226,52 @@ std::string device_rtc_time_to_json(Device const& dev) noexcept
 	return std::string{stringify(doc)};
 }
 
+void device_fuse_to_json(rapidjson::Document& doc, Device const& dev) noexcept
+{
+	doc.SetObject();
+	add_type(doc, type::device);
+	add_device(doc, dev.mac());
+
+	rapidjson::Value data;
+	data.SetObject();
+	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	rapidjson::Value v;
+	data.AddMember("fuse", dev.fuse(), doc.GetAllocator());
+
+	add_data(doc, data);
+}
+
+std::string device_fuse_to_json(Device const& dev) noexcept
+{
+	rapidjson::Document doc;
+	device_fuse_to_json(doc, dev);
+
+	return std::string{stringify(doc)};
+
+}
+
+void device_jobs_to_json(rapidjson::Document& doc, Device const& dev) noexcept
+{
+	doc.SetObject();
+	add_type(doc, type::device);
+	add_device(doc, dev.mac());
+
+	rapidjson::Value data;
+	data.SetObject();
+	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_jobs(data, dev, doc.GetAllocator());
+
+	add_data(doc, data);
+}
+
+std::string device_jobs_to_json(Device const& dev) noexcept
+{
+	rapidjson::Document doc;
+	device_jobs_to_json(doc, dev);
+
+	return std::string{stringify(doc)};
+}
+
 void device_ota_to_json(rapidjson::Document& doc,
 		Device const& dev,
 		std::string const& version) noexcept
@@ -391,6 +441,46 @@ static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& all
 	rapidjson::Value gpios_v;
 	make_value_list_array(gpios_v, dev.gpios(), alloc);
 	data.AddMember("gpios", gpios_v, alloc);
+}
+
+template<typename Allocator>
+static void make_job(rapidjson::Value& data, job const& jo, Allocator& alloc) noexcept
+{
+	data.SetObject();
+
+	rapidjson::Value timei;
+	timei.SetObject();
+	timei.AddMember("hour", jo.time_before.hour, alloc);
+	timei.AddMember("minute", jo.time_before.minute, alloc);
+
+	data.AddMember("time_init", timei, alloc);
+
+	rapidjson::Value timee;
+	timee.SetObject();
+	timee.AddMember("hour", jo.time_after.hour, alloc);
+	timee.AddMember("minute", jo.time_after.minute, alloc);
+
+	data.AddMember("time_end", timee, alloc);
+
+	data.AddMember("dow", jo.dow, alloc);
+	data.AddMember("priority", jo.priority, alloc);
+	data.AddMember("active", jo.active, alloc);
+}
+
+template<typename Allocator>
+static void make_jobs(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
+{
+	auto const& jobs = dev.jobs();
+	rapidjson::Value array;
+	array.SetArray();
+	for(auto const& job : jobs)
+	{
+		rapidjson::Value j;
+		make_job(j, job, alloc);
+
+		array.PushBack(j, alloc);
+	}
+	data.AddMember("job", array, alloc);
 }
 
 template<typename Allocator>

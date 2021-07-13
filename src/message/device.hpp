@@ -35,6 +35,12 @@ std::string device_uptime_to_json(Device const& dev) noexcept;
 void device_rtc_time_to_json(rapidjson::Document& doc, Device const& dev) noexcept;
 std::string device_rtc_time_to_json(Device const& dev) noexcept;
 
+void device_fuse_to_json(rapidjson::Document& doc, Device const& dev) noexcept;
+std::string device_fuse_to_json(Device const& dev) noexcept;
+
+void device_jobs_to_json(rapidjson::Document& doc, Device const& dev) noexcept;
+std::string device_jobs_to_json(Device const& dev) noexcept;
+
 void device_ota_to_json(rapidjson::Document& doc, Device const& dev, std::string const& version) noexcept;
 std::string device_ota_to_json(Device const& dev, std::string const& version) noexcept;
 

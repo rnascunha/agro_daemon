@@ -26,6 +26,8 @@ class Device_List{
 		Device& update_ac_load(mesh_addr_t const&, unsigned index, bool value) noexcept;
 		Device& update_rtc_time(mesh_addr_t const&, value_time) noexcept;
 		Device& update_uptime(mesh_addr_t const&, int64_t) noexcept;
+		Device& update_fuse(mesh_addr_t const&, std::int32_t) noexcept;
+		Device& update_jobs(mesh_addr_t const&, std::uint8_t const*, std::size_t) noexcept;
 
 		Device& update(mesh_addr_t const&, endpoint const&, Resource::status const&) noexcept;
 		Device& update(mesh_addr_t const&, endpoint const&, Resource::config const&) noexcept;

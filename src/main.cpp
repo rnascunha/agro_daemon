@@ -24,7 +24,9 @@ void print_error(ErrorType ec, const char* what = "")
 			<< ec.message() << " [" << what << "]\n";
 }
 
-int main()
+#include "helper/sha256.hpp"
+
+int main(int argc, char** argv)
 {
 	init_ota();
 

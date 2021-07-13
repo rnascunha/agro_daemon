@@ -2,22 +2,37 @@
 #define AGRO_DAEMON_MESSAGE_INFO_HPP__
 
 #include "rapidjson/document.h"
-#include "types.hpp"
 #include "make.hpp"
 #include "../device/types.hpp"
 #include <string>
 
 namespace Message{
 
-void add_info(rapidjson::Document& doc, info inf) noexcept;
+/**
+ * Info
+ */
+enum class info{
+	error = 0,
+	warning,
+	success,
+	info
+};
 
-void make_info(rapidjson::Document& doc, info inf, const char* message) noexcept;
-void make_info(rapidjson::Document& doc, info inf, mesh_addr_t const& addr, const char* message) noexcept;
-void make_info(rapidjson::Document& doc, info inf, CoAP::Message::Option::option const& addr, const char* message) noexcept;
+enum class info_category{
+	general = 0,
+	image,
+	device
+};
 
-std::string make_info(info inf, const char* message) noexcept;
-std::string make_info(info inf, mesh_addr_t const& addr, const char* message) noexcept;
-std::string make_info(info inf, CoAP::Message::Option::option const& addr, const char* message) noexcept;
+void make_info(rapidjson::Document&, info, const char*, const char* = nullptr) noexcept;
+void make_info(rapidjson::Document&, info, info_category, const char*, const char* = nullptr) noexcept;
+void make_info(rapidjson::Document&, info, mesh_addr_t const& addr, const char*, const char* = nullptr) noexcept;
+void make_info(rapidjson::Document&, info, CoAP::Message::Option::option const& addr, const char*, const char* = nullptr) noexcept;
+
+std::string make_info(info, info_category, const char*, const char* = nullptr) noexcept;
+std::string make_info(info, const char*, const char* = nullptr) noexcept;
+std::string make_info(info, mesh_addr_t const&, const char*, const char* = nullptr) noexcept;
+std::string make_info(info, CoAP::Message::Option::option const& addr, const char*, const char* = nullptr) noexcept;
 
 }//Message
 

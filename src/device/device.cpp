@@ -124,6 +124,35 @@ Value<value_time> const& Device::rtc_time() const noexcept
 	return rtc_time_;
 }
 
+std::int32_t Device::fuse() const noexcept
+{
+	return fuse_;
+}
+
+void Device::fuse(std::int32_t f) noexcept
+{
+	fuse_ = f;
+}
+
+void Device::jobs(std::uint8_t const* jobs, std::size_t size) noexcept
+{
+	if(size % job::packet_size) return;
+
+	jobs_.clear();
+	std::size_t offset = 0;
+	while(size)
+	{
+		jobs_.emplace_back(jobs + offset);
+		size -= job::packet_size;
+		offset += job::packet_size;
+	}
+}
+
+std::vector<job> const& Device::jobs() const noexcept
+{
+	return jobs_;
+}
+
 Value<int64_t> const& Device::uptime() const noexcept
 {
 	return uptime_;

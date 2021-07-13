@@ -10,6 +10,7 @@
 #include "rapidjson/document.h"
 #include "../device/types.hpp"
 #include "coap-te.hpp"
+#include "../error.hpp"
 
 
 namespace Message{
@@ -139,13 +140,18 @@ enum class requests{
 	uptime,      /**< uptime */      /**< uptime */
 	get_rtc,     /**< get_rtc */     /**< get_rtc */
 	update_rtc,  /**< update_rtc */  /**< update_rtc */
+	get_fuse,
+	update_fuse,
 	sensor,      /**< sensor */      /**< sensor */
 	route,       /**< route */       /**< route */
 	board,       /**< board */       /**< board */
 	config,      /**< config */      /**< config */
 	full_config, /**< full_config */ /**< full_config */
 	get_ota,     /**< get_ota */     /**< get_ota */
-	update_ota   /**< update_ota */  /**< update_ota */
+	update_ota,   /**< update_ota */  /**< update_ota */
+	send_job,
+	get_job,
+	delete_job,
 };
 
 struct request_message
@@ -153,7 +159,7 @@ struct request_message
 	CoAP::Message::code		method;
 	std::vector<CoAP::Message::Option::option> options;
 	CoAP::Message::type		mtype = CoAP::Message::type::confirmable;
-	std::function<std::size_t(rapidjson::Document const&, void*, std::size_t)> payload = nullptr;
+	std::function<std::size_t(rapidjson::Document const&, void*, std::size_t, std::error_code&)> payload = nullptr;
 };
 
 struct request_config{
@@ -203,7 +209,7 @@ request_message const req_update_rtc = {
 		{CoAP::Message::Option::code::uri_path, "rtc"}
 	},
 	CoAP::Message::type::confirmable,
-	[](rapidjson::Document const&, void* buf, std::size_t size) -> auto
+	[](rapidjson::Document const&, void* buf, std::size_t size, std::error_code&) -> auto
 	{
 		std::uint32_t time = get_time();
 		std::memcpy(buf, &time, sizeof(std::uint32_t));
@@ -247,7 +253,7 @@ request_message const req_update_ota = {
 		{CoAP::Message::Option::code::uri_path, "ota"},
 	},
 	CoAP::Message::type::confirmable,
-	[](rapidjson::Document const& doc, void* buf, std::size_t size) -> auto
+	[](rapidjson::Document const& doc, void* buf, std::size_t size, std::error_code&) -> auto
 	{
 		std::size_t s = 0;
 		if(doc.HasMember("payload") && doc["payload"].IsString())
@@ -257,6 +263,130 @@ request_message const req_update_ota = {
 			std::memcpy(buf, c, s);
 		}
 		return s;
+	}
+};
+
+request_message const req_send_job = {
+	CoAP::Message::code::put,
+	{
+		{CoAP::Message::Option::code::uri_path, "job"},
+	},
+	CoAP::Message::type::confirmable,
+	[](rapidjson::Document const& doc, void* buf, std::size_t, std::error_code& ec) -> std::size_t
+	{
+		if(doc.HasMember("payload") && doc["payload"].IsArray())
+		{
+			std::size_t offset = 0;
+			rapidjson::Value const& sch_arr = doc["payload"];
+			for(auto const& sch : sch_arr.GetArray())
+			{
+				std::uint8_t pay[7];
+
+				if(sch.HasMember("init") && sch["init"].IsObject())
+				{
+					rapidjson::Value const& init = sch["init"];
+					if(init.HasMember("hour") && init["hour"].IsUint() &&
+						init.HasMember("minute") && init["minute"].IsUint())
+					{
+						pay[0] = static_cast<std::uint8_t>(init["hour"].GetUint());
+						pay[1] = static_cast<std::uint8_t>(init["minute"].GetUint());
+					} else {
+						ec = make_error_code(Error::ill_formed);
+						return 0;
+					}
+				}
+				else return 0;
+				if(sch.HasMember("end") && sch["end"].IsObject())
+				{
+					rapidjson::Value const& end = sch["end"];
+					if(end.HasMember("hour") && end["hour"].IsUint() &&
+						end.HasMember("minute") && end["minute"].IsUint())
+					{
+						pay[2] = static_cast<std::uint8_t>(end["hour"].GetUint());
+						pay[3] = static_cast<std::uint8_t>(end["minute"].GetUint());
+					} else {
+						ec = make_error_code(Error::ill_formed);
+						return 0;
+					}
+				}
+				else {
+					ec = make_error_code(Error::ill_formed);
+					return 0;
+				}
+				if(sch.HasMember("dow") && sch["dow"].IsUint())
+				{
+					pay[4] = sch["dow"].GetUint();
+				} else {
+					ec = make_error_code(Error::ill_formed);
+					return 0;
+				}
+				if(sch.HasMember("priority") && sch["priority"].IsUint())
+				{
+					pay[5] = sch["priority"].GetUint();
+				} else {
+					ec = make_error_code(Error::ill_formed);
+					return 0;
+				}
+				if(sch.HasMember("active") && sch["active"].IsUint())
+				{
+					pay[6] = sch["active"].GetUint();
+				} else {
+					ec = make_error_code(Error::ill_formed);
+					return 0;
+				}
+
+				std::memcpy(static_cast<std::uint8_t*>(buf) + offset, pay, 7);
+				offset += 7;
+			}
+			return offset;
+		}
+		ec = make_error_code(Error::ill_formed);
+		return 0;
+	}
+};
+
+request_message const req_get_job = {
+	CoAP::Message::code::get,
+	{
+		{CoAP::Message::Option::code::uri_path, "job"},
+	}
+};
+
+request_message const req_del_job = {
+	CoAP::Message::code::cdelete,
+	{
+		{CoAP::Message::Option::code::uri_path, "job"},
+	}
+};
+
+static CoAP::Message::content_format fuse_get_content = CoAP::Message::content_format::application_octet_stream;
+static CoAP::Message::content_format fuse_update_content = CoAP::Message::content_format::application_octet_stream;
+
+request_message const req_get_fuse = {
+	CoAP::Message::code::get,
+	{
+		{CoAP::Message::Option::code::uri_path, "fuse"},
+		{fuse_get_content, true}
+	}
+};
+
+request_message const req_update_fuse = {
+	CoAP::Message::code::put,
+	{
+		{CoAP::Message::Option::code::uri_path, "fuse"},
+		{fuse_update_content}
+	},
+	CoAP::Message::type::confirmable,
+	[](rapidjson::Document const& doc, void* buf, std::size_t size, std::error_code& ec) -> std::size_t
+	{
+		if(doc.HasMember("payload") && doc["payload"].IsInt())
+		{
+			std::int32_t c = doc["payload"].GetInt();
+			std::memcpy(buf, &c, sizeof(std::int32_t));
+			return sizeof(std::int32_t);
+		}
+		ec = make_error_code(Error::invalid_value);
+		return 0;
 	}
 };
 
@@ -272,6 +402,8 @@ constexpr const request_config rconfig[] = {
 	{requests::uptime, "uptime", &req_uptime},
 	{requests::get_rtc, "get_rtc", &req_get_rtc},
 	{requests::update_rtc, "update_rtc", &req_update_rtc},
+	{requests::get_fuse, "get_fuse", &req_get_fuse},
+	{requests::update_fuse, "update_fuse", &req_update_fuse},
 	{requests::sensor, "sensor", &req_sensor},
 	{requests::route, "route", &req_route},
 	{requests::board, "board", &req_board},
@@ -279,6 +411,9 @@ constexpr const request_config rconfig[] = {
 	{requests::full_config, "full_config", &req_full_config},
 	{requests::get_ota, "get_ota_version", &req_get_ota},
 	{requests::update_ota, "update_ota", &req_update_ota},
+	{requests::send_job, "send_job", &req_send_job},
+	{requests::get_job, "get_job", &req_get_job},
+	{requests::delete_job, "del_job", &req_del_job}
 };
 
 inline constexpr request_config const* get_requests_config(requests t) noexcept
@@ -298,41 +433,6 @@ inline constexpr request_config const* get_requests_config(const char* t) noexce
 	}
 	return nullptr;
 }
-
-/**
- * Info
- */
-enum class info{
-	error = 0,
-	warning,
-	success,
-	info
-};
-
-constexpr const config<info> info_config[] = {
-	{info::error, "error"},
-	{info::warning, "warning"},
-	{info::success, "success"},
-	{info::info, "info"},
-};
-
-inline constexpr config<info> const* get_config(info t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(info_config) / sizeof(info_config[0]); i++)
-	{
-		if(t == info_config[i].mtype) return &info_config[i];
-	}
-	return nullptr;
-}
-
-//inline constexpr config<info> const* get_config(const char* t) noexcept
-//{
-//	for(std::size_t i = 0; i < sizeof(info_config) / sizeof(info_config[0]); i++)
-//	{
-//		if(std::strcmp(t, info_config[i].name) == 0) return &info_config[i];
-//	}
-//	return nullptr;
-//}
 
 }//Message
 

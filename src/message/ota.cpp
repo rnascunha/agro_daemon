@@ -2,6 +2,7 @@
 #include "make.hpp"
 #include "../ota/ota.hpp"
 #include "../websocket.hpp"
+#include "../helper/sha256.hpp"
 
 namespace Message{
 

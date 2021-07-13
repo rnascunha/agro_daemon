@@ -15,7 +15,7 @@ endfunction()
 set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
-set(USE_SSL				0)
+set(USE_SSL				1)
 
 #print_vars()
 
@@ -220,10 +220,11 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${RESOURCE_DIR}/init.cpp
 			${RESOURCE_SRC}
 			${OTA_DIR}/ota.cpp
+			src/helper/sha256.cpp
 			)
 
 if(USE_SSL)
-	list(APPEND MAIN_SRC ${SRC_DIR}/helpers/load_certificate.cpp)
+#	list(APPEND MAIN_SRC ${SRC_DIR}/helpers/load_certificate.cpp)
 endif()
 
 add_executable(${PROJECT_NAME} ${MAIN_SRC})

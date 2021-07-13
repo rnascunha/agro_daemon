@@ -119,6 +119,36 @@ Device& Device_List::update_uptime(mesh_addr_t const& addr, int64_t uptime) noex
 	return resp->second;
 }
 
+Device& Device_List::update_fuse(mesh_addr_t const& addr, std::int32_t fuse) noexcept
+{
+	auto dev = list_.find(addr);
+	if(dev != list_.end())
+	{
+		dev->second.fuse(fuse);
+		return dev->second;
+	}
+
+	auto resp = list_.emplace(addr, Device{addr}).first;
+	resp->second.fuse(fuse);
+
+	return resp->second;
+}
+
+Device& Device_List::update_jobs(mesh_addr_t const& addr, std::uint8_t const* data, std::size_t size) noexcept
+{
+	auto dev = list_.find(addr);
+	if(dev != list_.end())
+	{
+		dev->second.jobs(data, size);
+		return dev->second;
+	}
+
+	auto resp = list_.emplace(addr, Device{addr}).first;
+	resp->second.jobs(data, size);
+
+	return resp->second;
+}
+
 Device& Device_List::update(mesh_addr_t const& addr,
 		endpoint const& ep,
 		Resource::status const& sts) noexcept
