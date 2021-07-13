@@ -37,7 +37,7 @@ static void packet_response(
 		break;
 		case requests::config: {
 			std::error_code ec;
-			Resource::process_board(device_list,
+			Resource::process_config(device_list,
 					ep, op,
 					response.payload, response.payload_len,
 					ec);
