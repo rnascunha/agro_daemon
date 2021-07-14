@@ -33,19 +33,11 @@ static void get_rtc_response(
 	process_rtc_time(device_list, host, *static_cast<const value_time*>(response.payload));
 }
 
-static void process_fuse(Device_List& device_list,
-		mesh_addr_t const& host,
-		std::int32_t time) noexcept
-{
-	auto& dev = device_list.update_fuse(host, time);
-	Websocket<false>::write_all(device_fuse_to_json(dev));
-}
-
 static void update_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
 		requests,
-		CoAP::Message::message const&,
+		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
 		Device_List& device_list) noexcept
@@ -59,7 +51,16 @@ static void update_rtc_response(
 		);
 		return;
 	}
-	Websocket<false>::write_all(make_info(info::success, host, "RTC update"));
+	process_rtc_time(device_list, host, *static_cast<const value_time*>(request.payload));
+//	Websocket<false>::write_all(make_info(info::success, host, "RTC update"));
+}
+
+static void process_fuse(Device_List& device_list,
+		mesh_addr_t const& host,
+		std::int32_t time) noexcept
+{
+	auto& dev = device_list.update_fuse(host, time);
+	Websocket<false>::write_all(device_fuse_to_json(dev));
 }
 
 static void get_fuse_response(
@@ -87,7 +88,7 @@ static void update_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
 		requests,
-		CoAP::Message::message const&,
+		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
 		Device_List& device_list) noexcept
@@ -101,7 +102,8 @@ static void update_fuse_response(
 		);
 		return;
 	}
-	Websocket<false>::write_all(make_info(info::success, host, "Fuse update"));
+	process_fuse(device_list, host, *static_cast<const int32_t*>(request.payload));
+//	Websocket<false>::write_all(make_info(info::success, host, "Fuse update"));
 }
 
 static std::size_t rtc_update_payload(rapidjson::Document const&, void* buf, std::size_t size, std::error_code&)

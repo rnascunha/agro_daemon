@@ -4,7 +4,7 @@
 
 namespace Message{
 
-static void process_get_jobs(Device_List& device_list,
+static void process_jobs(Device_List& device_list,
 		mesh_addr_t const& host,
 		std::uint8_t const* data, std::size_t size) noexcept
 {
@@ -16,10 +16,10 @@ static void send_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
 		requests,
-		CoAP::Message::message const&,
+		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List&) noexcept
+		Device_List& device_list) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
@@ -30,7 +30,7 @@ static void send_job_response(
 		);
 		return;
 	}
-	Websocket<false>::write_all(make_info(info::info, host, "Jobs updated"));
+	process_jobs(device_list, host, static_cast<std::uint8_t const*>(request.payload), request.payload_len);
 }
 
 static void get_job_response(
@@ -51,7 +51,7 @@ static void get_job_response(
 		);
 		return;
 	}
-	process_get_jobs(device_list, host, static_cast<std::uint8_t const*>(response.payload), response.payload_len);
+	process_jobs(device_list, host, static_cast<std::uint8_t const*>(response.payload), response.payload_len);
 }
 
 static void delete_job_response(
@@ -61,9 +61,9 @@ static void delete_job_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const&,
 		CoAP::Transmission::status_t,
-		Device_List&) noexcept
+		Device_List& device_list) noexcept
 {
-	Websocket<false>::write_all(make_info(info::info, host, "Jobs deleted"));
+	process_jobs(device_list, host, static_cast<std::uint8_t const*>(nullptr), 0);
 }
 
 static std::size_t send_job_payload(rapidjson::Document const& doc, void* buf, std::size_t, std::error_code& ec)
