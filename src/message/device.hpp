@@ -44,6 +44,9 @@ std::string device_jobs_to_json(Device const& dev) noexcept;
 void device_ota_to_json(rapidjson::Document& doc, Device const& dev, std::string const& version) noexcept;
 std::string device_ota_to_json(Device const& dev, std::string const& version) noexcept;
 
+void device_apps_to_json(rapidjson::Document& doc, Device const& dev) noexcept;
+std::string device_apps_to_json(Device const& dev) noexcept;
+
 void device_to_json(rapidjson::Document& doc, Device const& dev) noexcept;
 std::string device_to_json(Device const& dev) noexcept;
 

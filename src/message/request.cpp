@@ -441,7 +441,7 @@ void process_request(rapidjson::Document const& doc,
 		return;
 	}
 
-	if(doc.HasMember("device") && !doc["device"].IsString())
+	if(!doc.HasMember("device") || !doc["device"].IsString())
 	{
 		std::cerr << "Request device not found\n";
 		return;

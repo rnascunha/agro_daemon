@@ -192,6 +192,7 @@ set(RESOURCE_DIR	${SRC_DIR}/resources)
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(DEVICE_DIR		${SRC_DIR}/device)
 set(OTA_DIR			${SRC_DIR}/ota)
+set(APP_DIR			${SRC_DIR}/app)
 set(REQUEST_DIR		${MESSAGE_DIR}/request)
 
 set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
@@ -202,6 +203,7 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/sensor_data.cpp
 					${RESOURCE_DIR}/time.cpp
 					${RESOURCE_DIR}/ota.cpp
+					${RESOURCE_DIR}/app.cpp
 					${RESOURCE_DIR}/info.cpp)
 					
 set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
@@ -210,6 +212,7 @@ set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
 					${REQUEST_DIR}/packet.cpp
 					${REQUEST_DIR}/system.cpp
 					${REQUEST_DIR}/ota.cpp
+					${REQUEST_DIR}/app.cpp
 					${REQUEST_DIR}/time.cpp)
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
@@ -220,6 +223,7 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${MESSAGE_DIR}/request.cpp
 			${MESSAGE_DIR}/process.cpp
 			${MESSAGE_DIR}/ota.cpp
+			${MESSAGE_DIR}/app.cpp
 			${MESSAGE_DIR}/info.cpp
 			${DEVICE_DIR}/device.cpp
 			${DEVICE_DIR}/helper.cpp
@@ -230,6 +234,7 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${RESOURCE_SRC}
 			${REQUEST_SRC}
 			${OTA_DIR}/ota.cpp
+			${APP_DIR}/app.cpp
 			src/helper/sha256.cpp
 			)
 

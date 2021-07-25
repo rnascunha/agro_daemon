@@ -45,23 +45,6 @@ rapidjson::Value& make_image_list(std::filesystem::path const& path,
 		if(!get_image_description(f.path(), image_description)) continue;
 		std::size_t size = std::filesystem::file_size(f);
 
-//		if(!std::filesystem::is_regular_file(f)) continue;
-//
-//		std::size_t size = std::filesystem::file_size(f);
-//		if(size < (sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t) + sizeof(esp_app_desc_t)))
-//			continue;
-//
-//		std::ifstream ifs{f.path(), std::ios::binary};
-//		if(!ifs)
-//		{
-//			continue;
-//		}
-//
-//		esp_app_desc_t image_description;
-//		ifs.seekg(sizeof(esp_image_header_t) + sizeof(esp_image_segment_header_t), ifs.beg);
-//		ifs.read((char*)&image_description, sizeof(esp_app_desc_t));
-//		ifs.close();
-
 		std::string name = f.path();
 		name = name.substr(name.find_last_of('/') + 1);
 

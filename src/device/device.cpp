@@ -153,6 +153,11 @@ std::vector<job> const& Device::jobs() const noexcept
 	return jobs_;
 }
 
+std::vector<app> const& Device::apps() const noexcept
+{
+	return apps_;
+}
+
 Value<int64_t> const& Device::uptime() const noexcept
 {
 	return uptime_;
@@ -288,4 +293,20 @@ void Device::update_rtc_time(value_time time) noexcept
 void Device::update_endpoint(endpoint const& ep) noexcept
 {
 	ep_ = ep;
+}
+
+void Device::add_app(std::string const& name, std::size_t size) noexcept
+{
+	auto it = std::find_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; });
+	if(it == apps_.end())
+	{
+		apps_.emplace_back(name, size);
+		return;
+	}
+	it->size = size;
+}
+
+void Device::delete_app(std::string const& name) noexcept
+{
+	apps_.erase(std::remove_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; }), apps_.end());
 }

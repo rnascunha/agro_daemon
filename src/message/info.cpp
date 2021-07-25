@@ -13,6 +13,7 @@ static constexpr const config<info> info_config[] = {
 static constexpr const config<info_category> info_category_config[] = {
 	{info_category::general, "general"},
 	{info_category::image, "image"},
+	{info_category::app, "app"},
 	{info_category::device, "device"},
 };
 

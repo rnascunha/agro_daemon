@@ -100,6 +100,14 @@ struct job{
 	std::uint8_t	active;
 };
 
+struct app{
+	app(std::string const& app_name, std::size_t app_size)
+		: name(app_name), size(app_size){}
+
+	std::string name;
+	std::size_t size;
+};
+
 #include "impl/types_impl.hpp"
 
 #endif /* AGRO_MESH_DEVICE_TYPES_HPP__ */

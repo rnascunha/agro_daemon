@@ -3,7 +3,8 @@
 
 namespace Resource{
 
-void init(engine& coap_engine, Device_List& list, std::vector<engine::resource_node>& vresource) noexcept
+void init(engine& coap_engine, Device_List& list,
+		std::vector<engine::resource_node>& vresource) noexcept
 {
 	vresource.emplace_back("board",
 		"title='Get board configuration'",
@@ -53,11 +54,14 @@ void init(engine& coap_engine, Device_List& list, std::vector<engine::resource_n
 	vresource.emplace_back("ota",
 			"title='OTA image'",
 			get_ota_handler);
+	vresource.emplace_back("app",
+			"title='Apps'",
+			get_app_handler);
 	vresource.emplace_back("info",
-				"title='Device info'",
-				nullptr,
-				nullptr,
-				put_info_handler);
+			"title='Device info'",
+			nullptr,
+			nullptr,
+			put_info_handler);
 
 	for(auto& res : vresource)
 	{

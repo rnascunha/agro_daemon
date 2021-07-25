@@ -13,6 +13,7 @@
 #include "resources/init.hpp"
 
 #include "ota/ota.hpp"
+#include "app/app.hpp"
 
 #define WEBSOCKET_ADDRESS		"0.0.0.0"
 #define WEBSOCKET_PORT			8081
@@ -29,6 +30,7 @@ void print_error(ErrorType ec, const char* what = "")
 int main(int argc, char** argv)
 {
 	init_ota();
+	init_app();
 
 	boost::system::error_code ec;
 	auto const address = boost::asio::ip::make_address(WEBSOCKET_ADDRESS, ec);

@@ -57,6 +57,7 @@ class Device{
 
 		void jobs(std::uint8_t const* jobs, std::size_t size) noexcept;
 		std::vector<job> const& jobs() const noexcept;
+		std::vector<app> const& apps() const noexcept;
 
 		/**
 		 * Updates
@@ -74,6 +75,8 @@ class Device{
 		bool update_ac_load(unsigned index, bool value) noexcept;
 		void update_uptime(int64_t) noexcept;
 		void update_rtc_time(value_time) noexcept;
+		void add_app(std::string const&, std::size_t) noexcept;
+		void delete_app(std::string const&) noexcept;
 	private:
 		void update_endpoint(endpoint const& ep) noexcept;
 
@@ -112,6 +115,7 @@ class Device{
 		std::int32_t 		fuse_ = 0;
 
 		std::vector<job>	jobs_;
+		std::vector<app>	apps_;
 };
 
 #endif /* AGRO_DAEMON_DEVICE_HPP__ */

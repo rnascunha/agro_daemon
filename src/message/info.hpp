@@ -21,6 +21,7 @@ enum class info{
 enum class info_category{
 	general = 0,
 	image,
+	app,
 	device
 };
 

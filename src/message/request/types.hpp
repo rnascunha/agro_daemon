@@ -28,6 +28,10 @@ enum class requests{
 	send_job,
 	get_job,
 	delete_job,
+	get_app,
+	send_app,
+	run_app,
+	delete_app
 };
 
 struct request_message
@@ -74,6 +78,10 @@ extern const request_config get_fuse;
 extern const request_config update_fuse;
 extern const request_config get_ota;
 extern const request_config update_ota;
+extern const request_config get_app;
+extern const request_config send_app;
+extern const request_config execute_app;
+extern const request_config delete_app;
 
 const request_config rconfig[] = {
 	custom,
@@ -99,6 +107,10 @@ const request_config rconfig[] = {
 	update_fuse,
 	get_ota,
 	update_ota,
+	get_app,
+	send_app,
+	execute_app,
+	delete_app
 };
 
 inline constexpr request_config const* get_requests_config(requests t) noexcept

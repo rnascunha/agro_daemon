@@ -24,6 +24,8 @@ static void make_job(rapidjson::Value& data, job const&, Allocator& alloc) noexc
 template<typename Allocator>
 static void make_jobs(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
+static void make_apps(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
+template<typename Allocator>
 static void make_device_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 
 void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
@@ -297,6 +299,29 @@ std::string device_ota_to_json(Device const& dev, std::string const& version) no
 	return std::string{stringify(doc)};
 }
 
+void device_apps_to_json(rapidjson::Document& doc, Device const& dev) noexcept
+{
+	doc.SetObject();
+	add_type(doc, type::device);
+	add_device(doc, dev.mac());
+
+	rapidjson::Value data;
+	data.SetObject();
+	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	rapidjson::Value v;
+	make_apps(data, dev, doc.GetAllocator());
+
+	add_data(doc, data);
+}
+
+std::string device_apps_to_json(Device const& dev) noexcept
+{
+	rapidjson::Document doc;
+	device_apps_to_json(doc, dev);
+
+	return std::string{stringify(doc)};
+}
+
 void device_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
@@ -481,6 +506,32 @@ static void make_jobs(rapidjson::Value& data, Device const& dev, Allocator& allo
 		array.PushBack(j, alloc);
 	}
 	data.AddMember("job", array, alloc);
+}
+
+template<typename Allocator>
+static void make_app(rapidjson::Value& data, app const& app, Allocator& alloc) noexcept
+{
+	data.SetObject();
+
+	data.AddMember("name", rapidjson::Value(app.name.c_str(), alloc).Move(), alloc);
+	data.AddMember("size", app.size, alloc);
+}
+
+template<typename Allocator>
+static void make_apps(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
+{
+	auto const& apps = dev.apps();
+
+	rapidjson::Value array;
+	array.SetArray();
+	for(auto const& app : apps)
+	{
+		rapidjson::Value j;
+		make_app(j, app, alloc);
+
+		array.PushBack(j, alloc);
+	}
+	data.AddMember("apps", array, alloc);
 }
 
 template<typename Allocator>

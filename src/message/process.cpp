@@ -51,6 +51,9 @@ void process(engine& coap_engine,
 		case Message::type::image:
 			process_image(d);
 			break;
+		case Message::type::app:
+			process_app(d);
+			break;
 		case Message::type::info:
 			break;
 		default:
