@@ -1,6 +1,8 @@
 #include "types.hpp"
 #include <iostream>
 #include "../../websocket.hpp"
+#include "../../app/app.hpp"
+#include "../../error.hpp"
 
 namespace Message{
 
@@ -111,14 +113,16 @@ static void exec_app_response(
 		return;
 	}
 
+	std::int32_t arg = *static_cast<const int*>(request.payload);
+	std::string app{static_cast<const char*>(request.payload) + sizeof(std::int32_t), request.payload_len - sizeof(std::int32_t)};
 	std::stringstream ss;
 	ss << "Exec app "
-		<< std::string{static_cast<const char*>(request.payload), request.payload_len}
-		<< " ["
+		<< app
+		<< "(arg=" << arg << ") "
+		<< " [ret="
 		<< *static_cast<const int*>(response.payload)
 		<< "]";
 
-	std::cout << "Output: " << ss.str() << "\n";
 	Websocket<false>::write_all(
 							make_info(info::success, host, ss.str().c_str()));
 }
@@ -149,11 +153,11 @@ static void delete_app_response(
 	Websocket<false>::write_all(device_apps_to_json(*dev));
 }
 
-static std::size_t send_app_payload(
+static std::size_t name_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
 		std::size_t size,
-		std::error_code&)
+		std::error_code&) noexcept
 {
 	std::size_t s = 0;
 	if(doc.HasMember("payload") && doc["payload"].IsString())
@@ -163,6 +167,66 @@ static std::size_t send_app_payload(
 		std::memcpy(buf, c, s);
 	}
 	return s;
+}
+
+static std::size_t exec_app_payload(
+		rapidjson::Document const& doc,
+		void* buf,
+		std::size_t size,
+		std::error_code& ec) noexcept
+{
+	std::size_t s = 0;
+	if(doc.HasMember("payload") && doc["payload"].IsObject())
+	{
+		auto const& payload = doc["payload"].GetObject();
+		std::int32_t arg = 0;
+		const char* c;
+		if(payload.HasMember("arg") && payload["arg"].IsInt())
+		{
+			arg = payload["arg"].GetInt();
+		}
+		if(payload.HasMember("app") && payload["app"].IsString())
+		{
+			c = payload["app"].GetString();
+			s = std::strlen(c);
+		}
+		else
+		{
+			ec = make_error_code(Error::missing_field);
+			return 0;
+		}
+		std::memcpy(buf, &arg, sizeof(arg));
+		std::memcpy(static_cast<std::uint8_t*>(buf) + sizeof(arg), c, s);
+	}
+	else
+	{
+		ec = make_error_code(Error::invalid_value);
+		return 0;
+	}
+	return s + sizeof(std::int32_t);
+}
+
+static std::size_t send_app_payload(
+		rapidjson::Document const& doc,
+		void* buf,
+		std::size_t size,
+		std::error_code& ec) noexcept
+{
+	std::size_t s = 0;
+	if(doc.HasMember("payload") && doc["payload"].IsString())
+	{
+		const char* c = doc["payload"].GetString();
+		s = std::strlen(c);
+		sha256_hash hash;
+		if(!calculate_app_hash(std::string{c}, hash))
+		{
+			ec = make_error_code(Error::app_not_found);
+			return 0;
+		}
+		std::memcpy(buf, hash, SHA256_DIGEST_LENGTH);
+		std::memcpy(static_cast<std::uint8_t*>(buf) + 32, c, s);
+	}
+	return s + 32;
 }
 
 static request_message const req_get_app = {
@@ -187,7 +251,7 @@ static request_message const req_execute_app = {
 		{CoAP::Message::Option::code::uri_path, "app"},
 	},
 	CoAP::Message::type::confirmable,
-	send_app_payload
+	exec_app_payload
 };
 
 static request_message const req_delete_app = {
@@ -196,7 +260,7 @@ static request_message const req_delete_app = {
 		{CoAP::Message::Option::code::uri_path, "app"},
 	},
 	CoAP::Message::type::confirmable,
-	send_app_payload
+	name_app_payload
 };
 
 extern constexpr const request_config get_app = {

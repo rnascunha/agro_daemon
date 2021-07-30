@@ -39,6 +39,15 @@ std::filesystem::path const& app_path() noexcept
 	return apps_dir;
 }
 
+bool calculate_app_hash(std::string const& path, sha256_hash hash) noexcept
+{
+	std::string p{apps_dir};
+		p += "/";
+		p += path;
+
+	return calculate_app_hash(std::filesystem::path{std::move(p)}, hash);
+}
+
 bool calculate_app_hash(std::filesystem::path const& path, sha256_hash hash) noexcept
 {
 	if(!std::filesystem::exists(path) ||

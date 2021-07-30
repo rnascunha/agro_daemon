@@ -12,7 +12,8 @@ std::string Message_Err_Category::message(int ev) const
 		case Error::ill_formed: return "Ill formed message";
 		case Error::invalid_value: return "Invalid value";
 		case Error::value_too_small: return "Value too small";
-		case Error::missing_field:	return "missing_field";
+		case Error::missing_field:	return "missingfield";
+		case Error::app_not_found: return "app not found";
 		default:
 			return "(unrecognized error)";
 	}
