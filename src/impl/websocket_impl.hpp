@@ -16,7 +16,7 @@
 #include <fstream>
 
 static constexpr const std::size_t image_name_max_size = 30;
-static constexpr const std::size_t app_name_max_size = 31;
+static constexpr const std::size_t app_name_max_size = 12;
 
 enum class binary_type{
 	json = 0,
@@ -30,10 +30,10 @@ void get_app_file(Stream& stream,
 		std::filesystem::path const& app_path) noexcept
 {
 	std::size_t name_size = (std::uint8_t)first_block[0];
-	if(name_size >= app_name_max_size)
+	if(name_size > app_name_max_size)
 	{
 		std::stringstream ss;
-		ss << "size=" << name_size << "/max=" << (app_name_max_size - 1);
+		ss << "size=" << name_size << "/max=" << app_name_max_size;
 		Websocket<false>::write_all(Message::make_info(Message::info::warning,
 				Message::info_category::app, "Invalid app name size", ss.str().c_str()));
 		/**

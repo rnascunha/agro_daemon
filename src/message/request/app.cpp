@@ -6,10 +6,10 @@
 
 namespace Message{
 
-static constexpr const unsigned app_max_name_size = 32;
+static constexpr const unsigned app_max_name_size = 12;
 
 struct app{
-	char		name[app_max_name_size];
+	char		name[app_max_name_size + 1];
 	unsigned 	size = 0;
 };
 
