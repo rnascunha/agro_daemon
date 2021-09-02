@@ -7,18 +7,21 @@
 
 #include "types.hpp"
 #include "ota.hpp"
+#include "user.hpp"
+#include "device.hpp"
 
-#include "../websocket.hpp"
+#include "../websocket/websocket.hpp"
 
 namespace Message{
 
-void process(engine& coap_engine,
-		std::string&& data,
-		Device_List& dlist) noexcept
+void process(std::string&& data,
+		std::shared_ptr<Websocket<false>> ws,
+		Agro::instance& instance,
+		Agro::User& user) noexcept
 {
 	rapidjson::Document d;
 
-	if (d.Parse(data.c_str()).HasParseError() || !d.IsObject())
+	if (d.Parse(data.data(), data.size()).HasParseError() || !d.IsObject())
 	{
 		std::cerr << "Error parsing receiving message...\n";
 		//Not valid message;
@@ -39,20 +42,23 @@ void process(engine& coap_engine,
 		case Message::type::response:
 			break;
 		case Message::type::request:
-			process_request(d, dlist, coap_engine);
+			process_request(d, instance.device_list, instance.coap_engine);
 			break;
 		case Message::type::device:
 		case Message::type::device_list:
-			Websocket<false>::write_all(Message::device_list_to_json(dlist));
+			Websocket<false>::write_all(Message::device_list_to_json(instance.device_list));
 			break;
 		case Message::type::command:
-			process_commands(d, dlist);
+			process_commands(d, instance.device_list);
 			break;
 		case Message::type::image:
 			process_image(d);
 			break;
 		case Message::type::app:
 			process_app(d);
+			break;
+		case Message::type::user:
+			process_user(d);
 			break;
 		case Message::type::info:
 			break;

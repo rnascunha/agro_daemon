@@ -3,7 +3,7 @@
 #include "process.hpp"
 #include "../message/info.hpp"
 
-#include "../websocket.hpp"
+#include "../websocket/websocket.hpp"
 
 namespace Resource{
 

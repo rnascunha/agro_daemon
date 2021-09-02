@@ -15,7 +15,8 @@ endfunction()
 set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
-set(USE_SSL				1)
+set(USE_SSL				0)
+set(TT_LEVEL			type::status)
 
 #print_vars()
 
@@ -48,6 +49,23 @@ endif()
 if(DEFINED OPENSSL_PATH)
 	set(OPENSSL_ROOT_DIR ${OPENSSL_PATH})
 	unset(OPENSSL_PATH CACHE)
+endif()
+
+if(DEFINED VERBOSE)
+  if(VERBOSE EQUAL 0)
+  	set(TT_LEVEL type::none)
+  elseif(VERBOSE EQUAL 1)
+  	set(TT_LEVEL type::error)
+  elseif(VERBOSE EQUAL 2)
+  	set(TT_LEVEL type::warning)
+  elseif(VERBOSE EQUAL 3)
+  	set(TT_LEVEL type::deprecated)
+  elseif(VERBOSE EQUAL 4)
+  	set(TT_LEVEL type::status)
+  elseif(VERBOSE EQUAL 5)
+  	set(TT_LEVEL type::debug)
+  endif()
+  unset(VERBOSE CACHE)
 endif()
 
 #This flag works only on Windows OS. There is 2 implementations (that I call OLD or NEW).
@@ -118,8 +136,10 @@ message(STATUS "Compiler: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VE
 add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignored at POSIX
 				-DJSON_MESSAGES 
 				-DUSE_SSL=${USE_SSL}
-				-DKEEPALIVE_OLD=${KEEPALIVE_OLD})
+				-DKEEPALIVE_OLD=${KEEPALIVE_OLD}
+				-DTT_LEVEL=${TT_LEVEL})
 
+###############################
 find_package(Boost COMPONENTS REQUIRED)
 
 if(Boost_FOUND)
@@ -130,21 +150,63 @@ else()
 	message(FATAL_ERROR "Boost Library NOT found! Define variable BOOST_ROOT (and BOOST_INCLUDEDIR if necessary")
 endif()
 
-if(USE_SSL)
-	find_package(OpenSSL REQUIRED)
-	if(OPENSSL_FOUND)
-		message(STATUS "OpenSSL Libraty found!")
-		include_directories(${OPENSSL_INCLUDE_DIR})
-	else()
-		message(FATAL_ERROR "OpenSSL Libraty NOT found! Define variable_requires OPENSSL_ROOT_DIR, or compile WITHOUT SSL support")
-	endif()
+###############################
+find_package(OpenSSL REQUIRED)
+if(OPENSSL_FOUND)
+	message(STATUS "OpenSSL Libraty found!")
+	include_directories(${OPENSSL_INCLUDE_DIR})
 else()
-	message(STATUS "Compiling WITHOUT SSL support")
+	message(FATAL_ERROR "OpenSSL Libraty NOT found! Define variable_requires OPENSSL_ROOT_DIR, or compile WITHOUT SSL support")
 endif()
+
+###############################
+find_package(Git)
+if(Git_FOUND)
+	message("Git found: ${GIT_EXECUTABLE}")
+	
+	execute_process(COMMAND
+		${GIT_EXECUTABLE} describe --always --dirty --abbrev=40
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
+		OUTPUT_VARIABLE GIT_COMMIT
+		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+	
+	execute_process(COMMAND
+		${GIT_EXECUTABLE} describe --always --dirty
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
+		OUTPUT_VARIABLE GIT_SHORT_COMMIT
+		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+		
+	execute_process(COMMAND
+		${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
+		OUTPUT_VARIABLE GIT_BRANCH
+		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+	configure_file("${CMAKE_SOURCE_DIR}/src/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)
+	
+	string(TIMESTAMP TIME_NOW "%Y/%m/%d %H:%M:%SZ" UTC)
+	add_definitions(-DCOMPILE_TIME=${TIME_NOW})	
+else()
+	message(FATAL_ERROR "Git not found")
+endif()
+
+################################
+find_package(SQLite3 REQUIRED)
+if(SQLite3_FOUND)
+	message(STATUS ${SQLite3_INCLUDE_DIRS})
+	message(STATUS ${SQLite3_LIBRARIES})
+	message(STATUS ${SQLite3_VERSION})
+	include_directories(${SQLite3_INCLUDE_DIRS})
+endif()
+
+################################
 
 set(SRC_DIR ./src)
 
-set(MY_LIBS_DIR	${SRC_DIR}/libs)
+##########################
+# argh
+##########################
+
+include_directories(${ARGH_ROOT})
 
 ###########################
 # tree trunks
@@ -182,19 +244,20 @@ include_directories(third/coap-te/src)
 add_subdirectory(third/my_async/src)
 include_directories(third/my_async/include)
 
+############################
+# pusha
+############################
+
+add_subdirectory(third/pusha)
+include_directories(third/pusha/include third/pusha/include_cpp)
+
 ###########################
-
-if(${USE_SSL} EQUAL 1)
-	message("Enable SSL support")
-endif()
-
-set(RESOURCE_DIR	${SRC_DIR}/resources)
-set(MESSAGE_DIR		${SRC_DIR}/message)
-set(DEVICE_DIR		${SRC_DIR}/device)
+# Adding files 
+###########################
 set(OTA_DIR			${SRC_DIR}/ota)
 set(APP_DIR			${SRC_DIR}/app)
-set(REQUEST_DIR		${MESSAGE_DIR}/request)
 
+set(RESOURCE_DIR	${SRC_DIR}/resources)
 set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/status.cpp
 					${RESOURCE_DIR}/config.cpp
@@ -205,7 +268,19 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/ota.cpp
 					${RESOURCE_DIR}/app.cpp
 					${RESOURCE_DIR}/info.cpp)
-					
+
+set(MESSAGE_DIR		${SRC_DIR}/message)
+set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
+					${MESSAGE_DIR}/device.cpp
+					${MESSAGE_DIR}/commands.cpp
+					${MESSAGE_DIR}/request.cpp
+					${MESSAGE_DIR}/process.cpp
+					${MESSAGE_DIR}/ota.cpp
+					${MESSAGE_DIR}/app.cpp
+					${MESSAGE_DIR}/user.cpp
+					${MESSAGE_DIR}/info.cpp)
+
+set(REQUEST_DIR		${MESSAGE_DIR}/request)					
 set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
 					${REQUEST_DIR}/custom.cpp
 					${REQUEST_DIR}/job.cpp
@@ -215,32 +290,37 @@ set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
 					${REQUEST_DIR}/app.cpp
 					${REQUEST_DIR}/time.cpp)
 
+
+set(NOTIFY_DIR		${SRC_DIR}/notify)					
+set(NOTIFY_SRC		${NOTIFY_DIR}/notify.cpp
+					${NOTIFY_DIR}/notify_request.cpp)
+
+set(DEVICE_DIR		${SRC_DIR}/device)
+set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
+					${DEVICE_DIR}/helper.cpp
+					${DEVICE_DIR}/types.cpp
+					${DEVICE_DIR}/list.cpp)
+
+set(DB_DIR			${SRC_DIR}/db)
+set(DB_SRC			${DB_DIR}/sqlite3.cpp
+					${DB_DIR}/db.cpp)					
+
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
-			${SRC_DIR}/error.cpp 
-			${MESSAGE_DIR}/make.cpp
-			${MESSAGE_DIR}/device.cpp
-			${MESSAGE_DIR}/commands.cpp
-			${MESSAGE_DIR}/request.cpp
-			${MESSAGE_DIR}/process.cpp
-			${MESSAGE_DIR}/ota.cpp
-			${MESSAGE_DIR}/app.cpp
-			${MESSAGE_DIR}/info.cpp
-			${DEVICE_DIR}/device.cpp
-			${DEVICE_DIR}/helper.cpp
-			${DEVICE_DIR}/types.cpp
-			${DEVICE_DIR}/list.cpp
+			${SRC_DIR}/error.cpp
+			${SRC_DIR}/arguments.cpp
+			${MESSAGE_SRC}
+			${DEVICE_SRC}
 			${RESOURCE_DIR}/process.cpp
 			${RESOURCE_DIR}/init.cpp
 			${RESOURCE_SRC}
 			${REQUEST_SRC}
 			${OTA_DIR}/ota.cpp
 			${APP_DIR}/app.cpp
-			src/helper/sha256.cpp
+			${NOTIFY_SRC}
+			${DB_SRC}
+			${SRC_DIR}/user/user.cpp
+			${SRC_DIR}/helper/sha256.cpp
 			)
-
-if(USE_SSL)
-#	list(APPEND MAIN_SRC ${SRC_DIR}/helpers/load_certificate.cpp)
-endif()
 
 add_executable(${PROJECT_NAME} ${MAIN_SRC})
 
@@ -251,15 +331,31 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-
-if(USE_SSL)
-	target_link_libraries(${PROJECT_NAME} OpenSSL::SSL)
-endif()
+target_link_libraries(${PROJECT_NAME} ${SQLite3_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} OpenSSL::SSL)
 
 target_link_libraries(${PROJECT_NAME} coap-te)
+target_link_libraries(${PROJECT_NAME} pusha)
 
 if(WIN32)
 	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 else()
 	target_link_libraries(${PROJECT_NAME} pthread)
 endif()
+
+################
+#tools
+################
+add_executable(add_user tools/add_user.cpp 
+						${DB_DIR}/sqlite3.cpp
+						${SRC_DIR}/error.cpp)
+
+set_target_properties(add_user PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS ON
+)
+
+target_link_libraries(add_user OpenSSL::SSL)
+target_link_libraries(add_user ${SQLite3_LIBRARIES})
+

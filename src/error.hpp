@@ -9,6 +9,17 @@ enum class Error{
 	value_too_small,
 	missing_field,
 	app_not_found,
+	internal_error,
+	//Db
+	open_db,
+	statement_error,
+	//User
+	user_not_found = 100,
+	user_is_inactive,
+	user_is_suspended,
+	user_is_deleted,
+	password_not_match,
+	session_expired,
 };
 
 struct Message_Err_Category : public std::error_category{

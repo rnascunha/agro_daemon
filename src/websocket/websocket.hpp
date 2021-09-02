@@ -6,8 +6,12 @@
 #include "my_async/util/static_shareable.hpp"
 #include <string>
 
-#include "coap_engine.hpp"
-#include "device/list.hpp"
+#include "../agro.hpp"
+#include "../coap_engine.hpp"
+//#include "../device/list.hpp"
+//#include "../db/db.hpp"
+
+#include "../user/user.hpp"
 
 template<bool UseSSL>
 class Websocket final :
@@ -20,29 +24,40 @@ class Websocket final :
 				Websocket<UseSSL>, UseSSL, std::string>;
 		using shared_type = My_Async::Util::Static_Shareable<Websocket<UseSSL>, false>;
 	public:
-		using base_type::Session_Base;
+		//Plain constructors
+	    explicit
+		Websocket(
+			boost::asio::basic_stream_socket<boost::asio::ip::tcp>&& socket)
+		  : base_type(std::move(socket)), timer_(base_type::stream_.get_executor()){}
+
 		~Websocket();
 
-		static void data(engine& eng, Device_List& dev) noexcept { coap_engine_ = &eng; dev_list_ = &dev; }
-		static engine& coap_engine() noexcept { return *coap_engine_; }
+		static void data(Agro::instance& instance) noexcept
+		{
+			instance_ = &instance;
+		}
+		static engine& coap_engine() noexcept { return instance_->coap_engine; }
 
 		static void write_all(std::string const data) noexcept;
 		static void write_all(std::string const data, bool text) noexcept;
 	protected:
-		static engine* coap_engine_;
-		static Device_List* dev_list_;
+		static Agro::instance*	instance_;
+		boost::asio::steady_timer timer_;
+
+		Agro::User user_;
 
 		void on_open() noexcept override;
 		void read_handler(std::string data) noexcept override;
 		void fail(boost::system::error_code ec, char const* what) noexcept override;
+
+		void error_auth(std::error_code const& ec, const char* what = nullptr) noexcept;
+		bool check_authenticate(std::string const& data) noexcept;
 };
 
 template<bool UseSSL>
-engine* Websocket<UseSSL>::coap_engine_ = nullptr;
-
-template<bool UseSSL>
-Device_List* Websocket<UseSSL>::dev_list_ = nullptr;
+Agro::instance* Websocket<UseSSL>::instance_ = nullptr;
 
 #include "impl/websocket_impl.hpp"
+#include "impl/authenticate_impl.hpp"
 
 #endif /* AGRO_MESH_WEBSOCKET_HPP__ */

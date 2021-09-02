@@ -32,7 +32,8 @@ enum class type{
 	device_list, /**< device_list */
 	command,     /**< command */
 	image,       /**< image */
-	app,
+	app,		/**< app */
+	user,		/**< user */
 	info        /**< info */
 };
 
@@ -45,6 +46,7 @@ constexpr const config<type> tconfig[] = {
 	{type::command, "command"},
 	{type::image, "image"},
 	{type::app, "app"},
+	{type::user, "user"},
 	{type::info, "info"}
 };
 

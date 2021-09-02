@@ -1,7 +1,8 @@
 #include "process.hpp"
 #include "types.hpp"
 #include "../error.hpp"
-#include "../websocket.hpp"
+#include "../websocket/websocket.hpp"
+#include "../message/device.hpp"
 
 namespace Resource{
 

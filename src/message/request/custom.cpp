@@ -1,5 +1,5 @@
 #include "types.hpp"
-#include "../../websocket.hpp"
+#include "../../websocket/websocket.hpp"
 
 namespace Message{
 

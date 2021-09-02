@@ -1,18 +1,14 @@
-#ifndef AGRO_MESH_WEBSOCKET_IMPL_HPP__
-#define AGRO_MESH_WEBSOCKET_IMPL_HPP__
+#ifndef AGRO_DAEMON_WESOCKET_BINARY_DATA_HPP__
+#define AGRO_DAEMON_WESOCKET_BINARY_DATA_HPP__
 
 #include "../websocket.hpp"
-#include "boost/beast.hpp"
-#include <iostream>
-#include <utility>
-#include "../message/device.hpp"
-#include "../message/process.hpp"
-#include "../message/ota.hpp"
-#include "../message/app.hpp"
-#include "../message/info.hpp"
-#include "../ota/ota.hpp"
-#include "../app/app.hpp"
-
+#include "../../notify/notify.hpp"
+//#include "../message/device.hpp"
+#include "../../message/ota.hpp"
+#include "../../message/app.hpp"
+#include "../../message/info.hpp"
+//#include "../ota/ota.hpp"
+#include "../../app/app.hpp"
 #include <fstream>
 
 static constexpr const std::size_t image_name_max_size = 30;
@@ -24,8 +20,15 @@ enum class binary_type{
 	app = 2
 };
 
+static void notify_new_update(const char* type, std::string const& name)
+{
+	std::stringstream ss;
+	ss << "New " << type << " added [" << name << "]";
+	notify(ss.str());
+}
+
 template<typename Stream>
-void get_app_file(Stream& stream,
+static void get_app_file(Stream& stream,
 		const char* first_block, std::size_t block_size,
 		std::filesystem::path const& app_path) noexcept
 {
@@ -81,11 +84,12 @@ void get_app_file(Stream& stream,
 	while(!stream.is_message_done());
 	t.close();
 
+	notify_new_update("app", name);
 	Websocket<false>::write_all(Message::app_list(app_path));
 }
 
 template<typename Stream>
-void get_image_file(Stream& stream,
+static void get_image_file(Stream& stream,
 		const char* first_block, std::size_t block_size,
 		std::filesystem::path const& images_path) noexcept
 {
@@ -148,6 +152,10 @@ void get_image_file(Stream& stream,
 				name.c_str()));
 		std::filesystem::remove(path);
 	}
+	else
+	{
+		notify_new_update("image", name);
+	}
 
 	Websocket<false>::write_all(Message::ota_image_list(images_path));
 }
@@ -175,87 +183,4 @@ void get_file(Stream& stream, const char* first_block, std::size_t block_size) n
 	}
 }
 
-template<bool UseSSL>
-Websocket<UseSSL>::~Websocket()
-{
-	shared_type::leave(this);
-}
-
-template<bool UseSSL>
-void
-Websocket<UseSSL>::
-write_all(std::string const data) noexcept
-{
-	shared_type::exec_to_all(
-		std::bind(
-			&self_type::write_share,
-			std::placeholders::_1,
-			std::make_shared<std::string const>(std::move(data))
-		)
-	);
-}
-
-template<bool UseSSL>
-void
-Websocket<UseSSL>::
-write_all(std::string const data, bool text) noexcept
-{
-	shared_type::exec_to_all(
-		std::bind(
-			&self_type::write_share,
-			std::placeholders::_1,
-			std::make_shared<std::string const>(std::move(data))
-		)
-	);
-}
-
-template<bool UseSSL>
-void
-Websocket<UseSSL>::
-on_open() noexcept
-{
-	this->text(true);
-	this->join(this);
-
-	this->write(Message::device_list_to_json(*dev_list_));
-	this->write(Message::ota_image_list(ota_path()));
-	this->write(Message::app_list(app_path()));
-}
-
-template<bool UseSSL>
-void
-Websocket<UseSSL>::
-read_handler(std::string data) noexcept
-{
-	if(base_type::stream_.got_binary())
-	{
-		/**
-		 * Is a image
-		 */
-		std::cout << "Received binary: " << data.size() << "\n";
-		get_file(base_type::stream_,
-				data.data(), data.length());
-	}
-	else
-	{
-		std::cout << "Received[" << data.size() << "]: " << data << "\n";
-
-		Message::process(*coap_engine_, std::move(data), *dev_list_);
-	}
-}
-
-template<bool UseSSL>
-void
-Websocket<UseSSL>::
-fail(boost::system::error_code ec, char const* what) noexcept
-{
-	if(ec == boost::asio::error::operation_aborted ||
-	   ec == boost::beast::websocket::error::closed)
-	{
-		return;
-	}
-
-	std::cerr << what << "[" << ec.value() << "]: " << ec.message() << "\n";
-}
-
-#endif /* AGRO_MESH_WEBSOCKET_IMPL_HPP__ */
+#endif /* AGRO_DAEMON_WESOCKET_BINARY_DATA_HPP__ */

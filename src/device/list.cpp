@@ -1,4 +1,5 @@
 #include "list.hpp"
+#include "../notify/notify.hpp"
 
 Device_List::Device_List(){}
 
@@ -59,6 +60,19 @@ Device const* Device_List::operator[](const char* addr_str) const noexcept
 	return &dev->second;
 }
 
+static void notify_new_device(mesh_addr_t const& addr) noexcept
+{
+	std::stringstream ss;
+	ss << "New device connected [" << addr.to_string() << "]";
+	notify(ss.str());
+}
+
+static auto create_device(std::map<mesh_addr_t, Device>& list, mesh_addr_t const& addr) noexcept
+{
+	notify_new_device(addr);
+	return list.emplace(addr, Device{addr}).first;
+}
+
 Device& Device_List::update_name(mesh_addr_t const& addr, std::string const& name) noexcept
 {
 	auto dev = list_.find(addr);
@@ -68,7 +82,7 @@ Device& Device_List::update_name(mesh_addr_t const& addr, std::string const& nam
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.name(name);
 
 	return resp->second;
@@ -83,7 +97,7 @@ Device& Device_List::update_ac_load(mesh_addr_t const& addr, unsigned index, boo
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update_ac_load(index, value);
 
 	return resp->second;
@@ -98,7 +112,7 @@ Device& Device_List::update_rtc_time(mesh_addr_t const& addr, value_time time) n
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update_rtc_time(time);
 
 	return resp->second;
@@ -113,7 +127,7 @@ Device& Device_List::update_uptime(mesh_addr_t const& addr, int64_t uptime) noex
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update_uptime(uptime);
 
 	return resp->second;
@@ -128,7 +142,7 @@ Device& Device_List::update_fuse(mesh_addr_t const& addr, std::int32_t fuse) noe
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.fuse(fuse);
 
 	return resp->second;
@@ -143,7 +157,7 @@ Device& Device_List::update_jobs(mesh_addr_t const& addr, std::uint8_t const* da
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.jobs(data, size);
 
 	return resp->second;
@@ -160,7 +174,7 @@ Device& Device_List::update(mesh_addr_t const& addr,
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update(ep, sts);
 
 	return resp->second;
@@ -177,7 +191,7 @@ Device& Device_List::update(mesh_addr_t const& addr,
 		return dev->second;;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update(ep, cfg);
 
 	return resp->second;
@@ -194,7 +208,7 @@ Device& Device_List::update(mesh_addr_t const& addr,
 		return dev->second;;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update(ep, rt, children, children_size);
 
 	return resp->second;
@@ -211,7 +225,7 @@ Device& Device_List::update(mesh_addr_t const& addr,
 		return dev->second;;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update(ep, cfg, children, children_size);
 
 	return resp->second;
@@ -228,7 +242,7 @@ Device& Device_List::update(mesh_addr_t const& addr,
 		return dev->second;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update(ep, cfg, version, version_len);
 
 	return resp->second;
@@ -245,7 +259,7 @@ Device& Device_List::update(mesh_addr_t const& addr,
 		return dev->second;;
 	}
 
-	auto resp = list_.emplace(addr, Device{addr}).first;
+	auto resp = create_device(list_, addr);//list_.emplace(addr, Device{addr}).first;
 	resp->second.update(ep, sen);
 
 	return resp->second;

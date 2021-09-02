@@ -1,7 +1,7 @@
 #include "app.hpp"
 #include "types.hpp"
 #include "../app/app.hpp"
-#include "../websocket.hpp"
+#include "../websocket/websocket.hpp"
 
 namespace Message{
 
