@@ -211,6 +211,9 @@ static bool check_session_id(User& user,
 		ec = make_error_code(Error::session_expired);
 		return false;
 	}
+
+	user.authenticate();
+
 	return true;
 }
 
@@ -241,7 +244,6 @@ bool authenticate(User& user,
 	}
 
 	return false;
-
 }
 
 template<unsigned SessionIDLenght>

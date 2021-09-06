@@ -1,0 +1,15 @@
+#ifndef AGRO_DAEMON_USER_AUTH_MESSAGE_HPP__
+#define AGRO_DAEMON_USER_AUTH_MESSAGE_HPP__
+
+#include <string>
+#include <system_error>
+#include "user.hpp"
+
+namespace Message{
+
+std::string user_error_authentication(std::error_code const&) noexcept;
+std::string user_authentication(Agro::User const&) noexcept;
+
+}//Message
+
+#endif /* AGRO_DAEMON_USER_AUTH_MESSAGE_HPP__ */

@@ -112,8 +112,6 @@ Email: )" << email << R"(
 	res.bind(5, email);
 	res.bind(6, salt, USER_AUTH_SALT_LENGTH);
 
-
-
 	if(res.step() != SQLITE_DONE)
 	{
 		std::cerr << "Error inserting user at database! [" << rc << " / " << db.error() << "]\n";

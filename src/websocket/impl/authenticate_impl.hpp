@@ -3,7 +3,8 @@
 
 #include "../../user/authenticate.hpp"
 #include "../../user/authenticate_params.h"
-#include "../websocket.hpp"
+#include "../../user/auth_message.hpp"
+#include "../../message/user_types.hpp"
 #include "tt/tt.hpp"
 
 template<bool UseSSL>

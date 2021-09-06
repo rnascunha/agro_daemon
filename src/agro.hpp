@@ -4,6 +4,7 @@
 #include "db/db.hpp"
 #include "coap_engine.hpp"
 #include "device/list.hpp"
+#include "notify/notify_request.hpp"
 
 namespace Agro{
 
@@ -11,6 +12,7 @@ struct instance{
 	DB&				db;
 	engine&			coap_engine;
 	Device_List&	device_list;
+	notify_factory& notify;
 };
 
 }

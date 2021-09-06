@@ -2,7 +2,7 @@
 #define AGRO_DAEMON_WESOCKET_BINARY_DATA_HPP__
 
 #include "../websocket.hpp"
-#include "../../notify/notify.hpp"
+//#include "../../notify/notify.hpp"
 //#include "../message/device.hpp"
 #include "../../message/ota.hpp"
 #include "../../message/app.hpp"
@@ -20,12 +20,12 @@ enum class binary_type{
 	app = 2
 };
 
-static void notify_new_update(const char* type, std::string const& name)
-{
-	std::stringstream ss;
-	ss << "New " << type << " added [" << name << "]";
-	notify(ss.str());
-}
+//static void notify_new_update(const char* type, std::string const& name)
+//{
+//	std::stringstream ss;
+//	ss << "New " << type << " added [" << name << "]";
+//	notify(ss.str());
+//}
 
 template<typename Stream>
 static void get_app_file(Stream& stream,
@@ -84,7 +84,7 @@ static void get_app_file(Stream& stream,
 	while(!stream.is_message_done());
 	t.close();
 
-	notify_new_update("app", name);
+//	notify_new_update("app", name);
 	Websocket<false>::write_all(Message::app_list(app_path));
 }
 
@@ -154,7 +154,7 @@ static void get_image_file(Stream& stream,
 	}
 	else
 	{
-		notify_new_update("image", name);
+//		notify_new_update("image", name);
 	}
 
 	Websocket<false>::write_all(Message::ota_image_list(images_path));

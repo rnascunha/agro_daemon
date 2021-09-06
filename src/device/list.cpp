@@ -1,5 +1,5 @@
 #include "list.hpp"
-#include "../notify/notify.hpp"
+//#include "../notify/notify.hpp"
 
 Device_List::Device_List(){}
 
@@ -60,16 +60,16 @@ Device const* Device_List::operator[](const char* addr_str) const noexcept
 	return &dev->second;
 }
 
-static void notify_new_device(mesh_addr_t const& addr) noexcept
-{
-	std::stringstream ss;
-	ss << "New device connected [" << addr.to_string() << "]";
-	notify(ss.str());
-}
+//static void notify_new_device(mesh_addr_t const& addr) noexcept
+//{
+//	std::stringstream ss;
+//	ss << "New device connected [" << addr.to_string() << "]";
+//	notify(ss.str());
+//}
 
 static auto create_device(std::map<mesh_addr_t, Device>& list, mesh_addr_t const& addr) noexcept
 {
-	notify_new_device(addr);
+//	notify_new_device(addr);
 	return list.emplace(addr, Device{addr}).first;
 }
 

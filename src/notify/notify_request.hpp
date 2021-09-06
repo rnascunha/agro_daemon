@@ -3,10 +3,14 @@
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+
 #include <iostream>
 #include <memory>
+
 #include "pusha.h"
 #include "pusha.hpp"
+
+#include "../user/user.hpp"
 
 #include <cstdint>
 
@@ -42,12 +46,28 @@ class notify_request : public std::enable_shared_from_this<notify_request>
 
 class notify_factory{
 	public:
-		notify_factory(boost::asio::io_context& ioc);
-		void request(std::string const& endpoint,
-				std::uint8_t* payload, std::size_t payload_len);
+		notify_factory(
+				boost::asio::io_context& ioc,
+				pusha::key&& ec_key,
+				std::string_view const& subscriber);
+
+		bool notify(Agro::User const&,
+				std::uint8_t const* payload, std::size_t payload_len,
+				unsigned expiration = 0, unsigned ttl = 0) noexcept;
+		bool notify(Agro::User const&,
+					std::string const& data,
+					unsigned expiration = 0, unsigned ttl = 0) noexcept;
+
+		bool is_valid() const noexcept;
+		std::string_view const& public_key() const noexcept;
 	private:
 		boost::asio::io_context& ioc_;
 		boost::asio::ssl::context ctx_{boost::asio::ssl::context::sslv23};
+		bool is_valid_;
+		std::string_view public_key_;
+		pusha::notify push_;
 };
+
+std::string make_public_key(std::string_view const& public_key) noexcept;
 
 #endif /* AGRO_DAEMON_NOTIFY_REQUEST_HPP__ */

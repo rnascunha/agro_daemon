@@ -1,7 +1,9 @@
 #include <cstdio>
 #include <iostream>
-#include "arguments.hpp"
 #include <functional>
+#include <filesystem>
+
+#include "arguments.hpp"
 
 #include "boost/asio.hpp"
 
@@ -11,18 +13,13 @@
 #include "websocket/websocket.hpp"
 
 #include "device/list.hpp"
-//#include "resources/init.hpp"
 
-//#include "ota/ota.hpp"
-//#include "app/app.hpp"
-//
-//#include "notify/notify.hpp"
-//#include "notify/notify_request.hpp"
+#include "notify/notify_request.hpp"
 
-//#include "db/sqlite3.hpp"
-//#include "user/user.hpp"
 #include "db/db.hpp"
 #include "agro.hpp"
+
+static constexpr const std::string_view subscriber{"email@email.com"};
 
 template<typename ErrorType>
 void print_error(ErrorType ec, const char* what = "")
@@ -68,8 +65,14 @@ int main(int argc, char** argv)
 
 	tt::status("Socket opened\n");
 
-	notify_factory factory{ioc};
-	init_notify(factory);
+	std::error_code sec;
+	pusha::key key{std::filesystem::path{args.notify_priv_key}, sec};
+	if(sec)
+	{
+		tt::error("Error opening notify private key! [%s]", sec.message());
+	}
+	notify_factory factory{ioc, std::move(key), subscriber};
+//	init_notify(factory);
 
 	tt::status("Init code");
 
@@ -104,7 +107,7 @@ int main(int argc, char** argv)
 //	std::vector<engine::resource_node> vresource;
 //	Resource::init(coap_engine, device_list, vresource);
 
-	Agro::instance app{db, coap_engine, device_list};
+	Agro::instance app{db, coap_engine, device_list, factory};
 	Websocket<false>::data(app);
 
 	// Capture SIGINT and SIGTERM to perform a clean shutdown

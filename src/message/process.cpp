@@ -31,6 +31,7 @@ void process(std::string&& data,
 	auto const* typec = Message::get_type_config(d["type"].GetString());
 	if(!typec)
 	{
+		instance.notify.notify(user, "Invalid type");
 		std::cerr << "Type message not found...\n";
 		return;
 	}
@@ -58,7 +59,7 @@ void process(std::string&& data,
 			process_app(d);
 			break;
 		case Message::type::user:
-			process_user(d);
+			process_user(d, ws, instance, user);
 			break;
 		case Message::type::info:
 			break;

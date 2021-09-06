@@ -39,6 +39,13 @@ class DB{
 		bool clear_session(User const&) noexcept;
 		bool clear_session_user_agent(User const&) noexcept;
 
+		bool push_subscribe_user(User const&,
+				std::string const& endpoint,
+				std::string const& p256dh,
+				std::string const& auth) noexcept;
+
+		bool push_unsubscribe_user(User const&) noexcept;
+
 		const char* error(){ return db_.error(); };
 	private:
 		sqlite3 db_;

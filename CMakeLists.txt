@@ -16,7 +16,7 @@ set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
 set(USE_SSL				0)
-set(TT_LEVEL			type::status)
+set(TT_LEVEL			type::debug)
 
 #print_vars()
 
@@ -292,14 +292,18 @@ set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
 
 
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
-set(NOTIFY_SRC		${NOTIFY_DIR}/notify.cpp
-					${NOTIFY_DIR}/notify_request.cpp)
+set(NOTIFY_SRC		${NOTIFY_DIR}/notify_request.cpp
+					${NOTIFY_DIR}/message.cpp)
 
 set(DEVICE_DIR		${SRC_DIR}/device)
 set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					${DEVICE_DIR}/helper.cpp
 					${DEVICE_DIR}/types.cpp
 					${DEVICE_DIR}/list.cpp)
+					
+set(USER_DIR		${SRC_DIR}/user)
+set(USER_SRC		${USER_DIR}/user.cpp
+					${USER_DIR}/auth_message.cpp)
 
 set(DB_DIR			${SRC_DIR}/db)
 set(DB_SRC			${DB_DIR}/sqlite3.cpp
@@ -318,7 +322,7 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${APP_DIR}/app.cpp
 			${NOTIFY_SRC}
 			${DB_SRC}
-			${SRC_DIR}/user/user.cpp
+			${USER_SRC}
 			${SRC_DIR}/helper/sha256.cpp
 			)
 
@@ -359,3 +363,16 @@ set_target_properties(add_user PROPERTIES
 target_link_libraries(add_user OpenSSL::SSL)
 target_link_libraries(add_user ${SQLite3_LIBRARIES})
 
+add_executable(init_db tools/init_db.cpp 
+						${DB_DIR}/sqlite3.cpp
+						${SRC_DIR}/error.cpp)
+
+set_target_properties(init_db PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS ON
+)
+
+#target_link_libraries(add_user OpenSSL::SSL)
+target_link_libraries(init_db ${SQLite3_LIBRARIES})
+target_link_libraries(init_db pusha)

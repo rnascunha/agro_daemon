@@ -5,14 +5,12 @@
 
 #include "boost/beast.hpp"
 
-#include <iostream>
 #include <utility>
 #include <string_view>
 
-//#include "../../message/process.hpp"
-#include "../../message/user.hpp"
+#include "../../message/device.hpp"
+#include "../../notify/message.hpp"
 #include "binary_data_impl.hpp"
-
 #include "tt/tt.hpp"
 
 namespace Message{
@@ -64,10 +62,6 @@ on_open() noexcept
 {
 	this->text(true);
 	this->join(this);
-
-//	this->write(Message::device_list_to_json(*dev_list_));
-//	this->write(Message::ota_image_list(ota_path()));
-//	this->write(Message::app_list(app_path()));
 }
 
 template<bool UseSSL>
@@ -75,7 +69,20 @@ void
 Websocket<UseSSL>::
 read_handler(std::string data) noexcept
 {
-	if(!check_authenticate(data)) return;
+	if(!check_authenticate(data))
+	{
+		if(user_.is_authenticated())
+		{
+			if(instance_->notify.is_valid())
+			{
+				this->write(Message::make_public_key(instance_->notify.public_key()));
+			}
+			this->write(Message::device_list_to_json(instance_->device_list));
+			this->write(Message::ota_image_list(ota_path()));
+			this->write(Message::app_list(app_path()));
+		}
+		return;
+	}
 
 	if(base_type::stream_.got_binary())
 	{
@@ -101,11 +108,11 @@ void
 Websocket<UseSSL>::
 fail(boost::system::error_code ec, char const* what) noexcept
 {
-	if(ec == boost::asio::error::operation_aborted ||
-	   ec == boost::beast::websocket::error::closed)
-	{
-		return;
-	}
+//	if(ec == boost::asio::error::operation_aborted ||
+//	   ec == boost::beast::websocket::error::closed)
+//	{
+//		return;
+//	}
 
 	tt::error("%s[%d]: %.*s", what, ec.value(), ec.message().size(), ec.message().data());
 }

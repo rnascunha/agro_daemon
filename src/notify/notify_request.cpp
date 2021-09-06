@@ -1,5 +1,8 @@
 #include "notify_request.hpp"
 
+#define PUSH_DEFAULT_EXAPIRATION	(12 * 60 * 60)
+#define PUSH_DEFAULT_TTL			60
+
 notify_request::notify_request(boost::asio::io_context& io_context,
 					boost::asio::ssl::context& context,
 					const std::string& endpoint,
@@ -115,11 +118,87 @@ void notify_request::receive_response()
 	);
 }
 
-notify_factory::notify_factory(boost::asio::io_context& ioc)
-	: ioc_(ioc){}
+notify_factory::notify_factory(boost::asio::io_context& ioc,
+		pusha::key&& ec_key,
+		std::string_view const& subscriber)
+	: ioc_(ioc),
+	  is_valid_(ec_key.get_key() != NULL),
+	  public_key_(is_valid_ ? ec_key.export_public_key() : ""),
+	  push_{std::move(ec_key), subscriber}
+{}
 
-void notify_factory::request(std::string const& endpoint,
-				std::uint8_t* payload, std::size_t payload_len)
+bool notify_factory::notify(Agro::User const& user,
+			std::uint8_t const* payload, std::size_t payload_len,
+			unsigned expiration /* = 0 */, unsigned ttl /* = 0 */) noexcept
 {
-	std::make_shared<notify_request>(ioc_, ctx_, endpoint, payload, payload_len)->connect();
+	if(!is_valid_) return false;
+
+	if(!expiration)
+	{
+		expiration = std::time(NULL) + PUSH_DEFAULT_EXAPIRATION;
+	}
+
+	if(!ttl)
+	{
+		ttl = PUSH_DEFAULT_TTL;
+	}
+
+	pusha_http_headers headers = {};
+	pusha_payload pp = {};
+	int err = push_.make(headers,
+			&pp,
+			user.endpoint(),
+			user.p256dh(),
+			user.auth(),
+			expiration,
+			payload, payload_len);
+
+	if(err)
+	{
+		std::cerr << "Error making 'pusha' http request\n";
+		return false;
+	}
+
+	std::size_t packet_size;
+	std::uint8_t * packet = http_request_serialize(user.endpoint().data(),
+			user.endpoint().size(),
+			&headers,
+			pp.cipher_payload, pp.cipher_payload_len,
+			&packet_size);
+	free_pusha_http_headers(&headers);
+	free_pusha_payload(&pp);
+
+	if(!packet)
+	{
+		std::cerr << "Error serializing notify packet\n";
+		return false;
+	}
+	std::cout << "Notify serialized [" << packet_size << "]\n";
+
+	std::make_shared<notify_request>(ioc_, ctx_, user.endpoint(), packet, packet_size)->connect();
+
+	return true;
 }
+
+bool notify_factory::notify(Agro::User const& user,
+					std::string const& data,
+					unsigned expiration /* = 0 */, unsigned ttl /* = 0 */) noexcept
+{
+	return notify(user, reinterpret_cast<std::uint8_t const*>(data.data()), data.size(), expiration, ttl);
+}
+
+bool notify_factory::is_valid() const noexcept
+{
+	return is_valid_;
+}
+
+std::string_view const& notify_factory::public_key() const noexcept
+{
+	return public_key_;
+}
+
+//void notify_factory::request(std::string const& endpoint,
+//				std::uint8_t* payload, std::size_t payload_len)
+//{
+//	std::make_shared<notify_request>(ioc_, ctx_, endpoint, payload, payload_len)->connect();
+//}

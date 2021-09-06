@@ -226,7 +226,47 @@ bool DB::clear_session(User const& user) noexcept
 bool DB::clear_session_user_agent(User const& user) noexcept
 {
 	static constexpr const
-			std::string_view stmt{"DELETE FROM session WHERE userid = ? AND user_agent = ?"};
+		std::string_view stmt{"DELETE FROM session WHERE userid = ? AND user_agent = ?"};
+
+	sqlite3::statement res;
+	if(db_.prepare(stmt, res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	res.bind(1, user.id());
+	res.bind(2, user.user_agent());
+
+	return res.step() == SQLITE_DONE;
+}
+
+bool DB::push_subscribe_user(User const& user,
+		std::string const& endpoint,
+		std::string const& p256dh,
+		std::string const& auth) noexcept
+{
+	static constexpr const
+		std::string_view stmt{"REPLACE INTO push_notify(userid, user_agent, endpoint, p256dh, auth) VALUES(?,?,?,?,?)"};
+
+	sqlite3::statement res;
+	if(db_.prepare(stmt, res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	res.bind(1, user.id());
+	res.bind(2, user.user_agent());
+	res.bind(3, endpoint);
+	res.bind(4, p256dh);
+	res.bind(5, auth);
+
+	return res.step() == SQLITE_DONE;
+}
+
+bool DB::push_unsubscribe_user(User const& user) noexcept
+{
+	static constexpr const
+		std::string_view stmt{"DELETE FROM push_notify WHERE userid = ? AND user_agent = ?"};
 
 	sqlite3::statement res;
 	if(db_.prepare(stmt, res) != SQLITE_OK)

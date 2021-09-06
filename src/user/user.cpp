@@ -88,4 +88,41 @@ User::operator bool() const noexcept
 	return is_valid();
 }
 
+bool User::is_subscribed() const noexcept
+{
+	return is_subscribed_;
+}
+
+void User::push_subscribe(std::string const& endpoint,
+		std::string const& p256dh,
+		std::string const& auth) noexcept
+{
+	endpoint_ = endpoint;
+	p256dh_ = p256dh;
+	auth_ = auth;
+	is_subscribed_ = true;
+}
+
+void User::push_unsubscribe() noexcept
+{
+	endpoint_.clear();
+	p256dh_.clear();
+	auth_.clear();
+	is_subscribed_ = false;
+}
+
+std::string const& User::endpoint() const noexcept
+{
+	return endpoint_;
+}
+std::string const& User::p256dh() const noexcept
+{
+	return p256dh_;
+}
+
+std::string const& User::auth() const noexcept
+{
+	return auth_;
+}
+
 }//Agro

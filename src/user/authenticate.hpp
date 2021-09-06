@@ -5,7 +5,7 @@
 #include <cstdlib>
 
 #include "rapidjson/document.h"
-#include "../user/user.hpp"
+#include "../message/user_types.hpp"
 #include "../db/db.hpp"
 
 namespace Agro{

@@ -3,15 +3,6 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <cstdint>
-#include <functional>
-#include <vector>
-
-#include "rapidjson/document.h"
-#include "../device/types.hpp"
-#include "coap-te.hpp"
-#include "../error.hpp"
-
 
 namespace Message{
 

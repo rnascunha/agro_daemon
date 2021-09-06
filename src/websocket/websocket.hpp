@@ -8,9 +8,6 @@
 
 #include "../agro.hpp"
 #include "../coap_engine.hpp"
-//#include "../device/list.hpp"
-//#include "../db/db.hpp"
-
 #include "../user/user.hpp"
 
 template<bool UseSSL>
