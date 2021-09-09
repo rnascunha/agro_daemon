@@ -4,14 +4,14 @@
 #include "../user/user.hpp"
 #include "types.hpp"
 #include "rapidjson/document.h"
-#include "../websocket/websocket.hpp"
+#include "../websocket/types.hpp"
 #include "../agro.hpp"
 
 namespace Message{
 
 void process_user(rapidjson::Document const&,
-		std::shared_ptr<Websocket<false>>,
-		Agro::instance&,
+		Agro::websocket_ptr,
+		Agro::instance const&,
 		Agro::User&) noexcept;
 
 }//Message

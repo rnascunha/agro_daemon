@@ -10,21 +10,28 @@
 
 #include "../../message/device.hpp"
 #include "../../notify/message.hpp"
-#include "binary_data_impl.hpp"
 #include "tt/tt.hpp"
 
 namespace Message{
 
+#if USE_SSL == 0
 void process(std::string&& str,
 		std::shared_ptr<Websocket<false>>,
-		Agro::instance&,
+		Agro::instance const&,
 		Agro::User&) noexcept;
+#else /* USE_SSL == 0 */
+void process(std::string&& str,
+		std::shared_ptr<Websocket<true>>,
+		Agro::instance const&,
+		Agro::User&) noexcept;
+#endif /* USE_SSL == 0 */
+
 }
 
 template<bool UseSSL>
 Websocket<UseSSL>::~Websocket()
 {
-	shared_type::leave(this);
+	share_->leave(this);
 }
 
 template<bool UseSSL>
@@ -32,7 +39,7 @@ void
 Websocket<UseSSL>::
 write_all(std::string const data) noexcept
 {
-	shared_type::exec_to_all(
+	share_->exec_to_all(
 		std::bind(
 			&self_type::write_share,
 			std::placeholders::_1,
@@ -46,7 +53,7 @@ void
 Websocket<UseSSL>::
 write_all(std::string const data, bool text) noexcept
 {
-	shared_type::exec_to_all(
+	share_->exec_to_all(
 		std::bind(
 			&self_type::write_share,
 			std::placeholders::_1,
@@ -61,7 +68,8 @@ Websocket<UseSSL>::
 on_open() noexcept
 {
 	this->text(true);
-	this->join(this);
+//	this->join(this);
+	share_->join(this);
 }
 
 template<bool UseSSL>
@@ -73,13 +81,13 @@ read_handler(std::string data) noexcept
 	{
 		if(user_.is_authenticated())
 		{
-			if(instance_->notify.is_valid())
+			if(instance().notify.is_valid())
 			{
-				this->write(Message::make_public_key(instance_->notify.public_key()));
+				this->write(Message::make_public_key(instance().notify.public_key()));
 			}
-			this->write(Message::device_list_to_json(instance_->device_list));
-			this->write(Message::ota_image_list(ota_path()));
-			this->write(Message::app_list(app_path()));
+			this->write(Message::device_list_to_json(instance().device_list));
+//			this->write(Message::ota_image_list(ota_path()));
+//			this->write(Message::app_list(app_path()));
 		}
 		return;
 	}
@@ -90,15 +98,14 @@ read_handler(std::string data) noexcept
 		 * Is a image
 		 */
 		tt::debug("Received binary: %zu", data.size());
-		get_file(base_type::stream_,
-				data.data(), data.length());
+		get_file(data.data(), data.length());
 	}
 	else
 	{
 		tt::debug("Received[%zu]: %.*s", data.size(), data.size(), data.data());
 		Message::process(std::move(data),
 				this->shared_from_this(),
-				*instance_,
+				instance(),
 				user_);
 	}
 }
@@ -115,6 +122,13 @@ fail(boost::system::error_code ec, char const* what) noexcept
 //	}
 
 	tt::error("%s[%d]: %.*s", what, ec.value(), ec.message().size(), ec.message().data());
+}
+
+template<bool UseSSL>
+std::shared_ptr<share<Websocket<UseSSL>>>
+Websocket<UseSSL>::get_share() noexcept
+{
+	return share_;
 }
 
 #endif /* AGRO_MESH_WEBSOCKET_IMPL_HPP__ */

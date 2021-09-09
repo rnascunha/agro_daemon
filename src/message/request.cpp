@@ -1,10 +1,11 @@
-#include "process.hpp"
 #include <iostream>
+
+#include "process.hpp"
 #include "types.hpp"
 #include "request/types.hpp"
 #include "coap-te-debug.hpp"
 #include "make.hpp"
-#include "../websocket/websocket.hpp"
+#include "../websocket/types.hpp"
 #include "../resources/process.hpp"
 #include "info.hpp"
 
@@ -21,250 +22,13 @@ static CoAP::Message::code string_to_method(const char* method_str)
 	return CoAP::Message::code::bad_request;
 }
 
-//static void process_ac_load(Device_List& device_list,
-//		mesh_addr_t const& host,
-//		unsigned index, bool value) noexcept
-//{
-//	auto& dev = device_list.update_ac_load(host, index, value);
-//	Websocket<false>::write_all(device_gpios_to_json(dev));
-//}
-//
-//static void process_rtc_time(Device_List& device_list,
-//		mesh_addr_t const& host,
-//		value_time time) noexcept
-//{
-//	auto& dev = device_list.update_rtc_time(host, time);
-//	Websocket<false>::write_all(device_rtc_time_to_json(dev));
-//}
-//
-//static void process_fuse(Device_List& device_list,
-//		mesh_addr_t const& host,
-//		std::int32_t time) noexcept
-//{
-//	auto& dev = device_list.update_fuse(host, time);
-//	Websocket<false>::write_all(device_fuse_to_json(dev));
-//}
-//
-//static void process_uptime(Device_List& device_list,
-//		mesh_addr_t const& host,
-//		int64_t uptime) noexcept
-//{
-//	auto& dev = device_list.update_uptime(host, uptime);
-//	Websocket<false>::write_all(device_uptime_to_json(dev));
-//}
-//
-//static void process_ota(Device_List& device_list,
-//		mesh_addr_t const& host,
-//		std::string&& version) noexcept
-//{
-//	auto const dev = device_list[host];
-//	if(!dev)
-//	{
-//		std::cerr << "Device " << host.to_string() << " not found\n";
-//		return;
-//	}
-//	Websocket<false>::write_all(device_ota_to_json(*dev, version));
-//}
-//
-//static void process_get_jobs(Device_List& device_list,
-//		mesh_addr_t const& host,
-//		std::uint8_t const* data, std::size_t size) noexcept
-//{
-//	auto& dev = device_list.update_jobs(host, data, size);
-//	Websocket<false>::write_all(device_jobs_to_json(dev));
-//}
-//
-//static void request_response(
-//		engine::endpoint const& ep,
-//		CoAP::Message::message const& request,
-//		CoAP::Message::message const& response,
-//		CoAP::Transmission::status_t status,
-//		requests req,
-//		Device_List& device_list) noexcept
-//{
-//	request_config const* config = get_requests_config(req);
-//	if(!config)
-//	{
-//		std::cerr << "Response request not defiend\n";
-//		return;
-//	}
-//
-//	CoAP::Message::Option::option op;
-//	CoAP::Message::Option::get_option(response, op, CoAP::Message::Option::code::uri_host);
-//
-//	std::error_code ec;
-//	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
-//	if(ec) return;
-//
-//	switch(req)
-//	{
-//		case requests::custom: {
-//			rapidjson::Document doc;
-//			Message::make_response(doc, request, response, ep, status);
-//			Websocket<false>::write_all(Message::stringify(doc));
-//		}
-//			break;
-//		case requests::ac_load1_on:
-//		case requests::ac_load1_off: {
-//			process_ac_load(device_list, host, 0, static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
-//		}
-//		break;
-//		case requests::ac_load2_on:
-//		case requests::ac_load2_off:
-//			process_ac_load(device_list, host, 1, static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
-//			break;
-//		case requests::ac_load3_on:
-//		case requests::ac_load3_off:
-//			process_ac_load(device_list, host, 2, static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
-//			break;
-//		case requests::sensor: {
-//			std::error_code ec;
-//			Resource::process_sensor_data(device_list,
-//					ep, op,
-//					response.payload, response.payload_len,
-//					ec);
-//		}
-//			break;
-//		case requests::board: {
-//			std::error_code ec;
-//			Resource::process_board(device_list,
-//					ep, op,
-//					response.payload, response.payload_len,
-//					ec);
-//		}
-//		break;
-//		case requests::config: {
-//			std::error_code ec;
-//			Resource::process_board(device_list,
-//					ep, op,
-//					response.payload, response.payload_len,
-//					ec);
-//		}
-//		break;
-//		case requests::full_config: {
-//			std::error_code ec;
-//			Resource::process_full_config(device_list,
-//					ep, op,
-//					response.payload, response.payload_len,
-//					ec);
-//		}
-//		break;
-//		case requests::route: {
-//			std::error_code ec;
-//			Resource::process_route(device_list,
-//					ep, op,
-//					response.payload, response.payload_len,
-//					ec);
-//		}
-//		break;
-//		case requests::uptime:
-//		{
-//			std::string time{static_cast<const char*>(response.payload), response.payload_len};
-//			process_uptime(device_list, host, std::strtoll(time.c_str(), nullptr, 10));
-//		}
-//			break;
-//		case requests::get_rtc:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "Get RTC error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::warning, host, p.c_str())
-//				);
-//				return;
-//			}
-//			process_rtc_time(device_list, host, *static_cast<const value_time*>(response.payload));
-//			break;
-//		case requests::update_rtc:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "RTC update error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::warning, host, p.c_str())
-//				);
-//				return;
-//			}
-//			Websocket<false>::write_all(make_info(info::success, host, "RTC update"));
-//			break;
-//		case requests::get_fuse:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "Get FUSE error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::warning, host, p.c_str())
-//				);
-//				return;
-//			}
-//			process_fuse(device_list, host, *static_cast<const int32_t*>(response.payload));
-//			break;
-//		case requests::update_fuse:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "Update FUSE error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::warning, host, p.c_str())
-//				);
-//				return;
-//			}
-//			Websocket<false>::write_all(make_info(info::success, host, "Fuse update"));
-//			break;
-//		case requests::get_ota:
-//			process_ota(device_list, host,
-//					std::string{static_cast<const char*>(response.payload), response.payload_len});
-//			break;
-//		case requests::update_ota:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "Update OTA error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::warning, host, p.c_str())
-//				);
-//				return;
-//			}
-//			Websocket<false>::write_all(make_info(info::info, host, "OTA update initiated"));
-//			break;
-//		case requests::send_job:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "Update JOB error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::error, host, p.c_str())
-//				);
-//				return;
-//			}
-//			Websocket<false>::write_all(make_info(info::info, host, "Jobs updated"));
-//			break;
-//		case requests::get_job:
-//			if(CoAP::Message::is_error(response.mcode))
-//			{
-//				std::string p{static_cast<const char*>(response.payload), response.payload_len};
-//				std::cerr << "Get JOB error[" << response.payload_len << "]: " << p << "\n";
-//				Websocket<false>::write_all(
-//						make_info(info::error, host, p.c_str())
-//				);
-//				return;
-//			}
-//			process_get_jobs(device_list, host, static_cast<std::uint8_t const*>(response.payload), response.payload_len);
-//			break;
-//		case requests::delete_job:
-//			Websocket<false>::write_all(make_info(info::info, host, "Jobs deleted"));
-//			break;
-//		default:
-//			break;
-//	}
-//}
-
 /**
  * Request callback (signature defined at transaction)
  */
 static void request_cb(void const* trans,
 		CoAP::Message::message const* response,
 		void* request,
+		Agro::websocket_ptr ws,
 		Device_List& dev_list) noexcept
 {
 	std::cout << "Request callback called...\n";
@@ -296,14 +60,9 @@ static void request_cb(void const* trans,
 					t->request(),
 					*response,
 					t->status(),
-					dev_list);
+					dev_list,
+					ws);
 		}
-//		request_response(ep,
-//				t->request(),
-//				*response,
-//				t->status(),
-//				static_cast<Message::requests>(req),
-//				dev_list);
 	}
 	else
 	{
@@ -318,7 +77,7 @@ static void request_cb(void const* trans,
 		std::string resp_str{Message::stringify(doc)};
 		std::cout << resp_str << "\n";
 
-		Websocket<false>::write_all(resp_str);
+		ws->write_all(resp_str);
 	}
 }
 
@@ -374,6 +133,7 @@ static void send_request(
 		engine::endpoint const& ep,
 		Message::requests request_type,
 		Message::request_message const& msg,
+		Agro::websocket_ptr ws,
 		engine& coap_engine,
 		Device_List& dev_list,
 		rapidjson::Document const& doc) noexcept
@@ -412,6 +172,7 @@ static void send_request(
 				std::placeholders::_1,
 				std::placeholders::_2,
 				std::placeholders::_3,
+				ws,
 				std::ref(dev_list)),
 			reinterpret_cast<int*>(request_type));
 
@@ -424,6 +185,7 @@ static void send_request(
 }
 
 void process_request(rapidjson::Document const& doc,
+			Agro::websocket_ptr ws,
 			Device_List& device_list,
 			engine& coap_engine) noexcept
 {
@@ -472,6 +234,7 @@ void process_request(rapidjson::Document const& doc,
 			dev->get_endpoint(),
 			config->mtype,
 			*req,
+			ws,
 			coap_engine,
 			device_list,
 			doc);

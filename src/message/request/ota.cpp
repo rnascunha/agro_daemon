@@ -1,13 +1,14 @@
 #include "types.hpp"
 #include <iostream>
-#include "../../websocket/websocket.hpp"
+#include "../../websocket/types.hpp"
 #include "../device.hpp"
 
 namespace Message{
 
 static void process_get_ota(Device_List& device_list,
 		mesh_addr_t const& host,
-		std::string&& version) noexcept
+		std::string&& version,
+		Agro::websocket_ptr ws) noexcept
 {
 	auto const dev = device_list[host];
 	if(!dev)
@@ -15,22 +16,23 @@ static void process_get_ota(Device_List& device_list,
 		std::cerr << "Device " << host.to_string() << " not found\n";
 		return;
 	}
-	Websocket<false>::write_all(device_ota_to_json(*dev, version));
+	ws->write_all(device_ota_to_json(*dev, version));
 }
 
 static void process_update_ota(CoAP::Message::message const& response,
-		mesh_addr_t const& host) noexcept
+		mesh_addr_t const& host,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Update OTA error[" << response.payload_len << "]: " << p << "\n";
-		Websocket<false>::write_all(
+		ws->write_all(
 				make_info(info::warning, host, p.c_str())
 		);
 		return;
 	}
-	Websocket<false>::write_all(make_info(info::info, host, "OTA update initiated"));
+	ws->write_all(make_info(info::info, host, "OTA update initiated"));
 }
 
 static void get_ota_response(
@@ -40,11 +42,13 @@ static void get_ota_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list) noexcept
+		Device_List& device_list,
+		Agro::websocket_ptr ws) noexcept
 {
 	process_get_ota(device_list,
 			host,
-			std::string{static_cast<const char*>(response.payload), response.payload_len});
+			std::string{static_cast<const char*>(response.payload), response.payload_len},
+			ws);
 }
 
 static void update_ota_response(
@@ -54,9 +58,10 @@ static void update_ota_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List&) noexcept
+		Device_List&,
+		Agro::websocket_ptr ws) noexcept
 {
-	process_update_ota(response, host);
+	process_update_ota(response, host, ws);
 }
 
 static std::size_t update_ota_payload(

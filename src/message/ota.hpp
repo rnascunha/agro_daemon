@@ -3,6 +3,7 @@
 
 #include "../ota/types.hpp"
 #include "rapidjson/document.h"
+#include "../websocket/types.hpp"
 #include <filesystem>
 
 namespace Message {
@@ -21,7 +22,7 @@ rapidjson::Value& make_image_list(std::filesystem::path const&,
 void ota_image_list(rapidjson::Document&, std::filesystem::path const&) noexcept;
 std::string ota_image_list(std::filesystem::path const&) noexcept;
 
-void process_image(rapidjson::Document const&) noexcept;
+void process_image(rapidjson::Document const&, Agro::websocket_ptr) noexcept;
 
 }//Message
 

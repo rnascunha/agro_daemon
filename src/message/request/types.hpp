@@ -1,5 +1,6 @@
 #include "../../coap_engine.hpp"
 #include "../../device/list.hpp"
+#include "../../websocket/types.hpp"
 #include <vector>
 
 namespace Message{
@@ -52,7 +53,8 @@ struct request_config{
 			CoAP::Message::message const&,
 			CoAP::Message::message const&,
 			CoAP::Transmission::status_t,
-			Device_List&) noexcept = nullptr;
+			Device_List&,
+			Agro::websocket_ptr) noexcept = nullptr;
 };
 
 extern const request_config custom;

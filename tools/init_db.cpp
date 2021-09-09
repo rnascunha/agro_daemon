@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 	int rc = db.exec(buffer);
 	if(rc != SQLITE_OK)
 	{
-		std::cerr << "Error initiating database! [" << rc << " / " << sqlite3_errstr(rc) << "]";
+		std::cerr << "Error initiating database! [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
 		return 1;
 	}
 
@@ -90,6 +90,7 @@ int main(int argc, char** argv)
 	if(rc != SQLITE_OK)
 	{
 		std::cerr << "Error preparing 'DB' instance data [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
+//		std::cerr << db.error() << "\n";
 		return 1;
 	}
 

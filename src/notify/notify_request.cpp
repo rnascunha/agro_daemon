@@ -121,9 +121,9 @@ void notify_request::receive_response()
 notify_factory::notify_factory(boost::asio::io_context& ioc,
 		pusha::key&& ec_key,
 		std::string_view const& subscriber)
-	: ioc_(ioc),
-	  is_valid_(ec_key.get_key() != NULL),
-	  public_key_(is_valid_ ? ec_key.export_public_key() : ""),
+	: ioc_{ioc},
+	  is_valid_{ec_key.get_key() != NULL},
+	  public_key_{is_valid_ ? ec_key.export_public_key() : ""},
 	  push_{std::move(ec_key), subscriber}
 {}
 

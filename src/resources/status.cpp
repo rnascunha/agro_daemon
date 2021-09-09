@@ -1,12 +1,14 @@
 #include "../coap_engine.hpp"
 #include "../device/list.hpp"
+#include "../websocket/types.hpp"
 #include "process.hpp"
 
 namespace Resource{
 
 void put_status_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list) noexcept
+								Device_List& device_list,
+								Agro::share_ptr data_share) noexcept
 {
 	std::printf("Put Status Handler\n");
 
@@ -15,6 +17,7 @@ void put_status_handler(engine::message const& request,
 
 	std::error_code ec;
 	if(!process_status(device_list,
+					data_share,
 					response.endpoint(),
 					op,
 					request.payload, request.payload_len,

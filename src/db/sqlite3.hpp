@@ -13,6 +13,11 @@ class sqlite3{
 		static constexpr const destructor_type static_destructor = SQLITE_STATIC;
 //		static constexpr const destructor_type transient_destructor = SQLITE_TRANSIENT;
 
+		struct binary{
+			const void* data;
+			int size;
+		};
+
 		class statement{
 			public:
 				~statement();
@@ -23,6 +28,7 @@ class sqlite3{
 				int bind(int, int) noexcept;
 				int bind(int, std::string const&, destructor_type = static_destructor) noexcept;
 				int bind(int, const void*, int, destructor_type = static_destructor) noexcept;
+				int bind(int, binary const& data, destructor_type = static_destructor) noexcept;
 
 				int reset() noexcept;
 
@@ -46,16 +52,37 @@ class sqlite3{
 		int open(const char*) noexcept;
 		void close() noexcept;
 
-		int prepare(const char* sql_statment, statement& res, const char** tail = NULL) noexcept;
-		int prepare(const char* sql_statment, int n_bytes, statement& res, const char** tail = NULL) noexcept;
-		int prepare(const std::string_view& sql_statment, statement& res, const char** tail = NULL) noexcept;
+		int prepare(const char* sql_statment, statement& res, const char** tail = nullptr) noexcept;
+		int prepare(const char* sql_statment, int n_bytes, statement& res, const char** tail = nullptr) noexcept;
+		int prepare(const std::string_view& sql_statment, statement& res, const char** tail = nullptr) noexcept;
+
+		template<typename ...Args>
+		int prepare_bind(const std::string_view& sql_statement, statement& res, Args&& ...args) noexcept;
 
 		int exec(const char* statement, callback = NULL,
-				void* = NULL, char** err = NULL) noexcept;
+				void* = nullptr, char** err = nullptr) noexcept;
 
 		const char* error() noexcept;
 	private:
-		sqlite3 *db_ = NULL;
+		sqlite3 *db_ = nullptr;
+
+		template<typename Arg>
+		int prepare_bind_impl(statement& res, int index, Arg&& arg) noexcept;
+		template<typename Arg, typename ...Args>
+		int prepare_bind_impl(statement& res, int index, Arg&& arg, Args&& ...args) noexcept;
+//		template<typename ...Args>
+//		int prepare_bind_impl(statement& res,
+//				int index,
+//				const void* data, int size,
+//				Args&& ...args) noexcept;
+//		template<typename ...Args>
+//		int prepare_bind_impl(statement& res,
+//				int index,
+//				const std::uint8_t* data, int size,
+//				Args&& ...args) noexcept;
+
 };
+
+#include "impl/sqlite3_impl.hpp"
 
 #endif /* AGRO_DAEMON_DB_SQLITE3_HPP__ */

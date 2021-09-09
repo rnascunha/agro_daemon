@@ -18,7 +18,7 @@
 #define DEFAULT_COAP_PORT		5683
 #define DEFAULT_COAP_ADDR		DEFAULT_ADDR
 #define DEFAULT_DBFILE			"agro.db"
-#define DEFAULT_NOTIFY_PRIV_KEY	"priv.pem"
+#define DEFAULT_NOTIFY_PRIV_KEY	""
 
 static bool is_file(std::filesystem::path const& path) noexcept
 {
@@ -89,6 +89,16 @@ static void make_config_file(arguments const& args) noexcept
 	doc.AddMember("addr",
 				rapidjson::Value(args.addr.data(), args.addr.size(), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
+
+#if USE_SSL == 1
+	doc.AddMember("key",
+				rapidjson::Value(args.key.data(), args.key.size(), doc.GetAllocator()).Move(),
+				doc.GetAllocator());
+	doc.AddMember("cert",
+					rapidjson::Value(args.cert.data(), args.cert.size(), doc.GetAllocator()).Move(),
+					doc.GetAllocator());
+#endif /* USE_SSL == 1 */
+
 	doc.AddMember("port", args.port, doc.GetAllocator());
 
 	rapidjson::StringBuffer buffer;
@@ -102,16 +112,14 @@ static void read_config_file(std::filesystem::path const& file, arguments& args)
 {
 	if(!is_file(file))
 	{
-		tt::error(stderr, "ERROR! Configuration file %s not found!", file.c_str());
-//		std::cerr << "ERROR! Configuration file " << file << " not found!\n";
+		tt::error(stderr, "Configuration file '%s' not found!", file.c_str());
 		exit(EXIT_FAILURE);
 	}
 
 	std::ifstream f{file};
 	if(!f)
 	{
-		tt::error(stderr, "ERROR! Error trying to open %s file!", file.c_str());
-//		std::cerr << "ERROR! Error trying to open " << file << " file!\n";
+		tt::error(stderr, "Error trying to open '%s' file!", file.c_str());
 		exit(EXIT_FAILURE);
 	}
 
@@ -123,8 +131,7 @@ static void read_config_file(std::filesystem::path const& file, arguments& args)
 	rapidjson::Document doc;
 	if (doc.Parse(data).HasParseError() || !doc.IsObject())
 	{
-		tt::error(stderr, "ERROR! Error parsing configuration file %s.", file.c_str());
-//		std::cerr << "ERROR! Error parsing configuration file " << file << ".\n";
+		tt::error(stderr, "Error parsing configuration file '%s'.", file.c_str());
 		exit(EXIT_FAILURE);
 	}
 
@@ -158,6 +165,18 @@ static void read_config_file(std::filesystem::path const& file, arguments& args)
 		args.addr = doc["addr"].GetString();
 	}
 
+#if USE_SSL == 1
+	if(doc.HasMember("key") && doc["key"].IsString())
+	{
+		args.key = doc["key"].GetString();
+	}
+
+	if(doc.HasMember("cert") && doc["cert"].IsString())
+	{
+		args.cert = doc["cert"].GetString();
+	}
+#endif /* USE_SSL == 1 */
+
 	if(doc.HasMember("port") && doc["port"].IsInt())
 	{
 		args.port = doc["port"].GetInt();
@@ -175,8 +194,12 @@ R"(---------------------------
 			<< "|notify_key: " << args.notify_priv_key << "\n"
 			<< "|num threads: " << args.num_threads << "\n"
 			<< "|dev addr: " << args.coap_addr << ":" << args.coap_port << "\n"
-			<< "|addr: " << args.addr << ":" << args.port
-			<< "\n---------------------------\n";
+			<< "|addr: " << args.addr << ":" << args.port << "\n"
+#if USE_SSL == 1
+			<< "|key file: " << args.key << "\n"
+			<< "|cert file: " << args.cert << "\n"
+#endif /* USE_SSL == 1 */
+			<< "---------------------------\n";
 }
 
 void read_parameters(int, char** argv, arguments& args) noexcept
@@ -190,6 +213,8 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	cmdl.add_params({"-d", "--dev_addr"});
 	cmdl.add_params({"-p", "--dev_port"});
 	cmdl.add_params({"-a", "--addr"});
+	cmdl.add_params({"-k", "--key"});
+	cmdl.add_params({"-c", "--cert"});
 
 	cmdl.parse(argv);
 
@@ -238,17 +263,17 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	/**
 	 * Checking port
 	 */
-	if(cmdl.pos_args().size() >= 2 && !(cmdl(1) >> args.port))
+	if(cmdl.pos_args().size() < 2 && args.port == INVALID_PORT)
 	{
-		tt::error(stderr, "ERROR! Listening port not provided!");
-//		std::cerr << "ERROR! Listening port not provided!\n";
+		tt::error(stderr, "Listening port not provided!");
 		exit(EXIT_FAILURE);
 	}
 
+	cmdl(1) >> args.port;
+
 	if(!(args.port > 1 && args.port <= 65535) || args.port == INVALID_PORT)
 	{
-		tt::error(stderr, "ERROR! Invalid listening port. [%d]", args.port);
-//		std::cerr << "ERROR! Invalid listening port [" << args.port << "]\n";
+		tt::error(stderr, "Invalid listening port. [%d]", args.port);
 		exit(EXIT_FAILURE);
 	}
 
@@ -263,8 +288,7 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	if(!(cmdl({"-t", "--threads"}, DEFAULT_NUMBER_THEADS) >> args.num_threads)
 			|| args.num_threads < 1)
 	{
-		tt::error(stderr, "ERROR! -t/--threads: argument option must be a positive interger (>= 1).");
-//		std::cerr << "ERROR! -t/--threads: argument option must be a positive interger (>= 1)\n";
+		tt::error(stderr, "-t/--threads: argument option must be a positive interger (>= 1).");
 		exit(EXIT_FAILURE);
 	}
 
@@ -279,56 +303,51 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	if(!(cmdl({"-p", "--dev_port"}, DEFAULT_COAP_PORT) >> args.coap_port)
 			|| !(args.coap_port > 1 && args.coap_port <= 65535))
 	{
-		tt::error(stderr, "ERROR! Invalid device port provided! [%d]", args.port);
-//		std::cerr << "ERROR! Invalid device port provided!\n";
+		tt::error(stderr, "Invalid device port provided! [%d]", args.port);
 		exit(EXIT_FAILURE);
 	}
 
 #if USE_SSL == 1
-	if(!cmdl({"-k", "--key"}) || !cmdl({"-c", "--cert"}))
+	if(!cmdl({"-k", "--key"}) && args.key.empty())
 	{
-		tt::error(stderr, "ERROR! SSL support require key(-k)/certificate(-c) files.");
-//		std::cerr << "ERROR! SSL support require key(-k)/certificate(-c) files.\n";
+		tt::error(stderr, "SSL support requires key(-k) files.");
 		exit(EXIT_FAILURE);
 	}
-	cmdl({"-k", "--key"}) >> args.key;
-	cmdl({"-c", "--cert"}) >> args.cert;
+	if(cmdl({"-k", "--key"}))
+		cmdl({"-k", "--key"}) >> args.key;
+
+	if(!cmdl({"-c", "--cert"}) && args.cert.empty())
+	{
+		tt::error(stderr, "SSL support requires certificate(-c) files.");
+		exit(EXIT_FAILURE);
+	}
+	if(cmdl({"-c", "--cert"}))
+		cmdl({"-c", "--cert"}) >> args.cert;
 #else /* USE_SSL == 1 */
 	if(cmdl({"-k", "--key"}))
 	{
-		tt::warning(stderr, "WARNING! No SSL support. Ignoring -k/--key option.");
-//		std::cerr << "WARNING! No SSL support. Ignoring -k/--key option\n";
+		tt::warning(stderr, "No SSL support. Ignoring -k/--key option.");
 	}
 
 	if(cmdl({"-c", "--cert"}))
 	{
-		tt::warning(stderr, "WARNING! No SSL support. Ignoring -c/--cert option.");
-//		std::cerr << "WARNING! No SSL support. Ignoring -c/--cert option\n";
+		tt::warning(stderr, "No SSL support. Ignoring -c/--cert option.");
 	}
 #endif /* USE_SSL == 1 */
 
 	/**
 	 * Checking files
 	 */
-	if(!is_file(args.notify_priv_key))
-	{
-		tt::error(stderr, "Notify private key file '%s' not found!", args.notify_priv_key.c_str());
-		tt::warning(stderr, "Notifying will be disabled.");
-//		std::cerr << "Notify private key file '" << args.notify_priv_key << "' not found! Notifying will be disabled\n";
-	}
-
 #if USE_SSL == 1
 	if(!is_file(args.key))
 	{
-		tt::error(stderr, "ERROR! PEM key file '%s' not found!", args.key.c_str());
-//		std::cerr << "ERROR! PEM key file '" << args.key << "' not found!\n"
+		tt::error(stderr, "PEM key file '%s' not found!", args.key.c_str());
 		exit(EXIT_FAILURE);
 	}
 
 	if(!is_file(args.cert))
 	{
-		tt::error(stderr, "ERROR! Certified file '%s' not found!", args.cert.c_str());
-//		std::cerr << "ERROR! Certified file '" << args.cert << "' not found!\n";
+		tt::error(stderr, "Certified file '%s' not found!", args.cert.c_str());
 		exit(EXIT_FAILURE);
 	}
 #endif /* USE_SSL == 1 */
@@ -345,7 +364,6 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	if(!is_file(args.db_file))
 	{
 		tt::status("Database file '%s' will be created.", args.db_file.c_str());
-//		std::cerr << "Database file '" << args.db_file << "' will be created.\n";
 	}
 
 	tt::enable_if<tt::type::debug>([&]{

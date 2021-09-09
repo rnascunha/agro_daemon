@@ -1,6 +1,6 @@
 #include "types.hpp"
 #include <iostream>
-#include "../../websocket/websocket.hpp"
+#include "../../websocket/types.hpp"
 #include "../../app/app.hpp"
 #include "../../error.hpp"
 #include "../device.hpp"
@@ -16,7 +16,8 @@ struct app{
 
 static void process_get_app(Device_List& device_list,
 		mesh_addr_t const& host,
-		const void* data, std::size_t data_len) noexcept
+		const void* data, std::size_t data_len,
+		Agro::websocket_ptr ws) noexcept
 {
 	auto const dev = device_list[host];
 	if(!dev)
@@ -33,13 +34,14 @@ static void process_get_app(Device_List& device_list,
 		data8 += sizeof(app);
 	}
 
-	Websocket<false>::write_all(device_apps_to_json(*dev));
+	ws->write_all(device_apps_to_json(*dev));
 }
 
 static void process_send_app(CoAP::Message::message const& response,
-		mesh_addr_t const& host) noexcept
+		mesh_addr_t const& host,
+		Agro::websocket_ptr ws) noexcept
 {
-	Websocket<false>::write_all(make_info(info::info, host, "Send app initiated"));
+	ws->write_all(make_info(info::info, host, "Send app initiated"));
 }
 
 static void get_app_response(
@@ -49,7 +51,8 @@ static void get_app_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list) noexcept
+		Device_List& device_list,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
@@ -58,14 +61,14 @@ static void get_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		Websocket<false>::write_all(
+		ws->write_all(
 						make_info(info::warning, host, p.c_str())
 				);
 		return;
 	}
 	process_get_app(device_list,
 			host,
-			response.payload, response.payload_len);
+			response.payload, response.payload_len, ws);
 }
 
 static void send_app_response(
@@ -75,7 +78,8 @@ static void send_app_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List&) noexcept
+		Device_List&,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
@@ -84,12 +88,12 @@ static void send_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		Websocket<false>::write_all(
+		ws->write_all(
 								make_info(info::warning, host, p.c_str())
 						);
 		return;
 	}
-	process_send_app(response, host);
+	process_send_app(response, host, ws);
 }
 
 static void exec_app_response(
@@ -99,7 +103,8 @@ static void exec_app_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list) noexcept
+		Device_List& device_list,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
@@ -108,7 +113,7 @@ static void exec_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		Websocket<false>::write_all(
+		ws->write_all(
 								make_info(info::warning, host, p.c_str())
 						);
 		return;
@@ -124,8 +129,7 @@ static void exec_app_response(
 		<< *static_cast<const int*>(response.payload)
 		<< "]";
 
-	Websocket<false>::write_all(
-							make_info(info::success, host, ss.str().c_str()));
+	ws->write_all(make_info(info::success, host, ss.str().c_str()));
 }
 
 static void delete_app_response(
@@ -135,7 +139,8 @@ static void delete_app_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list) noexcept
+		Device_List& device_list,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
@@ -144,14 +149,14 @@ static void delete_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		Websocket<false>::write_all(
+		ws->write_all(
 								make_info(info::warning, host, p.c_str())
 						);
 		return;
 	}
 	auto const dev = device_list[host];
 	dev->delete_app(std::string{static_cast<const char*>(request.payload), request.payload_len});
-	Websocket<false>::write_all(device_apps_to_json(*dev));
+	ws->write_all(device_apps_to_json(*dev));
 }
 
 static std::size_t name_app_payload(

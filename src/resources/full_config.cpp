@@ -1,18 +1,21 @@
 #include "../coap_engine.hpp"
 #include "../device/list.hpp"
+#include "../websocket/types.hpp"
 #include "process.hpp"
 
 namespace Resource{
 
 void put_full_config_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list) noexcept
+								Device_List& device_list,
+								Agro::share_ptr data_share) noexcept
 {
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
 
 	std::error_code ec;
 	if(!process_full_config(device_list,
+					data_share,
 					response.endpoint(),
 					op,
 					request.payload, request.payload_len,

@@ -1,6 +1,5 @@
 #include "user.hpp"
 #include "user_types.hpp"
-//#include "../notify/notify.hpp"
 #include "rapidjson/document.h"
 #include "make.hpp"
 #include "tt/tt.hpp"
@@ -14,16 +13,16 @@ static void add_subscription(
 		const char* p256dh,
 		const char* auth) noexcept
 {
-	tt::status("Subscribing %s(%s) to push notification", user.username().c_str(), user.user_agent().c_str());
 	user.push_subscribe(endpoint, p256dh, auth);
+	tt::status("Subscribing %s(%s) to push notification", user.username().c_str(), user.user_agent().c_str());
 	db.push_subscribe_user(user, endpoint, p256dh, auth);
 }
 
 static void remove_subcription(Agro::User& user,
 		Agro::DB& db) noexcept
 {
-	tt::status("Unsubscribing %s(%s) to push notification", user.username().c_str(), user.user_agent().c_str());
 	user.push_unsubscribe();
+	tt::status("Unsubscribing %s(%s) to push notification", user.username().c_str(), user.user_agent().c_str());
 	db.push_unsubscribe_user(user);
 }
 
@@ -78,7 +77,7 @@ static void process_unsubscription(rapidjson::Document const&,
 
 static void logout(Agro::User const& user,
 		Agro::DB& db,
-		std::shared_ptr<Websocket<false>> ws) noexcept
+		Agro::websocket_ptr ws) noexcept
 {
 	tt::debug("User %s (%s) logging out.",
 			user.name().c_str(), user.username().c_str());
@@ -87,8 +86,8 @@ static void logout(Agro::User const& user,
 }
 
 void process_user(rapidjson::Document const& doc,
-		std::shared_ptr<Websocket<false>> ws,
-		Agro::instance& instance,
+		Agro::websocket_ptr ws,
+		Agro::instance const& instance,
 		Agro::User& user) noexcept
 {
 	if(!doc.HasMember("command") || !doc["command"].IsString())

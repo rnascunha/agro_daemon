@@ -9,14 +9,15 @@
 #include "ota.hpp"
 #include "user.hpp"
 #include "device.hpp"
+#include "app.hpp"
 
-#include "../websocket/websocket.hpp"
+#include "../websocket/types.hpp"
 
 namespace Message{
 
 void process(std::string&& data,
-		std::shared_ptr<Websocket<false>> ws,
-		Agro::instance& instance,
+		Agro::websocket_ptr ws,
+		Agro::instance const& instance,
 		Agro::User& user) noexcept
 {
 	rapidjson::Document d;
@@ -43,20 +44,20 @@ void process(std::string&& data,
 		case Message::type::response:
 			break;
 		case Message::type::request:
-			process_request(d, instance.device_list, instance.coap_engine);
+			process_request(d, ws, instance.device_list, instance.coap_engine);
 			break;
 		case Message::type::device:
 		case Message::type::device_list:
-			Websocket<false>::write_all(Message::device_list_to_json(instance.device_list));
+			ws->write_all(Message::device_list_to_json(instance.device_list));
 			break;
 		case Message::type::command:
-			process_commands(d, instance.device_list);
+			process_commands(d, ws, instance.device_list);
 			break;
 		case Message::type::image:
-			process_image(d);
+			process_image(d, ws);
 			break;
 		case Message::type::app:
-			process_app(d);
+			process_app(d, ws);
 			break;
 		case Message::type::user:
 			process_user(d, ws, instance, user);

@@ -267,7 +267,9 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/time.cpp
 					${RESOURCE_DIR}/ota.cpp
 					${RESOURCE_DIR}/app.cpp
-					${RESOURCE_DIR}/info.cpp)
+					${RESOURCE_DIR}/info.cpp
+					${RESOURCE_DIR}/init.cpp
+					${RESOURCE_DIR}/process.cpp)
 
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
@@ -314,8 +316,6 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${SRC_DIR}/arguments.cpp
 			${MESSAGE_SRC}
 			${DEVICE_SRC}
-			${RESOURCE_DIR}/process.cpp
-			${RESOURCE_DIR}/init.cpp
 			${RESOURCE_SRC}
 			${REQUEST_SRC}
 			${OTA_DIR}/ota.cpp
@@ -325,6 +325,10 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${USER_SRC}
 			${SRC_DIR}/helper/sha256.cpp
 			)
+			
+if(USE_SSL EQUAL 1)
+	list(APPEND MAIN_SRC ${SRC_DIR}/websocket/load_certificate.cpp)
+endif()
 
 add_executable(${PROJECT_NAME} ${MAIN_SRC})
 
@@ -376,3 +380,16 @@ set_target_properties(init_db PROPERTIES
 #target_link_libraries(add_user OpenSSL::SSL)
 target_link_libraries(init_db ${SQLite3_LIBRARIES})
 target_link_libraries(init_db pusha)
+
+#add_executable(db_test tools/db_test.cpp 
+#						${DB_DIR}/sqlite3.cpp
+#						${SRC_DIR}/error.cpp)
+#
+#set_target_properties(db_test PROPERTIES
+#    CXX_STANDARD 17
+#    CXX_STANDARD_REQUIRED ON
+#    CXX_EXTENSIONS ON
+#)
+#
+#target_link_libraries(db_test ${SQLite3_LIBRARIES})
+

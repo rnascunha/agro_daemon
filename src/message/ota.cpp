@@ -1,7 +1,6 @@
 #include "ota.hpp"
 #include "make.hpp"
 #include "../ota/ota.hpp"
-#include "../websocket/websocket.hpp"
 #include "../helper/sha256.hpp"
 
 namespace Message{
@@ -23,7 +22,8 @@ std::string ota_image_list(std::filesystem::path const& path) noexcept
 	return stringify(doc);
 }
 
-static void delete_images(rapidjson::Document const& doc) noexcept
+static void delete_images(rapidjson::Document const& doc,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(!doc.HasMember("data") || !doc["data"].IsArray()) return;
 
@@ -34,10 +34,11 @@ static void delete_images(rapidjson::Document const& doc) noexcept
 		v.emplace_back(image);
 	}
 	delete_image(v);
-	Websocket<false>::write_all(ota_image_list(ota_path()));
+	ws->write_all(ota_image_list(ota_path()));
 }
 
-void process_image(rapidjson::Document const& doc) noexcept
+void process_image(rapidjson::Document const& doc,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(!doc.HasMember("command") || !doc["command"].IsString()) return;
 
@@ -47,10 +48,10 @@ void process_image(rapidjson::Document const& doc) noexcept
 	switch(config->mtype)
 	{
 		case image_commands::erase:
-			delete_images(doc);
+			delete_images(doc, ws);
 			break;
 		case image_commands::list:
-			Websocket<false>::write_all(ota_image_list(ota_path()));
+			ws->write_all(ota_image_list(ota_path()));
 			break;
 		default:
 			break;

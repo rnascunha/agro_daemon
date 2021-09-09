@@ -1,7 +1,6 @@
 #include "app.hpp"
 #include "types.hpp"
 #include "../app/app.hpp"
-#include "../websocket/websocket.hpp"
 
 namespace Message{
 
@@ -60,7 +59,8 @@ std::string app_list(std::filesystem::path const& path) noexcept
 	return stringify(doc);
 }
 
-static void delete_apps(rapidjson::Document const& doc) noexcept
+static void delete_apps(rapidjson::Document const& doc,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(!doc.HasMember("data") || !doc["data"].IsArray()) return;
 
@@ -71,10 +71,11 @@ static void delete_apps(rapidjson::Document const& doc) noexcept
 		v.emplace_back(image);
 	}
 	delete_app(v);
-	Websocket<false>::write_all(app_list(app_path()));
+	ws->write_all(app_list(app_path()));
 }
 
-void process_app(rapidjson::Document const& doc) noexcept
+void process_app(rapidjson::Document const& doc,
+		Agro::websocket_ptr ws) noexcept
 {
 	if(!doc.HasMember("command") || !doc["command"].IsString()) return;
 
@@ -84,15 +85,14 @@ void process_app(rapidjson::Document const& doc) noexcept
 	switch(config->mtype)
 	{
 		case app_commands::erase:
-			delete_apps(doc);
+			delete_apps(doc, ws);
 			break;
 		case app_commands::list:
-			Websocket<false>::write_all(app_list(app_path()));
+			ws->write_all(app_list(app_path()));
 			break;
 		default:
 			break;
 	}
 }
-
 
 }//Message

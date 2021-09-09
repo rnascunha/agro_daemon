@@ -1,6 +1,6 @@
 #include "types.hpp"
 #include <iostream>
-//#include "../../websocket/websocket.hpp"
+#include "../../websocket/types.hpp"
 #include "../../resources/process.hpp"
 
 namespace Message{
@@ -12,7 +12,8 @@ static void packet_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list) noexcept
+		Device_List& device_list,
+		Agro::websocket_ptr ws) noexcept
 {
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(response, op, CoAP::Message::Option::code::uri_host);
@@ -22,6 +23,7 @@ static void packet_response(
 		case requests::sensor: {
 			std::error_code ec;
 			Resource::process_sensor_data(device_list,
+					ws->get_share(),
 					ep, op,
 					response.payload, response.payload_len,
 					ec);
@@ -30,6 +32,7 @@ static void packet_response(
 		case requests::board: {
 			std::error_code ec;
 			Resource::process_board(device_list,
+					ws->get_share(),
 					ep, op,
 					response.payload, response.payload_len,
 					ec);
@@ -38,6 +41,7 @@ static void packet_response(
 		case requests::config: {
 			std::error_code ec;
 			Resource::process_config(device_list,
+					ws->get_share(),
 					ep, op,
 					response.payload, response.payload_len,
 					ec);
@@ -46,6 +50,7 @@ static void packet_response(
 		case requests::full_config: {
 			std::error_code ec;
 			Resource::process_full_config(device_list,
+					ws->get_share(),
 					ep, op,
 					response.payload, response.payload_len,
 					ec);
@@ -54,6 +59,7 @@ static void packet_response(
 		case requests::route: {
 			std::error_code ec;
 			Resource::process_route(device_list,
+					ws->get_share(),
 					ep, op,
 					response.payload, response.payload_len,
 					ec);

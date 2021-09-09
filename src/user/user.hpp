@@ -2,6 +2,7 @@
 #define AGRO_DAEMON_USER_HPP__
 
 #include <string>
+#include "../notify/alert.hpp"
 
 namespace Agro{
 
@@ -37,10 +38,12 @@ class User{
 
 		operator bool() const noexcept;
 
+		//Authenticate
 		void authenticate() noexcept;
 		void authenticate(std::string const& session_id,
 				std::string const& user_agent) noexcept;
 
+		//Web push subscription
 		bool is_subscribed() const noexcept;
 		void push_subscribe(std::string const& endpoint,
 				std::string const& p256dh,
@@ -51,6 +54,9 @@ class User{
 		std::string const& auth() const noexcept;
 
 		void push_unsubscribe() noexcept;
+
+		//alert
+		bool to_alert(alert) const noexcept;
 	private:
 		int 		id_ = -1;
 		std::string username_;
@@ -65,6 +71,8 @@ class User{
 		std::string	endpoint_;
 		std::string	p256dh_;
 		std::string auth_;
+
+		alert alert_ = alert::no_alert;
 };
 
 }//Agro

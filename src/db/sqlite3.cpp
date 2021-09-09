@@ -103,6 +103,11 @@ int sqlite3::statement::bind(int index, const void* data, int size, destructor_t
 	return sqlite3_bind_blob(stmt_, index, data, size, destructor);
 }
 
+int sqlite3::statement::bind(int index, binary const& data, destructor_type destructor /* = static_destructor */) noexcept
+{
+	return bind(index, data.data, data.size, destructor);
+}
+
 int sqlite3::statement::reset() noexcept
 {
 	return sqlite3_reset(stmt_);

@@ -125,4 +125,9 @@ std::string const& User::auth() const noexcept
 	return auth_;
 }
 
+bool User::to_alert(alert alrt) const noexcept
+{
+	return alert_ & alrt;
+}
+
 }//Agro

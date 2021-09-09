@@ -3,13 +3,14 @@
 
 #include "rapidjson/document.h"
 #include <filesystem>
+#include "../websocket/types.hpp"
 
 namespace Message {
 
 void app_list(rapidjson::Document& doc, std::filesystem::path const& path) noexcept;
 std::string app_list(std::filesystem::path const& path) noexcept;
 
-void process_app(rapidjson::Document const&) noexcept;
+void process_app(rapidjson::Document const&, Agro::websocket_ptr) noexcept;
 
 }//Message
 

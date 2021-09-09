@@ -3,13 +3,20 @@
 
 #include "../websocket.hpp"
 //#include "../../notify/notify.hpp"
-//#include "../message/device.hpp"
-#include "../../message/ota.hpp"
-#include "../../message/app.hpp"
+//#include "../../message/device.hpp"
+//#include "../../message/ota.hpp"
+//#include "../../message/app.hpp"
 #include "../../message/info.hpp"
-//#include "../ota/ota.hpp"
+#include "../../ota/ota.hpp"
 #include "../../app/app.hpp"
 #include <fstream>
+
+namespace Message{
+
+std::string ota_image_list(std::filesystem::path const&) noexcept;
+std::string app_list(std::filesystem::path const& path) noexcept;
+
+}//Message
 
 static constexpr const std::size_t image_name_max_size = 30;
 static constexpr const std::size_t app_name_max_size = 12;
@@ -27,8 +34,8 @@ enum class binary_type{
 //	notify(ss.str());
 //}
 
-template<typename Stream>
-static void get_app_file(Stream& stream,
+template<bool UseSSL>
+void Websocket<UseSSL>::get_app_file(
 		const char* first_block, std::size_t block_size,
 		std::filesystem::path const& app_path) noexcept
 {
@@ -37,7 +44,7 @@ static void get_app_file(Stream& stream,
 	{
 		std::stringstream ss;
 		ss << "size=" << name_size << "/max=" << app_name_max_size;
-		Websocket<false>::write_all(Message::make_info(Message::info::warning,
+		write_all(Message::make_info(Message::info::warning,
 				Message::info_category::app, "Invalid app name size", ss.str().c_str()));
 		/**
 		 * Clear buffer
@@ -45,9 +52,9 @@ static void get_app_file(Stream& stream,
 		char buffer[1024];
 		do
 		{
-			stream.read_some(boost::asio::buffer(buffer, 1024));
+			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!stream.is_message_done());
+		while(!base_type::stream_.is_message_done());
 		return;
 	}
 
@@ -58,7 +65,7 @@ static void get_app_file(Stream& stream,
 
 	if(std::filesystem::exists(path))
 	{
-		Websocket<false>::write_all(Message::make_info(Message::info::warning,
+		write_all(Message::make_info(Message::info::warning,
 				Message::info_category::app, "App already uploaded", name.c_str()));
 		/**
 		 * Clear buffer
@@ -66,9 +73,9 @@ static void get_app_file(Stream& stream,
 		char buffer[1024];
 		do
 		{
-			stream.read_some(boost::asio::buffer(buffer, 1024));
+			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!stream.is_message_done());
+		while(!base_type::stream_.is_message_done());
 		return;
 	}
 
@@ -78,18 +85,18 @@ static void get_app_file(Stream& stream,
 	char buffer[1024];
 	do
 	{
-		std::size_t s = stream.read_some(boost::asio::buffer(buffer, 1024));
+		std::size_t s = base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
 		t.write(buffer, s);
 	}
-	while(!stream.is_message_done());
+	while(!base_type::stream_.is_message_done());
 	t.close();
 
 //	notify_new_update("app", name);
-	Websocket<false>::write_all(Message::app_list(app_path));
+	write_all(Message::app_list(app_path));
 }
 
-template<typename Stream>
-static void get_image_file(Stream& stream,
+template<bool UseSSL>
+void Websocket<UseSSL>::get_image_file(
 		const char* first_block, std::size_t block_size,
 		std::filesystem::path const& images_path) noexcept
 {
@@ -98,7 +105,7 @@ static void get_image_file(Stream& stream,
 	{
 		std::stringstream ss;
 		ss << "size=" << name_size << "/max=" << (image_name_max_size - 1);
-		Websocket<false>::write_all(Message::make_info(Message::info::warning,
+		write_all(Message::make_info(Message::info::warning,
 				Message::info_category::image, "Invalid image name size", ss.str().c_str()));
 		/**
 		 * Clear buffer
@@ -106,9 +113,9 @@ static void get_image_file(Stream& stream,
 		char buffer[1024];
 		do
 		{
-			stream.read_some(boost::asio::buffer(buffer, 1024));
+			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!stream.is_message_done());
+		while(!base_type::stream_.is_message_done());
 		return;
 	}
 
@@ -119,7 +126,7 @@ static void get_image_file(Stream& stream,
 
 	if(std::filesystem::exists(path))
 	{
-		Websocket<false>::write_all(Message::make_info(Message::info::warning,
+		write_all(Message::make_info(Message::info::warning,
 				Message::info_category::image, "Image already uploaded", name.c_str()));
 		/**
 		 * Clear buffer
@@ -127,9 +134,9 @@ static void get_image_file(Stream& stream,
 		char buffer[1024];
 		do
 		{
-			stream.read_some(boost::asio::buffer(buffer, 1024));
+			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!stream.is_message_done());
+		while(!base_type::stream_.is_message_done());
 		return;
 	}
 
@@ -139,15 +146,15 @@ static void get_image_file(Stream& stream,
 	char buffer[1024];
 	do
 	{
-		std::size_t s = stream.read_some(boost::asio::buffer(buffer, 1024));
+		std::size_t s = base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
 		t.write(buffer, s);
 	}
-	while(!stream.is_message_done());
+	while(!base_type::stream_.is_message_done());
 	t.close();
 
 	if(!check_image(path))
 	{
-		Websocket<false>::write_all(Message::make_info(Message::info::error,
+		write_all(Message::make_info(Message::info::error,
 				Message::info_category::image, "Uploaded Image hash not match",
 				name.c_str()));
 		std::filesystem::remove(path);
@@ -157,11 +164,11 @@ static void get_image_file(Stream& stream,
 //		notify_new_update("image", name);
 	}
 
-	Websocket<false>::write_all(Message::ota_image_list(images_path));
+	write_all(Message::ota_image_list(images_path));
 }
 
-template<typename Stream>
-void get_file(Stream& stream, const char* first_block, std::size_t block_size) noexcept
+template<bool UseSSL>
+void Websocket<UseSSL>::get_file(const char* first_block, std::size_t block_size) noexcept
 {
 	std::cout << "File received::[" << static_cast<int>(first_block[0]) << "]\n";
 	switch(static_cast<binary_type>(first_block[0]))
@@ -171,11 +178,11 @@ void get_file(Stream& stream, const char* first_block, std::size_t block_size) n
 			break;
 		case binary_type::image:
 			std::cout << "File is a image\n";
-			get_image_file(stream, first_block + 1, block_size - 1, ota_path());
+			get_image_file(first_block + 1, block_size - 1, ota_path());
 			break;
 		case binary_type::app:
 			std::cout << "File is a app\n";
-			get_app_file(stream, first_block + 1, block_size - 1, app_path());
+			get_app_file(first_block + 1, block_size - 1, app_path());
 			break;
 		default:
 			std::cerr << "Image type not defined [" << static_cast<int>(first_block[0]) << "]\n";

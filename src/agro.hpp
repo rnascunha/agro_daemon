@@ -15,6 +15,6 @@ struct instance{
 	notify_factory& notify;
 };
 
-}
+}//Agro
 
 #endif /* AGRO_DAEMON_AGRO_HPP__ */

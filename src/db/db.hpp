@@ -46,6 +46,8 @@ class DB{
 
 		bool push_unsubscribe_user(User const&) noexcept;
 
+		std::string notify_private_key() noexcept;
+
 		const char* error(){ return db_.error(); };
 	private:
 		sqlite3 db_;

@@ -3,29 +3,68 @@
 #include <functional>
 #include <filesystem>
 
-#include "arguments.hpp"
+#include <boost/asio.hpp>
 
-#include "boost/asio.hpp"
+#include "arguments.hpp"
 
 #include "tt/tt.hpp"
 
 #include "coap_engine.hpp"
-#include "websocket/websocket.hpp"
+#include "websocket/types.hpp"
 
 #include "device/list.hpp"
-
 #include "notify/notify_request.hpp"
+#include "resources/init.hpp"
 
 #include "db/db.hpp"
 #include "agro.hpp"
 
+#if USE_SSL == 1
+#include "websocket/load_certificate.hpp"
+#endif /* USE_SSL == 1 */
+
 static constexpr const std::string_view subscriber{"email@email.com"};
 
-template<typename ErrorType>
-void print_error(ErrorType ec, const char* what = "")
+static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept
 {
-	std::cerr << "ERROR! [" << ec.value() << "] "
-			<< ec.message() << " [" << what << "]\n";
+	pusha::key key;
+
+	if(!path.empty())
+	{
+		if(!std::filesystem::is_regular_file(path))
+		{
+			tt::error("notify private key: '%s' is not a valid file.", path.c_str());
+			goto import_db;
+		}
+		else if(!key.import(path))
+		{
+			tt::error("notify private key: Failed to import from '%s' file.", path.c_str());
+			goto import_db;
+		}
+		else {
+			tt::debug("notify private key: imported from '%s' file.", path.c_str());
+			goto end;
+		}
+	}
+	else
+	{
+import_db:
+		std::string keyb64 = db.notify_private_key();
+		if(!keyb64.empty())
+		{
+			if(!key.import(keyb64))
+			{
+				tt::error("notifiy private key: import from 'DB' fail.");
+			}
+			else
+			{
+				tt::debug("notify private key: key imported from DB.");
+			}
+		}
+	}
+
+end:
+	return key;
 }
 
 int main(int argc, char** argv)
@@ -37,7 +76,7 @@ int main(int argc, char** argv)
 	Agro::DB db{args.db_file.c_str(), ecb};
 	if(ecb)
 	{
-		tt::error("Error opening DB %s\n", args.db_file.c_str());
+		tt::error("Error opening DB %s", args.db_file.c_str());
 		return 1;
 	}
 
@@ -48,7 +87,7 @@ int main(int argc, char** argv)
 	auto const address = boost::asio::ip::make_address(args.addr, ec);
 	if(ec)
 	{
-		print_error(ec, "address");
+		tt::error("Invalid address! [%s]", args.addr.c_str());
 		return EXIT_FAILURE;
 	}
 	auto port = static_cast<unsigned short>(args.port);
@@ -56,23 +95,13 @@ int main(int argc, char** argv)
 	// The io_context is required for all I/O
 	boost::asio::io_context ioc;
 
-	My_Async::Listener::make_listener<Websocket<false>>(ioc, address, port, ec);
-	if(ec)
-	{
-		print_error(ec, "open listener");
-		return EXIT_FAILURE;
-	}
-
-	tt::status("Socket opened\n");
-
 	std::error_code sec;
-	pusha::key key{std::filesystem::path{args.notify_priv_key}, sec};
+	pusha::key key = get_notify_key(args.notify_priv_key, db);
 	if(sec)
 	{
-		tt::error("Error opening notify private key! [%s]", sec.message());
+		tt::error("Error opening notify private key! [%s]", sec.message().c_str());
 	}
 	notify_factory factory{ioc, std::move(key), subscriber};
-//	init_notify(factory);
 
 	tt::status("Init code");
 
@@ -82,40 +111,60 @@ int main(int argc, char** argv)
 	udp_conn::endpoint ep{args.coap_addr.c_str(), static_cast<unsigned short>(args.coap_port), ecp};
 	if(ecp)
 	{
-		print_error(ecp, "endpoint");
+		tt::error("Invalid device endpoint! [%s:%d]", args.coap_addr.c_str(), args.coap_port);
 		return EXIT_FAILURE;
 	}
 
 	conn.open(ecp);
 	if(ecp)
 	{
-		print_error(ecp, "open");
+		tt::error("Error opening device socket! [%d/%s]", ecp.value(), ecp.message());
 		return EXIT_FAILURE;
 	}
 
 	conn.bind(ep, ecp);
 	if(ecp)
 	{
-		print_error(ecp, "bind");
+		tt::error("Error binding device socket! [%d/%s]", ecp.value(), ecp.message());
 		return EXIT_FAILURE;
 	}
 
 	Device_List device_list;
-
 	engine coap_engine{std::move(conn), CoAP::Message::message_id{CoAP::random_generator()}};
 
-//	std::vector<engine::resource_node> vresource;
-//	Resource::init(coap_engine, device_list, vresource);
-
 	Agro::instance app{db, coap_engine, device_list, factory};
-	Websocket<false>::data(app);
+	auto sh = std::make_shared<Agro::share>(app);
+
+	std::vector<engine::resource_node> vresource;
+	Resource::init(coap_engine, device_list, sh, vresource);
+
+#if USE_SSL == 0
+	Agro::make_listener<Agro::websocket>(ioc, address, port, sh, ec);
+#else /* USE_SSL == 0 */
+	boost::asio::ssl::context ctx{boost::asio::ssl::context::tlsv12};
+	Agro::load_certificate(ctx, args.cert, args.key, ec);
+	if(ec)
+	{
+		tt::error("Error loading key/certificate! [%d/%s]", ec.value(), ec.message());
+		return EXIT_FAILURE;
+	}
+
+	Agro::make_listener<Agro::websocket>(ioc, ctx, address, port, sh, ec);
+#endif /* USE_SSL == 0 */
+	if(ec)
+	{
+		tt::error("Error opening listener! [%d/%s]", ec.value(), ec.message());
+		return EXIT_FAILURE;
+	}
 
 	// Capture SIGINT and SIGTERM to perform a clean shutdown
 	boost::asio::signal_set signals(ioc, SIGINT, SIGTERM);
+	bool keep_running = true;
 	signals.async_wait(
-		[&ioc, &coap_engine](boost::system::error_code const&, int){
+		[&ioc, &coap_engine, &keep_running](boost::system::error_code const&, int){
 			ioc.stop();
 			coap_engine.get_connection().close();
+			keep_running = false;
 		});
 
 
@@ -128,10 +177,10 @@ int main(int argc, char** argv)
 		{
 			ioc.run();
 		});
-	ioc.run();
 
-	while(coap_engine.run<50>(ecp))
+	while(keep_running)
 	{
+		coap_engine.run<50>(ecp);
 		ioc.run_for(std::chrono::milliseconds(50));
 	}
 
@@ -139,9 +188,9 @@ int main(int argc, char** argv)
 	for(auto& t : v)
 		t.join();
 
-	if(ecp)
+	if(ecp && ecp != CoAP::errc::socket_receive)
 	{
-		print_error(ecp, "run");
+		tt::error("Error running! [%d/%s]", ecp.value(), ecp.message());
 	}
 
 	return EXIT_SUCCESS;
