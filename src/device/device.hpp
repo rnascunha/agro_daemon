@@ -19,6 +19,8 @@ class Device{
 		/**
 		 * Getters
 		 */
+		int id() const noexcept;
+
 		mesh_addr_t const& mac() const noexcept;
 		mesh_addr_t const & parent() const noexcept;
 		mesh_addr_t const& mac_ap() const noexcept;
@@ -79,6 +81,8 @@ class Device{
 		void delete_app(std::string const&) noexcept;
 	private:
 		void update_endpoint(endpoint const& ep) noexcept;
+
+		int id_ = 0;
 
 		mesh_addr_t	mac_;
 		mesh_addr_t parent_;

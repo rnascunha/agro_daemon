@@ -24,8 +24,8 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 
 		using empty = struct{};
 		//Check if the session is SSL. If not, exclude ctx_ attribute
-		using ssl_context = typename std::conditional<Session::use_ssl, boost::asio::ssl::context, empty>::type;
-		ssl_context& ctx_;
+		using ssl_context = typename std::conditional<Session::use_ssl, boost::asio::ssl::context&, empty>::type;
+		ssl_context ctx_;
 
 		std::shared_ptr<share<Session>> share_;
 	public:
@@ -40,7 +40,7 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 //#if USE_SSL == 1
 		Listener(
 				boost::asio::io_context& ioc,
-				ssl_context& ctx,
+				ssl_context ctx,
 				std::shared_ptr<share<Session>> const& share)
 				: ioc_(ioc), acceptor_(boost::asio::make_strand(ioc))
 				, ctx_(ctx)

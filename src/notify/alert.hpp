@@ -9,14 +9,22 @@ enum class alert{
 	//user
 	login = 1 << 0,
 	logout = 1 << 1,
+	add_user = 1 << 2,
+	user_removed = 1 << 3,
 	//device
-	add_device = 1 << 2,			//New device added
-	device_connected = 1 << 3,
-	device_disconnected = 1 << 4,
+	add_device = 1 << 4,			//New device added
+	device_connected = 1 << 5,
+	device_disconnected = 1 << 6,
+	device_image_updated = 1 << 7,
+	device_app_installed = 1 << 8,
 	//sensor
-	sensor_value = 1 << 5,
-	sensor_value_change = 1 << 6,
-	sensor_value_out_of_bound = 1 << 7
+	sensor_value = 1 << 9,
+	sensor_value_change = 1 << 10,
+	sensor_value_out_of_bound = 1 << 11,
+	//Image
+	image_uploaded = 1 << 12,
+	//App
+	app_uploaded = 1 << 13
 };
 
 constexpr alert operator|(alert lhs, alert rhs) noexcept
