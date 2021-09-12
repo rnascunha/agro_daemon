@@ -184,6 +184,8 @@ class Logged{
 		Info const* info() const noexcept;
 
 		std::string const& user_agent() const noexcept;
+		void user_agent(std::string const&) noexcept;
+
 		std::string const& session_id() const noexcept;
 
 		bool is_authenticated() const noexcept;
@@ -195,7 +197,6 @@ class Logged{
 		std::string session_id_;
 
 		bool authenticated_ = false;
-//		Session* session_ = nullptr;
 		Info const*	 info_ = nullptr;
 };
 

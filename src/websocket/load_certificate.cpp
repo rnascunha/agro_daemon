@@ -4,8 +4,8 @@ namespace Agro{
 
 void
 load_certificate(boost::asio::ssl::context& ctx,
-		const std::string cert_file_name,
-		const std::string key_file_name,
+		const std::string& cert_file_name,
+		const std::string& key_file_name,
 		boost::system::error_code& ec) noexcept
 {
 	ctx.set_password_callback([](std::size_t,

@@ -1,12 +1,91 @@
 #include "agro.hpp"
+#include "tt/tt.hpp"
+
+#include <filesystem>
+#include <memory>
+
+#include "websocket/load_certificate.hpp"
+#include "websocket/types.hpp"
+#include "websocket/listener.hpp"
+
+#include "resources/init.hpp"
+
+static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept;
 
 namespace Agro{
 
-instance::instance(DB& db, engine& coap_engine,
-		Device_List& dev_list, notify_factory& notify,
-		User::Users& users)
-	: db_(db), coap_engine_(coap_engine), device_list_(dev_list),
-	  notify_(notify), users_(users){}
+instance::instance(
+		boost::asio::io_context& ioc,
+		std::string const& db_file,
+		std::string const& notify_priv_key,
+		std::string_view const& subscriber,
+		udp_conn::endpoint& ep,
+		boost::asio::ip::tcp::endpoint const& epl,
+#if USE_SSL == 1
+		std::string const& ssl_key,
+		std::string const& ssl_cert,
+#endif /**/
+		std::error_code& ec)
+	: ioc_{ioc},
+	  db_{db_file.c_str(), ec},
+	  coap_engine_{udp_conn{}, CoAP::Message::message_id{CoAP::random_generator()}},
+	  notify_{ioc, !ec ? get_notify_key(notify_priv_key, db_) : pusha::key{}, subscriber}
+{
+	if(ec)
+	{
+		tt::error("Error opening DB! [%s]", db_file.c_str());
+		return;
+	}
+
+	if(!db_.read_user_all_db(users_))
+	{
+		ec = make_error_code(Error::internal_error);
+		tt::error("Error reading user data from database!");
+		return;
+	}
+
+	auto sh = std::make_shared<Agro::share>(*this);
+
+	Resource::init(coap_engine_, device_list_, sh, vresource_);
+
+	boost::system::error_code ecb;
+#if USE_SSL == 0
+	make_listener<Agro::websocket>(ioc, epl, sh, ecb);
+#else /* USE_SSL == 0 */
+
+	load_certificate(ctx_, ssl_cert, ssl_key, ecb);
+	if(ec)
+	{
+		tt::error("Error loading key/certificate! [%d/%s]", ec.value(), ec.message());
+		return;
+	}
+
+	make_listener<websocket>(ioc, ctx_, epl, sh, ecb);
+#endif /* USE_SSL == 0 */
+	if(ec)
+	{
+		tt::error("Error opening listener! [%d/%s]", ec.value(), ec.message());
+		return;
+	}
+
+	CoAP::Error ecp;
+	coap_engine_.get_connection().open(ecp);
+	if(ecp)
+	{
+		ec = std::make_error_code(std::errc::operation_canceled);
+		tt::error("Error opening device socket! [%d/%s]", ecp.value(), ecp.message());
+		return;
+	}
+
+	coap_engine_.get_connection().bind(ep, ecp);
+	if(ecp)
+	{
+		ec = std::make_error_code(std::errc::address_in_use);
+		tt::error("Error binding device socket! [%d/%s]", ecp.value(), ecp.message());
+		return;
+	}
+}
+
 
 bool instance::check_user_session_id(
 				User::user_id id,
@@ -97,3 +176,45 @@ engine& instance::coap_engine() noexcept
 }
 
 }//Agro
+
+static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept
+{
+	pusha::key key;
+
+	if(!path.empty())
+	{
+		if(!std::filesystem::is_regular_file(path))
+		{
+			tt::error("notify private key: '%s' is not a valid file.", path.c_str());
+			goto import_db;
+		}
+		else if(!key.import(path))
+		{
+			tt::error("notify private key: Failed to import from '%s' file.", path.c_str());
+			goto import_db;
+		}
+		else {
+			tt::debug("notify private key: imported from '%s' file.", path.c_str());
+			goto end;
+		}
+	}
+	else
+	{
+import_db:
+		std::string keyb64 = db.notify_private_key();
+		if(!keyb64.empty())
+		{
+			if(!key.import(keyb64))
+			{
+				tt::error("notifiy private key: import from 'DB' fail.");
+			}
+			else
+			{
+				tt::debug("notify private key: key imported from DB.");
+			}
+		}
+	}
+
+end:
+	return key;
+}

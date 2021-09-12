@@ -410,6 +410,11 @@ std::string const& Logged::user_agent() const noexcept
 	return user_agent_;
 }
 
+void Logged::user_agent(std::string const& uagent) noexcept
+{
+	user_agent_ = uagent;
+}
+
 std::string const& Logged::session_id() const noexcept
 {
 	return session_id_;

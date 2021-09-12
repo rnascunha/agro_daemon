@@ -7,7 +7,13 @@
 #include <functional>
 #include <vector>
 
-#include "../agro.hpp"
+//#include "../agro.hpp"
+
+namespace Agro{
+
+class instance;
+
+}
 
 template<typename Session>
 class share{

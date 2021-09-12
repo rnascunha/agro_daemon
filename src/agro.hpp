@@ -11,7 +11,20 @@ namespace Agro{
 
 class instance{
 	public:
-		instance(DB&, engine&, Device_List&, notify_factory&, User::Users&);
+	instance(boost::asio::io_context& ioc,
+			std::string const& db_file,
+			std::string const& notify_priv_key,
+			std::string_view const& subscriber,
+			udp_conn::endpoint& ep,
+			boost::asio::ip::tcp::endpoint const& epl,
+	#if USE_SSL == 1
+			std::string const& ssl_key,
+			std::string const& ssl_cert,
+	#endif /**/
+			std::error_code& ec);
+
+		template<unsigned TimeoutMs>
+		void run(int num_threads, CoAP::Error& ecp) noexcept;
 
 		bool check_user_session_id(
 						User::user_id id,
@@ -49,13 +62,21 @@ class instance{
 		engine const& coap_engine() const noexcept;
 		engine& coap_engine() noexcept;
 	private:
-		DB&					db_;
-		engine&				coap_engine_;
-		Device_List&		device_list_;
-		notify_factory& 	notify_;
-		User::Users&		users_;
+		boost::asio::io_context& ioc_;
+		DB					db_;
+		engine				coap_engine_;
+		notify_factory 		notify_;
+		Device_List			device_list_;
+		User::Users			users_;
+
+		std::vector<engine::resource_node> vresource_;
+#if USE_SSL == 1
+		boost::asio::ssl::context ctx_{boost::asio::ssl::context::tlsv12};
+#endif /* USE_SSL == 1 */
 };
 
 }//Agro
+
+#include "impl/agro_impl.hpp"
 
 #endif /* AGRO_DAEMON_AGRO_HPP__ */

@@ -3,14 +3,15 @@
 
 #include <boost/asio.hpp>
 #include <boost/beast.hpp>
-#if USE_SSL == 1
+
 #include <boost/asio/ssl.hpp>
 #include <boost/beast/ssl.hpp>
-#endif /* USE_SSL == 1 */
 
 #include <type_traits>
 #include <memory>
 #include <utility>
+
+#include "tt/tt.hpp"
 
 #include "share.hpp"
 
@@ -37,7 +38,6 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 			: ioc_(ioc)
 			, acceptor_(boost::asio::make_strand(ioc))
 			, share_(share){}
-//#if USE_SSL == 1
 		Listener(
 				boost::asio::io_context& ioc,
 				ssl_context ctx,
@@ -45,7 +45,7 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 				: ioc_(ioc), acceptor_(boost::asio::make_strand(ioc))
 				, ctx_(ctx)
 				, share_(share){}
-//#endif
+
 		~Listener(){}
 
 		void
@@ -86,7 +86,7 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 		void
 		fail(boost::system::error_code ec, char const* what) noexcept
 		{
-			std::cerr << what << ": " << ec.message() << "\n";
+			tt::error("%s: %.*s", what, ec.message().size(), ec.message().data());
 		}
 
 		void closing()
@@ -122,10 +122,8 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 			}
 			else
 			{
-//#if USE_SSL == 1
 				//SSL
 				std::make_shared<Session>(std::move(socket), ctx_, share_)->run();
-//#endif
 			}
 
 			// Accept another connection
@@ -136,8 +134,7 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 template<class Session>
 auto make_listener(
 		boost::asio::io_context& ioc,
-		boost::asio::ip::address const& address,
-		unsigned short int port,
+		boost::asio::ip::tcp::endpoint const& ep,
 		std::shared_ptr<share<Session>> const& share,
     	boost::system::error_code& ec)
 {
@@ -146,7 +143,7 @@ auto make_listener(
 
 	auto l = std::make_shared<Listener<Session>>(ioc, share);
 
-	l->init(boost::asio::ip::tcp::endpoint{address, port}, ec);
+	l->init(ep, ec);
 	return l;
 }
 
@@ -154,8 +151,7 @@ template<class Session>
 auto make_listener(
 		boost::asio::io_context& ioc,
 		boost::asio::ssl::context& ctx,
-		boost::asio::ip::address const& address,
-		unsigned short int port,
+		boost::asio::ip::tcp::endpoint const& ep,
 		std::shared_ptr<share<Session>> const& share,
     	boost::system::error_code& ec)
 {
@@ -164,7 +160,7 @@ auto make_listener(
 
 	auto l = std::make_shared<Listener<Session>>(ioc, ctx, share);
 
-	l->init(boost::asio::ip::tcp::endpoint{address, port}, ec);
+	l->init(ep, ec);
 	return l;
 }
 

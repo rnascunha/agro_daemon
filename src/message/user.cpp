@@ -66,6 +66,12 @@ void process_subscription(
 		tt::warning("Error parsing file ['pd256' or 'auth' not found]");
 		return;
 	}
+
+	if(data.HasMember("user_agent") && data["user_agent"].IsString())
+	{
+		user.user_agent(data["user_agent"].GetString());
+	}
+
 	const char *p256dh = keys["p256dh"].GetString(),
 				*auth = keys["auth"].GetString();
 
