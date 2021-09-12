@@ -314,6 +314,7 @@ set(DB_SRC			${DB_DIR}/sqlite3.cpp
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
 			${SRC_DIR}/error.cpp
 			${SRC_DIR}/arguments.cpp
+			${SRC_DIR}/agro.cpp
 			${MESSAGE_SRC}
 			${DEVICE_SRC}
 			${RESOURCE_SRC}
@@ -324,6 +325,7 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${DB_SRC}
 			${USER_SRC}
 			${SRC_DIR}/helper/sha256.cpp
+			${SRC_DIR}/helper/time_helper.cpp
 			)
 			
 if(USE_SSL EQUAL 1)

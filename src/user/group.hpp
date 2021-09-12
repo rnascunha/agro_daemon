@@ -8,6 +8,9 @@ namespace Agro{
 
 class User_Group{
 	public:
+		std::string const& name() const noexcept;
+		std::string const& description() const noexcept;
+
 		bool add(int) noexcept;
 		bool remove(int) noexcept;
 
@@ -19,6 +22,8 @@ class User_Group{
 		int id() const noexcept;
 	private:
 		int id_;
+		std::string name_;
+		std::string description_;
 		std::unordered_set<int>	user_ids_;
 };
 

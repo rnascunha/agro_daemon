@@ -6,8 +6,8 @@
 #include "../../error.hpp"
 #include "../../message/types.hpp"
 #include "../session_id.hpp"
+#include "../../helper/time_helper.hpp"
 
-#include <chrono>
 #include <string>
 #include <cstring>
 
@@ -19,12 +19,6 @@
 #include "rapidjson/document.h"
 
 namespace Agro{
-
-static inline long time_epoch() noexcept
-{
-	return std::chrono::duration_cast<std::chrono::seconds>(
-		        std::chrono::system_clock::now().time_since_epoch()).count();
-}
 
 static bool check_authentice_package(
 		rapidjson::Value const& payload,
@@ -100,20 +94,20 @@ static bool is_auth_package(rapidjson::Document const& doc,
 	return false;
 }
 
-static bool check_user_status(User const& user,
+static bool check_user_status(User::Logged const& user,
 		std::error_code& ec) noexcept
 {
-	switch(user.get_status())
+	switch(user.info()->get_status())
 	{
-		case User::status::active:
+		case User::Info::status::active:
 			break;
-		case User::status::inactive:
+		case User::Info::status::inactive:
 			ec = make_error_code(Error::user_is_inactive);
 			return false;
-		case User::status::suspended:
+		case User::Info::status::suspended:
 			ec = make_error_code(Error::user_is_suspended);
 			return false;
-		case User::status::deleted:
+		case User::Info::status::deleted:
 			ec = make_error_code(Error::user_is_deleted);
 			return false;
 		default:
@@ -126,24 +120,22 @@ static bool check_user_status(User const& user,
 template<std::size_t Iterations,
 		std::size_t KeyLength,
 		std::size_t SaltLength>
-static bool check_password(User& user,
-		rapidjson::Document const& doc,
-		DB& db,
+static bool check_password(User::Logged& user,
+		rapidjson::Value const& payload,
+		instance& instance,
 		std::error_code& ec) noexcept
 {
-	const char	*username = doc["data"]["user"].GetString(),
-				*password = doc["data"]["password"].GetString();
-
-	std::vector<unsigned char> salt, pass;
-	user = db.get_user(username, salt, pass);
-	if(!user)
-	{
-		ec = make_error_code(Error::user_not_found);
-		return false;
-	}
+	const char	*password = payload["password"].GetString();
 
 	if(!check_user_status(user, ec))
 	{
+		return false;
+	}
+
+	std::vector<unsigned char> salt, pass;
+	if(!instance.get_user_password(user.info()->username(), salt, pass))
+	{
+		ec = make_error_code(Error::internal_error);
 		return false;
 	}
 
@@ -175,21 +167,13 @@ static bool check_password(User& user,
 }
 
 template<long SessionTime>
-static bool check_session_id(User& user,
-		rapidjson::Document const& doc,
-		DB& db,
+static bool check_session_id(User::Logged& user,
+		rapidjson::Value const& payload,
+		instance const& instance,
 		std::error_code& ec) noexcept
 {
-	std::string const username = doc["data"]["user"].GetString(),
-					  sessionid = doc["data"]["sessionid"].GetString(),
-					  user_agent = doc["data"]["user_agent"].GetString();
-
-	user = db.get_user(username);
-	if(!user)
-	{
-		ec = make_error_code(Error::user_not_found);
-		return false;
-	}
+	std::string const sessionid = payload["sessionid"].GetString(),
+					  user_agent = payload["user_agent"].GetString();
 
 	if(!check_user_status(user, ec))
 	{
@@ -197,7 +181,8 @@ static bool check_session_id(User& user,
 	}
 
 	long session_time;
-	if(!db.check_user_session_id(user,
+	if(!instance.check_user_session_id(
+					user.info()->id(),
 					sessionid,
 					user_agent,
 					session_time))
@@ -206,7 +191,7 @@ static bool check_session_id(User& user,
 		return false;
 	}
 
-	if((session_time + SessionTime) < time_epoch())
+	if((session_time + SessionTime) < time_epoch_seconds())
 	{
 		ec = make_error_code(Error::session_expired);
 		return false;
@@ -221,23 +206,40 @@ template<std::size_t Iterations,
 		std::size_t KeyLength,
 		std::size_t SaltLength,
 		long SessionTime>
-bool authenticate(User& user,
+bool authenticate(User::Logged& user,
 		rapidjson::Document const& doc,
-		DB& db,
+		instance& instance,
 		Message::user_commands& comm,
 		std::error_code& ec) noexcept
 {
+	//Checking package
 	if(!is_auth_package(doc, ec, comm))
 	{
+		return false;
+	}
+
+	//Getting user info
+	rapidjson::Value const& payload = doc["data"].GetObject();
+	//Verification already made
+//	if(!payload.HasMember("user") || !payload["user"].IsString())
+//	{
+//		ec = make_error_code(Error::ill_formed);
+//		return false;
+//	}
+	std::string const username = payload["user"].GetString();
+	user.info(instance.get_user_info(username));
+	if(!user.info())
+	{
+		ec = make_error_code(Error::user_not_found);
 		return false;
 	}
 
 	switch(comm)
 	{
 		case Message::user_commands::autheticate:
-			return check_password<Iterations, KeyLength, SaltLength>(user, doc, db, ec);
+			return check_password<Iterations, KeyLength, SaltLength>(user, payload, instance, ec);
 		case Message::user_commands::auth_session_id:
-			return check_session_id<SessionTime>(user, doc, db, ec);
+			return check_session_id<SessionTime>(user, payload, instance, ec);
 		default:
 			ec = make_error_code(Error::invalid_value);
 			break;
@@ -247,9 +249,9 @@ bool authenticate(User& user,
 }
 
 template<unsigned SessionIDLenght>
-bool create_session_id(User& user,
+bool create_session_id(User::Logged& user,
 		rapidjson::Document const& doc,
-		DB& db,
+		instance& instance,
 		std::error_code& ec) noexcept
 {
 	rapidjson::Value const& payload = doc["data"].GetObject();
@@ -261,7 +263,8 @@ bool create_session_id(User& user,
 
 	std::string const user_agent = payload["user_agent"].GetString();
 	std::string const session_id = Agro::generate_session_id<SessionIDLenght>();
-	if(!db.update_user_session_id(user, session_id, user_agent))
+
+	if(!instance.update_user_session_id(user.info()->id(), session_id, user_agent))
 	{
 		ec = make_error_code(Error::statement_error);
 		return false;

@@ -127,7 +127,7 @@ notify_factory::notify_factory(boost::asio::io_context& ioc,
 	  push_{std::move(ec_key), subscriber}
 {}
 
-bool notify_factory::notify(Agro::User const& user,
+bool notify_factory::notify(Agro::User::Subscription const& user,
 			std::uint8_t const* payload, std::size_t payload_len,
 			unsigned expiration /* = 0 */, unsigned ttl /* = 0 */) noexcept
 {
@@ -180,7 +180,7 @@ bool notify_factory::notify(Agro::User const& user,
 	return true;
 }
 
-bool notify_factory::notify(Agro::User const& user,
+bool notify_factory::notify(Agro::User::Subscription const& user,
 					std::string const& data,
 					unsigned expiration /* = 0 */, unsigned ttl /* = 0 */) noexcept
 {

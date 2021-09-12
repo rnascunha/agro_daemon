@@ -17,13 +17,13 @@ namespace Message{
 #if USE_SSL == 0
 void process(std::string&& str,
 		std::shared_ptr<Websocket<false>>,
-		Agro::instance const&,
-		Agro::User&) noexcept;
+		Agro::instance&,
+		Agro::User::Logged&) noexcept;
 #else /* USE_SSL == 0 */
 void process(std::string&& str,
 		std::shared_ptr<Websocket<true>>,
-		Agro::instance const&,
-		Agro::User&) noexcept;
+		Agro::instance&,
+		Agro::User::Logged&) noexcept;
 #endif /* USE_SSL == 0 */
 
 }
@@ -81,11 +81,11 @@ read_handler(std::string data) noexcept
 	{
 		if(user_.is_authenticated())
 		{
-			if(instance().notify.is_valid())
+			if(instance().notify_is_valid())
 			{
-				this->write(Message::make_public_key(instance().notify.public_key()));
+				this->write(Message::make_public_key(instance().get_notify_public_key()));
 			}
-			this->write(Message::device_list_to_json(instance().device_list));
+			this->write(Message::device_list_to_json(instance().device_list()));
 //			this->write(Message::ota_image_list(ota_path()));
 //			this->write(Message::app_list(app_path()));
 		}

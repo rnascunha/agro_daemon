@@ -42,7 +42,7 @@ check_authenticate(std::string const& data) noexcept
 			USER_AUTH_INTERATION_NUMBER,
 			USER_AUTH_KEY_LENGTH,
 			USER_AUTH_SALT_LENGTH,
-			USER_SESSION_TIME_SECONDS>(user_, doc, instance().db, comm, ec))
+			USER_SESSION_TIME_SECONDS>(user_, doc, instance(), comm, ec))
 	{
 		error_auth(ec, "auth fail");
 		return false;
@@ -50,10 +50,10 @@ check_authenticate(std::string const& data) noexcept
 
 	if(comm == Message::user_commands::autheticate)
 	{
-		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, instance().db, ec);
+		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, instance(), ec);
 	}
 
-	tt::status("User %s (%s) authenticated", user_.name().c_str(), user_.username().c_str());
+	tt::status("User %s (%s) authenticated", user_.info()->name().c_str(), user_.info()->username().c_str());
 	this->write(Message::user_authentication(user_));
 
 	return false;

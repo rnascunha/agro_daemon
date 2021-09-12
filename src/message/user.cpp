@@ -7,29 +7,33 @@
 namespace Message{
 
 static void add_subscription(
-		Agro::User& user,
-		Agro::DB& db,
+		Agro::User::Logged const& user,
+		Agro::instance& instance,
 		const char* endpoint,
 		const char* p256dh,
 		const char* auth) noexcept
 {
-	user.push_subscribe(endpoint, p256dh, auth);
-	tt::status("Subscribing %s(%s) to push notification", user.username().c_str(), user.user_agent().c_str());
-	db.push_subscribe_user(user, endpoint, p256dh, auth);
+	instance.push_subscribe_user(
+			user.info()->id(),
+			user.user_agent(),
+			endpoint, p256dh, auth);
+	tt::status("Subscribing %s(%s) to push notification",
+			user.info()->username().c_str(),
+			user.user_agent().c_str());
 }
 
-static void remove_subcription(Agro::User& user,
-		Agro::DB& db) noexcept
+static void remove_subcription(Agro::User::Logged const& user,
+		Agro::instance& instance) noexcept
 {
-	user.push_unsubscribe();
-	tt::status("Unsubscribing %s(%s) to push notification", user.username().c_str(), user.user_agent().c_str());
-	db.push_unsubscribe_user(user);
+	instance.push_unsubscribe_user(user.info()->id(), user.user_agent());
+	tt::status("Unsubscribing %s(%s) to push notification",
+			user.info()->username().c_str(), user.user_agent().c_str());
 }
 
 void process_subscription(
 		rapidjson::Document const& doc,
-		Agro::User& user,
-		Agro::DB& db) noexcept
+		Agro::User::Logged& user,
+		Agro::instance& instance) noexcept
 {
 	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
@@ -65,30 +69,30 @@ void process_subscription(
 	const char *p256dh = keys["p256dh"].GetString(),
 				*auth = keys["auth"].GetString();
 
-	add_subscription(user, db, endpoint, p256dh, auth);
+	add_subscription(user, instance, endpoint, p256dh, auth);
 }
 
 static void process_unsubscription(rapidjson::Document const&,
-		Agro::User& user,
-		Agro::DB& db) noexcept
+		Agro::User::Logged& user,
+		Agro::instance& instance) noexcept
 {
-	remove_subcription(user, db);
+	remove_subcription(user, instance);
 }
 
-static void logout(Agro::User const& user,
-		Agro::DB& db,
+static void logout(Agro::User::Logged const& user,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	tt::debug("User %s (%s) logging out.",
-			user.name().c_str(), user.username().c_str());
-	db.clear_session_user_agent(user);
+			user.info()->name().c_str(), user.info()->username().c_str());
+	instance.clear_session_user_agent(user.info()->id(), user.user_agent());
 	ws->close(1000);	//Normal close
 }
 
 void process_user(rapidjson::Document const& doc,
 		Agro::websocket_ptr ws,
-		Agro::instance const& instance,
-		Agro::User& user) noexcept
+		Agro::instance& instance,
+		Agro::User::Logged& user) noexcept
 {
 	if(!doc.HasMember("command") || !doc["command"].IsString())
 	{
@@ -106,13 +110,13 @@ void process_user(rapidjson::Document const& doc,
 	switch(config->mtype)
 	{
 		case user_commands::push_subscribe:
-			process_subscription(doc, user, instance.db);
+			process_subscription(doc, user, instance);
 		break;
 		case user_commands::push_unsubscribe:
-			process_unsubscription(doc, user, instance.db);
+			process_unsubscription(doc, user, instance);
 		break;
 		case user_commands::logout:
-			logout(user, instance.db, ws);
+			logout(user, instance, ws);
 		break;
 		case user_commands::autheticate:
 		case user_commands::auth_session_id:

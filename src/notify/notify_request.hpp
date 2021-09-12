@@ -51,10 +51,10 @@ class notify_factory{
 				pusha::key&& ec_key,
 				std::string_view const& subscriber);
 
-		bool notify(Agro::User const&,
+		bool notify(Agro::User::Subscription const&,
 				std::uint8_t const* payload, std::size_t payload_len,
 				unsigned expiration = 0, unsigned ttl = 0) noexcept;
-		bool notify(Agro::User const&,
+		bool notify(Agro::User::Subscription const&,
 					std::string const& data,
 					unsigned expiration = 0, unsigned ttl = 0) noexcept;
 

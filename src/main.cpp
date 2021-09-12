@@ -16,6 +16,8 @@
 #include "notify/notify_request.hpp"
 #include "resources/init.hpp"
 
+#include "user/user.hpp"
+
 #include "db/db.hpp"
 #include "agro.hpp"
 
@@ -77,7 +79,14 @@ int main(int argc, char** argv)
 	if(ecb)
 	{
 		tt::error("Error opening DB %s", args.db_file.c_str());
-		return 1;
+		return EXIT_FAILURE;
+	}
+
+	Agro::User::Users users;
+	if(!db.read_user_all_db(users))
+	{
+		tt::error("Error reading user data from database!");
+		return EXIT_FAILURE;
 	}
 
 //	init_ota();
@@ -132,7 +141,7 @@ int main(int argc, char** argv)
 	Device_List device_list;
 	engine coap_engine{std::move(conn), CoAP::Message::message_id{CoAP::random_generator()}};
 
-	Agro::instance app{db, coap_engine, device_list, factory};
+	Agro::instance app{db, coap_engine, device_list, factory, users};
 	auto sh = std::make_shared<Agro::share>(app);
 
 	std::vector<engine::resource_node> vresource;

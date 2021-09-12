@@ -26,7 +26,7 @@ std::string user_error_authentication(std::error_code const& ec) noexcept
 	return stringify(doc);
 }
 
-std::string user_authentication(Agro::User const& user) noexcept
+std::string user_authentication(Agro::User::Logged const& user) noexcept
 {
 	rapidjson::Document doc;
 	doc.SetObject();
@@ -39,10 +39,10 @@ std::string user_authentication(Agro::User const& user) noexcept
 	data.SetObject();
 	data.AddMember("authenticated", true, doc.GetAllocator());
 	data.AddMember("name",
-			rapidjson::Value(user.name().data(), user.name().size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(user.info()->name().data(), user.info()->name().size(), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 	data.AddMember("email",
-				rapidjson::Value(user.email().data(), user.email().size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(user.info()->email().data(), user.info()->email().size(), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	data.AddMember("sessionid",
 			rapidjson::Value(user.session_id().data(), user.session_id().size(), doc.GetAllocator()).Move(),

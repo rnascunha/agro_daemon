@@ -80,6 +80,11 @@ class share{
 		{
 			return instance_;
 		}
+
+		Agro::instance& instance() noexcept
+		{
+			return instance_;
+		}
 	private:
 		std::mutex mutex_;
 		std::unordered_set<Session*> share_;

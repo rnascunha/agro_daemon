@@ -31,49 +31,120 @@ DB::DB(std::string const& db_name, std::error_code& ec)
 	clear_all_sessions();
 }
 
-User DB::get_user(int id) noexcept
+bool DB::read_users_infos(User::Info_List& infos) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT userid,username,name,status,email FROM user",
+			res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		infos.add(User::Info{res.interger(0),
+				res.text(1),
+				res.text(2),
+				static_cast<User::Info::status>(res.interger(3)),
+				res.text(4)});
+	}
+
+	return true;
+}
+
+bool DB::read_users_sessions(User::Session_List& sessions) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT userid,user_agent,session_id,session_time FROM session",
+			res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		sessions.add_or_update(User::Session{
+				res.interger(0),
+				res.text(1),
+				res.text(2),
+				db_time_to_epoch(res.text(3))});
+	}
+	return true;
+}
+
+bool DB::read_users_subscriptions(User::Subscription_List& subscriptions) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT userid,user_agent,endpoint,p256dh,auth FROM push_notify",
+			res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		subscriptions.add_or_update(
+				res.interger(0),
+				res.text(1),
+				res.text(2),
+				res.text(3),
+				res.text(4));
+	}
+	return true;
+}
+
+bool DB::read_user_all_db(User::Users& users) noexcept
+{
+	if(!read_users_infos(users.infos())) return false;
+	if(!read_users_sessions(users.sessions())) return false;
+	if(!read_users_subscriptions(users.subscriptions())) return false;
+
+	return true;
+}
+
+User::Info DB::get_user(User::user_id id) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("SELECT username,name,status,email FROM user WHERE userid = ?",
 			res, id) != SQLITE_OK)
 	{
-		return User{};
+		return User::Info{};
 	}
 
 	if(res.step() != SQLITE_ROW)
 	{
-		return User{};
+		return User::Info{};
 	}
 
-	return User{id,
+	return User::Info{id,
 		res.text(0),
 		res.text(2),
-		static_cast<User::status>(res.interger(3)),
+		static_cast<User::Info::status>(res.interger(3)),
 		res.text(4)};
 }
 
-User DB::get_user(std::string const& username) noexcept
+User::Info DB::get_user(std::string const& username) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("SELECT userid,name,status,email FROM user WHERE username = ?",
 			res, username) != SQLITE_OK)
 	{
-		return User{};
+		return User::Info{};
 	}
 
 	if(res.step() != SQLITE_ROW)
 	{
-		return User{};
+		return User::Info{};
 	}
 
-	return User{res.interger(0),
+	return User::Info{res.interger(0),
 		username,
 		res.text(1),
-		static_cast<User::status>(res.interger(2)),
+		static_cast<User::Info::status>(res.interger(2)),
 		res.text(3)};
 }
 
-User DB::get_user(std::string const& username,
+bool DB::get_password(std::string const& username,
 		std::vector<unsigned char>& salt,
 		std::vector<unsigned char>& pass) noexcept
 {
@@ -81,28 +152,23 @@ User DB::get_user(std::string const& username,
 	if(db_.prepare_bind("SELECT userid,password,name,status,email,salt FROM user WHERE username = ?",
 			res, username) != SQLITE_OK)
 	{
-		return User{};
+		return false;
 	}
 
 	if(res.step() != SQLITE_ROW)
 	{
-		return User{};
+		return false;
 	}
 
 	pass = res.blob(1);
 	salt = res.blob(5);
 
-	return User{res.interger(0),
-		username.c_str(),
-		res.text(2),
-		static_cast<User::status>(res.interger(3)),
-		res.text(4)};
+	return true;
 }
-
 
 int DB::add_user(std::string const& username,
 		std::string const& password,
-		User::status status /* = User::status::active */,
+		User::Info::status status /* = User::status::active */,
 		std::string const& name /* = std::string{} */,
 		std::string const& email /* = std::string{} */) noexcept
 {
@@ -118,13 +184,13 @@ int DB::add_user(std::string const& username,
 }
 
 
-bool DB::update_user_session_id(User const& user,
+bool DB::update_user_session_id(User::user_id id,
 				std::string const& session_id,
 				std::string const& user_agent) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("REPLACE INTO session(session_id, userid, user_agent) VALUES(?,?,?)",
-			res, session_id, user.id(), user_agent) != SQLITE_OK)
+			res, session_id, id, user_agent) != SQLITE_OK)
 	{
 		return false;
 	}
@@ -137,7 +203,7 @@ bool DB::update_user_session_id(User const& user,
 	return true;
 }
 
-bool DB::check_user_session_id(User const& user,
+bool DB::check_user_session_id(User::user_id id,
 				std::string const& session_id,
 				std::string const& user_agent,
 				long& session_time) noexcept
@@ -147,7 +213,7 @@ bool DB::check_user_session_id(User const& user,
 	if(db_.prepare_bind("SELECT session_time "
 			"FROM session "
 			"WHERE userid = ? AND user_agent = ? AND session_id = ?",
-			res, user.id(), user_agent, session_id) != SQLITE_OK)
+			res, id, user_agent, session_id) != SQLITE_OK)
 	{
 		return false;
 	}
@@ -174,11 +240,11 @@ bool DB::clear_all_sessions() noexcept
 	return res.step() == SQLITE_DONE;
 }
 
-bool DB::clear_session(User const& user) noexcept
+bool DB::clear_session(User::user_id id) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("DELETE FROM session WHERE userid = ?",
-			res, user.id()) != SQLITE_OK)
+			res, id) != SQLITE_OK)
 	{
 		return false;
 	}
@@ -186,11 +252,11 @@ bool DB::clear_session(User const& user) noexcept
 	return res.step() == SQLITE_DONE;
 }
 
-bool DB::clear_session_user_agent(User const& user) noexcept
+bool DB::clear_session_user_agent(User::user_id id, std::string const& user_agent) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("DELETE FROM session WHERE userid = ? AND user_agent = ?",
-			res, user.id(), user.user_agent()) != SQLITE_OK)
+			res, id, user_agent) != SQLITE_OK)
 	{
 		return false;
 	}
@@ -198,14 +264,15 @@ bool DB::clear_session_user_agent(User const& user) noexcept
 	return res.step() == SQLITE_DONE;
 }
 
-bool DB::push_subscribe_user(User const& user,
+bool DB::push_subscribe_user(User::user_id id,
+		std::string const& user_agent,
 		std::string const& endpoint,
 		std::string const& p256dh,
 		std::string const& auth) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("REPLACE INTO push_notify(userid, user_agent, endpoint, p256dh, auth) VALUES(?,?,?,?,?)",
-			res, user.id(), user.user_agent(), endpoint, p256dh, auth) != SQLITE_OK)
+			res, id, user_agent, endpoint, p256dh, auth) != SQLITE_OK)
 	{
 		return false;
 	}
@@ -213,11 +280,12 @@ bool DB::push_subscribe_user(User const& user,
 	return res.step() == SQLITE_DONE;
 }
 
-bool DB::push_unsubscribe_user(User const& user) noexcept
+bool DB::push_unsubscribe_user(User::user_id id,
+		std::string const& user_agent) noexcept
 {
 	sqlite3::statement res;
 	if(db_.prepare_bind("DELETE FROM push_notify WHERE userid = ? AND user_agent = ?",
-			res, user.id(), user.user_agent()) != SQLITE_OK)
+			res, id, user_agent) != SQLITE_OK)
 	{
 		return false;
 	}

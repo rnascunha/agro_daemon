@@ -10,22 +10,24 @@
 
 namespace Agro{
 
-class User;
+namespace User{
+class Logged;
+}
 
 
 template<std::size_t Iterations,
 		std::size_t KeyLength,
 		std::size_t SaltLength,
 		long SessionTime>
-bool authenticate(User&,
+bool authenticate(User::Logged&,
 		rapidjson::Document const&,
-		DB&,
+		instance&,
 		Message::user_commands&,
 		std::error_code&) noexcept;
 template<unsigned SessionIDLenght>
-bool create_session_id(User& user,
+bool create_session_id(User::Logged& user,
 		rapidjson::Document const& doc,
-		DB& db,
+		instance& db,
 		std::error_code& ec) noexcept;
 
 }//Agro

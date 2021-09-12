@@ -46,6 +46,11 @@ class Websocket final :
 			return share_->instance();
 		}
 
+		Agro::instance& instance() noexcept
+		{
+			return share_->instance();
+		}
+
 		void write_all(std::string const data) noexcept;
 		void write_all(std::string const data, bool text) noexcept;
 
@@ -54,7 +59,7 @@ class Websocket final :
 		boost::asio::steady_timer	timer_;
 		std::shared_ptr<share<Websocket<UseSSL>>>	share_;
 
-		Agro::User user_;
+		Agro::User::Logged user_;
 
 		void on_open() noexcept override;
 		void read_handler(std::string data) noexcept override;

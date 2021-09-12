@@ -8,7 +8,7 @@
 namespace Message{
 
 std::string user_error_authentication(std::error_code const&) noexcept;
-std::string user_authentication(Agro::User const&) noexcept;
+std::string user_authentication(Agro::User::Logged const&) noexcept;
 
 }//Message
 

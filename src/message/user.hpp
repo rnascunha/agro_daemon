@@ -11,8 +11,8 @@ namespace Message{
 
 void process_user(rapidjson::Document const&,
 		Agro::websocket_ptr,
-		Agro::instance const&,
-		Agro::User&) noexcept;
+		Agro::instance&,
+		Agro::User::Logged&) noexcept;
 
 }//Message
 

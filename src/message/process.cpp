@@ -17,8 +17,8 @@ namespace Message{
 
 void process(std::string&& data,
 		Agro::websocket_ptr ws,
-		Agro::instance const& instance,
-		Agro::User& user) noexcept
+		Agro::instance& instance,
+		Agro::User::Logged& user) noexcept
 {
 	rapidjson::Document d;
 
@@ -32,7 +32,7 @@ void process(std::string&& data,
 	auto const* typec = Message::get_type_config(d["type"].GetString());
 	if(!typec)
 	{
-		instance.notify.notify(user, "Invalid type");
+//		instance.notify.notify(user, "Invalid type");
 		std::cerr << "Type message not found...\n";
 		return;
 	}
@@ -44,14 +44,14 @@ void process(std::string&& data,
 		case Message::type::response:
 			break;
 		case Message::type::request:
-			process_request(d, ws, instance.device_list, instance.coap_engine);
+			process_request(d, ws, instance.device_list(), instance.coap_engine());
 			break;
 		case Message::type::device:
 		case Message::type::device_list:
-			ws->write_all(Message::device_list_to_json(instance.device_list));
+			ws->write_all(Message::device_list_to_json(instance.device_list()));
 			break;
 		case Message::type::command:
-			process_commands(d, ws, instance.device_list);
+			process_commands(d, ws, instance.device_list());
 			break;
 		case Message::type::image:
 			process_image(d, ws);
