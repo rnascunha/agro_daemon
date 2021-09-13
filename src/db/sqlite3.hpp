@@ -47,6 +47,8 @@ class sqlite3{
 		sqlite3(const char* db_name, std::error_code&);
 		~sqlite3();
 
+		std::int64_t last_insert_rowid() const noexcept;
+
 		bool is_open() noexcept;
 
 		int open(const char*) noexcept;

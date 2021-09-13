@@ -367,39 +367,6 @@ std::size_t Session_List::size() const noexcept
 /**
  *
  */
-Info_List& Users::infos() noexcept
-{
-	return user_list_;
-}
-
-Info_List const& Users::infos() const noexcept
-{
-	return user_list_;
-}
-
-Subscription_List& Users::subscriptions() noexcept
-{
-	return sub_list_;
-}
-
-Subscription_List const& Users::subscriptions() const noexcept
-{
-	return sub_list_;
-}
-
-Session_List& Users::sessions() noexcept
-{
-	return session_list_;
-}
-
-Session_List const& Users::sessions() const noexcept
-{
-	return session_list_;
-}
-
-/**
- *
- */
 void Logged::info(Info const* info) noexcept
 {
 	info_ = info;

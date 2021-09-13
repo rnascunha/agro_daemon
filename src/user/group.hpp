@@ -1,45 +1,68 @@
 #ifndef AGRO_DAEMON_USER_GROUP_HPP__
 #define AGRO_DAEMON_USER_GROUP_HPP__
 
+#include "user.hpp"
 #include <vector>
-#include <unordered_set>
 
 namespace Agro{
+namespace User{
 
-class User_Group{
+using group_id = int;
+
+class Group{
 	public:
+		Group(group_id, std::string const& name, std::string description = "");
+
+		group_id id() const noexcept;
+
 		std::string const& name() const noexcept;
 		std::string const& description() const noexcept;
 
-		bool add(int) noexcept;
-		bool remove(int) noexcept;
+		bool add(user_id) noexcept;
+		bool remove(user_id) noexcept;
 
-		bool contains(int id) const noexcept
-		{
-			return user_ids_.find(id) != user_ids_.end();
-		}
+		bool contains(user_id) const noexcept;
+		bool operator==(Group const&) const noexcept;
 
-		int id() const noexcept;
+		std::size_t size() const noexcept;
+
+		std::vector<int>::const_iterator begin() const { return users_.begin(); }
+		std::vector<int>::const_iterator end() const { return users_.end(); }
+		std::vector<int>::const_iterator cbegin() const { return users_.cbegin(); }
+		std::vector<int>::const_iterator cend() const { return users_.cend(); }
 	private:
-		int id_;
+		group_id id_;
 		std::string name_;
 		std::string description_;
-		std::unordered_set<int>	user_ids_;
+		std::vector<int>	users_;
 };
 
-class User_Group_List{
+class Groups{
 	public:
-		bool add(User_Group&&) noexcept;
-		bool remove(int) noexcept;
+		bool add(Group&&) noexcept;
+		bool remove(group_id) noexcept;
 
-		std::vector<User_Group>::const_iterator begin() const { return groups_.begin(); }
-		std::vector<User_Group>::const_iterator end() const { return groups_.end(); }
-		std::vector<User_Group>::const_iterator cbegin() const { return groups_.cbegin(); }
-		std::vector<User_Group>::const_iterator cend() const { return groups_.cend(); }
+		bool add_user(group_id, user_id) noexcept;
+
+		bool contains(group_id) const noexcept;
+		bool contains(std::string const&) const noexcept;
+
+		bool contains_user(group_id, user_id) const noexcept;
+
+		Group const* get(group_id) const noexcept;
+		Group* get(group_id id) noexcept;
+
+		std::size_t size() const noexcept;
+
+		std::vector<Group>::const_iterator begin() const { return groups_.begin(); }
+		std::vector<Group>::const_iterator end() const { return groups_.end(); }
+		std::vector<Group>::const_iterator cbegin() const { return groups_.cbegin(); }
+		std::vector<Group>::const_iterator cend() const { return groups_.cend(); }
 	private:
-		std::vector<User_Group> groups_;
+		std::vector<Group> groups_;
 };
 
+}//User
 }//Agro
 
 #endif /* AGRO_DAEMON_USER_GROUP_HPP__ */

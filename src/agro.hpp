@@ -5,7 +5,7 @@
 #include "coap_engine.hpp"
 #include "device/list.hpp"
 #include "notify/notify_request.hpp"
-#include "user/user.hpp"
+#include "user/list.hpp"
 
 namespace Agro{
 
@@ -17,10 +17,10 @@ class instance{
 			std::string_view const& subscriber,
 			udp_conn::endpoint& ep,
 			boost::asio::ip::tcp::endpoint const& epl,
-	#if USE_SSL == 1
+#if USE_SSL == 1
 			std::string const& ssl_key,
 			std::string const& ssl_cert,
-	#endif /**/
+#endif /**/
 			std::error_code& ec);
 
 		template<unsigned TimeoutMs>

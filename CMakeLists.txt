@@ -241,7 +241,7 @@ include_directories(third/coap-te/src)
 # My async
 ###########################
 
-add_subdirectory(third/my_async/src)
+#add_subdirectory(third/my_async/src)
 include_directories(third/my_async/include)
 
 ############################
@@ -305,11 +305,17 @@ set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					
 set(USER_DIR		${SRC_DIR}/user)
 set(USER_SRC		${USER_DIR}/user.cpp
-					${USER_DIR}/auth_message.cpp)
+					${USER_DIR}/auth_message.cpp
+					${USER_DIR}/group.cpp
+					${USER_DIR}/list.cpp)
 
 set(DB_DIR			${SRC_DIR}/db)
 set(DB_SRC			${DB_DIR}/sqlite3.cpp
-					${DB_DIR}/db.cpp)					
+					${DB_DIR}/db.cpp)
+					
+set(HELPER_DIR		${SRC_DIR}/helper)
+set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
+					${HELPER_DIR}/time_helper.cpp)	
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
 			${SRC_DIR}/error.cpp
@@ -324,9 +330,7 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${NOTIFY_SRC}
 			${DB_SRC}
 			${USER_SRC}
-			${SRC_DIR}/helper/sha256.cpp
-			${SRC_DIR}/helper/time_helper.cpp
-			)
+			${HELPER_SRC})
 			
 if(USE_SSL EQUAL 1)
 	list(APPEND MAIN_SRC ${SRC_DIR}/websocket/load_certificate.cpp)
@@ -356,6 +360,7 @@ endif()
 ################
 #tools
 ################
+#### add user
 add_executable(add_user tools/add_user.cpp 
 						${DB_DIR}/sqlite3.cpp
 						${SRC_DIR}/error.cpp)
@@ -369,6 +374,7 @@ set_target_properties(add_user PROPERTIES
 target_link_libraries(add_user OpenSSL::SSL)
 target_link_libraries(add_user ${SQLite3_LIBRARIES})
 
+#### add db
 add_executable(init_db tools/init_db.cpp 
 						${DB_DIR}/sqlite3.cpp
 						${SRC_DIR}/error.cpp)
@@ -382,6 +388,24 @@ set_target_properties(init_db PROPERTIES
 #target_link_libraries(add_user OpenSSL::SSL)
 target_link_libraries(init_db ${SQLite3_LIBRARIES})
 target_link_libraries(init_db pusha)
+
+#### add user group
+add_executable(add_user_group tools/add_user_group.cpp 
+						${SRC_DIR}/error.cpp
+						${DB_SRC}
+						${USER_DIR}/user.cpp
+						${USER_DIR}/group.cpp
+						${USER_DIR}/list.cpp
+						${HELPER_SRC})
+
+set_target_properties(add_user_group PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS ON
+)
+
+target_link_libraries(add_user_group OpenSSL::SSL)
+target_link_libraries(add_user_group ${SQLite3_LIBRARIES})
 
 #add_executable(db_test tools/db_test.cpp 
 #						${DB_DIR}/sqlite3.cpp

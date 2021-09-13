@@ -15,6 +15,11 @@ sqlite3::~sqlite3()
 	close();
 }
 
+std::int64_t sqlite3::last_insert_rowid() const noexcept
+{
+	return sqlite3_last_insert_rowid(db_);
+}
+
 bool sqlite3::is_open() noexcept
 {
 	return db_ != NULL;

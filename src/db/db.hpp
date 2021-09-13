@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#include "../user/user.hpp"
+#include "../user/list.hpp"
 
 namespace Agro{
 
@@ -17,6 +17,7 @@ class DB{
 		bool read_users_infos(User::Info_List&) noexcept;
 		bool read_users_sessions(User::Session_List&) noexcept;
 		bool read_users_subscriptions(User::Subscription_List&) noexcept;
+		bool read_users_groups(User::Groups&) noexcept;
 		bool read_user_all_db(User::Users&) noexcept;
 
 		User::Info get_user(User::user_id id) noexcept;
@@ -31,6 +32,11 @@ class DB{
 						User::Info::status status = User::Info::status::active,
 						std::string const& name = std::string{},
 						std::string const& email = std::string{}) noexcept;
+
+		Agro::User::group_id add_user_group(std::string const& name,
+				std::string const& description = std::string{}) noexcept;
+
+		int add_user_to_group(Agro::User::group_id, Agro::User::user_id) noexcept;
 
 		bool update_user_session_id(User::user_id,
 				std::string const&,

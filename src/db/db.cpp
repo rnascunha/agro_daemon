@@ -93,11 +93,49 @@ bool DB::read_users_subscriptions(User::Subscription_List& subscriptions) noexce
 	return true;
 }
 
+bool DB::read_users_groups(User::Groups& groups) noexcept
+{
+	/**
+	 * Adding groups
+	 */
+	sqlite3::statement res;
+	if(db_.prepare("SELECT user_groupid,name,description FROM user_group",
+			res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		groups.add(User::Group{
+				res.interger(0),
+				res.text(1),
+				res.text(2)});
+	}
+
+	/**
+	 * Adding users to groups
+	 */
+	res.reset();
+	if(db_.prepare("SELECT userid, user_groupid FROM user_user_group", res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		groups.add_user(res.interger(1), res.interger(0));
+	}
+
+	return true;
+}
+
 bool DB::read_user_all_db(User::Users& users) noexcept
 {
 	if(!read_users_infos(users.infos())) return false;
 	if(!read_users_sessions(users.sessions())) return false;
 	if(!read_users_subscriptions(users.subscriptions())) return false;
+	if(!read_users_groups(users.groups())) return false;
 
 	return true;
 }
@@ -183,6 +221,33 @@ int DB::add_user(std::string const& username,
 	return res.step();
 }
 
+Agro::User::group_id DB::add_user_group(std::string const& name,
+				std::string const& description /* = std::string{} */) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare_bind("INSERT INTO user_group(name, description) VALUES(?,?)",
+			res, name, description) != SQLITE_OK)
+	{
+		return -1;
+	}
+	res.step();
+
+	return db_.last_insert_rowid();
+}
+
+int DB::add_user_to_group(Agro::User::group_id gid, Agro::User::user_id uid) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind(
+			"INSERT INTO user_user_group(user_groupid, userid) VALUES(?,?)",
+			res, gid, uid);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
 
 bool DB::update_user_session_id(User::user_id id,
 				std::string const& session_id,

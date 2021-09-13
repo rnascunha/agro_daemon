@@ -55,6 +55,11 @@ class Info_List{
 		Info const* get(std::string const& username) const noexcept;
 
 		std::size_t size() const noexcept;
+
+		std::vector<Info>::const_iterator begin() const { return list_.begin(); }
+		std::vector<Info>::const_iterator end() const { return list_.end(); }
+		std::vector<Info>::const_iterator cbegin() const { return list_.cbegin(); }
+		std::vector<Info>::const_iterator cend() const { return list_.cend(); }
 	private:
 		std::vector<Info> list_;
 };
@@ -160,22 +165,6 @@ class Session_List{
 		std::size_t size() const noexcept;
 	private:
 		std::vector<Session> list_;
-};
-
-class Users{
-	public:
-		Info_List& infos() noexcept;
-		Info_List const& infos() const noexcept;
-
-		Subscription_List& subscriptions() noexcept;
-		Subscription_List const& subscriptions() const noexcept;
-
-		Session_List& sessions() noexcept;
-		Session_List const& sessions() const noexcept;
-	private:
-		Info_List				user_list_;
-		Subscription_List	sub_list_;
-		Session_List		session_list_;
 };
 
 class Logged{
