@@ -12,6 +12,14 @@ class Users{
 		Info_List& infos() noexcept;
 		Info_List const& infos() const noexcept;
 
+		bool add_user(Info&& user) noexcept;
+		void add_user_to_groups(user_id, std::vector<group_id> const&) noexcept;
+		bool edit_user(user_id id,
+				std::string const& username,
+				std::string const& name,
+				std::string const& email,
+				std::vector<group_id> const&) noexcept;
+
 		Subscription_List& subscriptions() noexcept;
 		Subscription_List const& subscriptions() const noexcept;
 
@@ -26,7 +34,6 @@ class Users{
 		Session_List		session_list_;
 		Groups				groups_;
 };
-
 
 }//User
 }//Agro

@@ -12,7 +12,13 @@ enum class user_commands{
 	auth_session_id,
 	logout,
 	push_subscribe,
-	push_unsubscribe
+	push_unsubscribe,
+	user_group_policies,
+	add_user,
+	edit_user,
+	delete_user,
+	add_group,
+	delete_group
 };
 
 constexpr const config<user_commands> user_config[] = {
@@ -21,6 +27,12 @@ constexpr const config<user_commands> user_config[] = {
 	{user_commands::logout, "logout"},
 	{user_commands::push_subscribe, "push_subscribe"},
 	{user_commands::push_unsubscribe, "push_unsubscribe"},
+	{user_commands::user_group_policies, "user_group_policies"},
+	{user_commands::add_user, "add_user"},
+	{user_commands::edit_user, "edit_user"},
+	{user_commands::delete_user, "delete_user"},
+	{user_commands::add_group, "add_group"},
+	{user_commands::delete_group, "delete_group"}
 };
 
 inline constexpr config<user_commands> const* get_config(user_commands t) noexcept

@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "../user/list.hpp"
+#include "../user/policy.hpp"
+#include "../user/password.hpp"
 
 namespace Agro{
 
@@ -14,29 +16,61 @@ class DB{
 	public:
 		DB(std::string const& db_name, std::error_code& ec);
 
+		/**
+		 * User interface
+		 */
 		bool read_users_infos(User::Info_List&) noexcept;
 		bool read_users_sessions(User::Session_List&) noexcept;
 		bool read_users_subscriptions(User::Subscription_List&) noexcept;
 		bool read_users_groups(User::Groups&) noexcept;
 		bool read_user_all_db(User::Users&) noexcept;
 
+		bool read_policy_types(Authorization::Policy_Types&) noexcept;
+		bool read_policies(Authorization::Policies&) noexcept;
+
+//		bool read_permission_list(Authorization::Permission_List&) noexcept;
+
 		User::Info get_user(User::user_id id) noexcept;
 		User::Info get_user(std::string const& username) noexcept;
 
+		bool get_root_password(std::vector<unsigned char>& salt,
+							std::vector<unsigned char>& pass) noexcept;
 		bool get_password(std::string const& username,
 				std::vector<unsigned char>& salt,
 				std::vector<unsigned char>& pass) noexcept;
 
 		int add_user(std::string const& username,
-						std::string const& password,
-						User::Info::status status = User::Info::status::active,
-						std::string const& name = std::string{},
-						std::string const& email = std::string{}) noexcept;
+				User::key_password const password,
+				User::salt_password const salt,
+				std::string const& name,
+				std::string const& email,
+				User::user_id& id,
+				User::Info::status status = User::Info::status::active) noexcept;
+
+		int edit_user(User::user_id id,
+				std::string const& username,
+				std::string const& name,
+				std::string const& email,
+				std::vector<User::group_id> const& groups) noexcept;
+
+		int delete_user(User::user_id) noexcept;
+		int delete_user_from_group(User::user_id) noexcept;
+//		int delete_permissions(Authorization::type,
+//				Authorization::ref_type, Authorization::ref_id) noexcept;
+
+		int delete_group(User::group_id) noexcept;
+
+		int remove_policy_group(User::group_id) noexcept;
 
 		Agro::User::group_id add_user_group(std::string const& name,
-				std::string const& description = std::string{}) noexcept;
+				std::string const& description,
+				User::group_id&) noexcept;
 
-		int add_user_to_group(Agro::User::group_id, Agro::User::user_id) noexcept;
+		int add_user_to_group(User::group_id, User::user_id) noexcept;
+		void add_user_to_group(User::group_id, std::vector<User::user_id> const&) noexcept;
+
+		int set_user_to_groups(User::user_id, std::vector<User::group_id> const&) noexcept;
+		int remove_all_user_groups(User::user_id) noexcept;
 
 		bool update_user_session_id(User::user_id,
 				std::string const&,

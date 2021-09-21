@@ -32,7 +32,7 @@ void process(std::string&& data,
 	auto const* typec = Message::get_type_config(d["type"].GetString());
 	if(!typec)
 	{
-//		instance.notify.notify(user, "Invalid type");
+		instance.notify_all("Invalid type");
 		std::cerr << "Type message not found...\n";
 		return;
 	}

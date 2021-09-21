@@ -88,8 +88,9 @@ int main(int argc, char** argv)
 	std::cout << "New group description[]: ";
 	std::getline(std::cin, gdescription);
 
-	auto gid = db.add_user_group(gname, gdescription);
-	if(gid <= 0)
+	Agro::User::group_id gid;
+	int rc = db.add_user_group(gname, gdescription, gid);
+	if(rc != SQLITE_DONE)
 	{
 		std::cerr << "Error adding group '" << gname << "' to database!\n";
 		return EXIT_FAILURE;

@@ -8,9 +8,44 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
+#include "../src/helper/enum_ops.hpp"
+
 #include "../src/user/authenticate_params.h"
+#include "../src/user/password.hpp"
+
+#include "../src/user/policy.hpp"
 
 #define SQL_FILE		"scheme.sql"
+
+struct group{
+	int							id;
+	std::string 				name;
+	std::string 				description;
+	Agro::Authorization::rule	rules;
+};
+
+using namespace Agro::Authorization;
+
+static const Policy_Type policy_types[] = {
+		{1, rule::user_admin, "User Admin", "Add/remove users/groups/policies"},
+		{2, rule::view_device, "View Devices", "View devices data/status"},
+		{3, rule::get_resource, "GET resource", "GET resource operation"},
+		{4, rule::post_resource, "POST resource", "POST resource operation"},
+		{5, rule::put_resource, "PUT resource", "PUT resource operation"},
+		{6, rule::delete_resource, "DELETE resource", "DELETE resource operation"},
+		{7, rule::view_image, "View Image", "View Image"},
+		{8, rule::upload_image, "Upload Image", "Upload new image to server"},
+		{9, rule::install_image, "Install Image", "Install image at devices"},
+		{10, rule::upload_app, "Upload App", "Upload app to server"},
+		{11, rule::install_app, "Install App", "Install app at devices"}
+};
+
+static const group groups[] = {
+		{1, "system", "System administrators", rule::all},
+		{2, "operator", "Can view e execute commands",
+						rule::view_device | rule::all_resources | rule::all_image | rule::all_app},
+		{3, "viewer", "Can only view devices", rule::view_device}
+};
 
 void usage(const char* program) noexcept
 {
@@ -58,7 +93,11 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	std::string name, description, subscribe, notify_key{ec_key.export_private_key()};
+	std::string name,
+				description,
+				subscribe,
+				notify_key{ec_key.export_private_key()},
+				root_password;
 	do{
 		std::cout << "DB Name: " << std::flush;
 		std::getline(std::cin, name);
@@ -82,22 +121,38 @@ int main(int argc, char** argv)
 		else break;
 	}while(true);
 
-	static constexpr const
-		std::string_view stmt{"INSERT INTO instance(name, description, notify_private_key, subscribe) VALUES(?,?,?,?)"};
+	do{
+		std::cout << "Root password: " << std::flush;
+		std::getline(std::cin, root_password);
+		if(root_password.size() < USER_ROOT_KEY_MINIMUM_LENGHT)
+		{
+			std::cerr << "'Root password' can't be shorter than " << USER_ROOT_KEY_MINIMUM_LENGHT << " characters\n";
+		}
+		else break;
+	}while(true);
+
+	Agro::User::salt_password salt;
+	Agro::User::key_password password;
+
+	if(!Agro::User::create_password(root_password, salt, password))
+	{
+		std::cerr << "Error generation 'root' password!\n";
+		return 1;
+	}
 
 	sqlite3::statement res;
-	rc = db.prepare(stmt, res);
+	rc = db.prepare_bind(
+			"INSERT INTO instance(name, description, notify_private_key, subscribe, root_password, root_salt) VALUES(?,?,?,?,?,?)",
+			res,
+			name, description, notify_key, subscribe,
+			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
+			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH});
 	if(rc != SQLITE_OK)
 	{
 		std::cerr << "Error preparing 'DB' instance data [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
 //		std::cerr << db.error() << "\n";
 		return 1;
 	}
-
-	res.bind(1, name);
-	res.bind(2, description);
-	res.bind(3, notify_key);
-	res.bind(4, subscribe);
 
 	rc = res.step();
 	if(rc != SQLITE_DONE)
@@ -107,55 +162,56 @@ int main(int argc, char** argv)
 	}
 
 	/**
-	 * Insert user root
+	 * Adding Groups
 	 */
-	std::cout << "Add 'root' user? [Y/n]" << std::flush;
-	std::string aws;
-	std::getline(std::cin, aws);
-	if(!(aws.empty() || aws[0] == 'y' || aws[1] == 'Y'))
+	for(auto const& group : groups)
 	{
-		return 0;
-	}
-
-	std::string root_passwd;
-	do{
-		std::cout << "root password: " << std::flush;
-		std::getline(std::cin, root_passwd);
-		if(root_passwd.empty())
+		res.reset();
+		rc = db.prepare_bind("INSERT INTO user_group(name, description) VALUES(?,?)",
+					res, group.name, group.description);
+		if(rc != SQLITE_OK)
 		{
-			std::cerr << "'root password' can't be empty.\n";
+			std::cerr << "Error preparing to insert group '" << group.name << "' [" << rc << "]\n";
+			continue;
 		}
-		else break;
-	}while(true);
+		rc = res.step();
+		if(rc != SQLITE_DONE)
+		{
+			std::cerr << "Error inserting group '" << group.name << "' [" << rc << "]\n";
+		}
 
-	unsigned char salt[USER_AUTH_SALT_LENGTH] = {0};
-	RAND_bytes(salt, sizeof(salt));
+		res.reset();
+		int groupid = db.last_insert_rowid();
+		rc = db.prepare_bind("INSERT INTO policy(groupid, rules) VALUES(?,?)",
+				res, groupid, static_cast<int>(group.rules));
 
-	unsigned char key[USER_AUTH_KEY_LENGTH] = {0};
-	PKCS5_PBKDF2_HMAC(root_passwd.data(), root_passwd.size(),
-		salt, USER_AUTH_SALT_LENGTH,
-		USER_AUTH_INTERATION_NUMBER, USER_AUTH_HASH_ALGORITHM,
-		USER_AUTH_KEY_LENGTH, key);
-
-	static constexpr const
-	std::string_view stmt_n{"INSERT INTO user(username,password,status,salt) VALUES('root',?,?,?)"};
-
-	sqlite3::statement res_n;
-	rc = db.prepare(stmt_n, res_n);
-	if(rc != SQLITE_OK)
-	{
-		std::cerr << "Error preparing 'DB' user root data [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
-		return 1;
+		if(rc != SQLITE_OK)
+		{
+			std::cerr << "Error preparing to insert group policies '" << group.name << "' [" << rc << "]\n";
+			continue;
+		}
+		rc = res.step();
+		if(rc != SQLITE_DONE)
+		{
+			std::cerr << "Error inserting group policies '" << group.name << "' [" << rc << "]\n";
+		}
 	}
 
-	res_n.bind(1, key, USER_AUTH_KEY_LENGTH);
-	res_n.bind(2, 0);
-	res_n.bind(3, salt, USER_AUTH_SALT_LENGTH);
-
-	if(res_n.step() != SQLITE_DONE)
+	for(auto const& ptype : policy_types)
 	{
-		std::cerr << "Error inserting user 'root' at database! [" << rc << " / " << db.error() << "]\n";
-		return EXIT_FAILURE;
+		res.reset();
+		rc = db.prepare_bind("INSERT INTO policy_type(code, name, description) VALUES(?,?,?)",
+							res, static_cast<int>(ptype.code), ptype.name, ptype.description);
+		if(rc != SQLITE_OK)
+		{
+			std::cerr << "Error preparing to insert policy type '" << ptype.name << "' [" << rc << "]\n";
+			continue;
+		}
+		rc = res.step();
+		if(rc != SQLITE_DONE)
+		{
+			std::cerr << "Error inserting  policy type '" << ptype.name << "' [" << rc << "]\n";
+		}
 	}
 
 	return 0;

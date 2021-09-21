@@ -58,6 +58,11 @@ std::string const& Info::email() const noexcept
 	return email_;
 }
 
+Info::operator bool() const noexcept
+{
+	return is_valid();
+}
+
 /**
  *
  *
@@ -65,7 +70,12 @@ std::string const& Info::email() const noexcept
 bool Info_List::add(Info&& info) noexcept
 {
 	for(auto const& l : list_)
-		if(l.id() == info.id()) return false;
+		if(l.id() == info.id()
+			|| info.username().empty()
+			|| info.username() == l.username())
+		{
+			return false;
+		}
 
 	list_.push_back(info);
 	return true;
@@ -96,6 +106,16 @@ user_id Info_List::get_id(std::string const& username) const noexcept
 	return invalid_id;
 }
 
+Info const* Info_List::get(user_id id) const noexcept
+{
+	for(auto& l : list_)
+	{
+		if(l.id() == id)
+			return &l;
+	}
+	return nullptr;
+}
+
 Info const* Info_List::get(std::string const& username) const noexcept
 {
 	for(auto& l : list_)
@@ -104,6 +124,22 @@ Info const* Info_List::get(std::string const& username) const noexcept
 			return &l;
 	}
 	return nullptr;
+}
+
+bool Info_List::update(user_id id,
+				std::string const& username,
+				std::string const& name,
+				std::string const& email) noexcept
+{
+	for(auto& info : list_)
+	{
+		if(info.id() == id)
+		{
+			info.set(id, username, name, info.get_status(), email);
+			return true;
+		}
+	}
+	return false;
 }
 
 std::size_t Info_List::size() const noexcept
@@ -372,6 +408,11 @@ void Logged::info(Info const* info) noexcept
 	info_ = info;
 }
 
+user_id Logged::id() const noexcept
+{
+	return info_ == nullptr ? invalid_id : info_->id();
+}
+
 std::string const& Logged::user_agent() const noexcept
 {
 	return user_agent_;
@@ -385,6 +426,16 @@ void Logged::user_agent(std::string const& uagent) noexcept
 std::string const& Logged::session_id() const noexcept
 {
 	return session_id_;
+}
+
+void Logged::policy_rules(int rules) noexcept
+{
+	policy_rules_ = rules;
+}
+
+int Logged::policy_rules() const noexcept
+{
+	return policy_rules_;
 }
 
 bool Logged::is_authenticated() const noexcept

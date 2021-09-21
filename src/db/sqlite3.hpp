@@ -3,6 +3,7 @@
 
 #include <system_error>
 #include <sqlite3.h>
+#include <string_view>
 #include <string>
 #include <vector>
 
@@ -72,17 +73,6 @@ class sqlite3{
 		int prepare_bind_impl(statement& res, int index, Arg&& arg) noexcept;
 		template<typename Arg, typename ...Args>
 		int prepare_bind_impl(statement& res, int index, Arg&& arg, Args&& ...args) noexcept;
-//		template<typename ...Args>
-//		int prepare_bind_impl(statement& res,
-//				int index,
-//				const void* data, int size,
-//				Args&& ...args) noexcept;
-//		template<typename ...Args>
-//		int prepare_bind_impl(statement& res,
-//				int index,
-//				const std::uint8_t* data, int size,
-//				Args&& ...args) noexcept;
-
 };
 
 #include "impl/sqlite3_impl.hpp"

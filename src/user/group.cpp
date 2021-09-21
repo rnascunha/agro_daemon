@@ -109,6 +109,36 @@ bool Groups::add_user(group_id gid, user_id uid) noexcept
 	return false;
 }
 
+void Groups::add_user(group_id gid, std::vector<user_id> const& uid_list) noexcept
+{
+	auto* group = get(gid);
+	if(!group) return;
+	for(auto uid : uid_list)
+	{
+		group->add(uid);
+	}
+}
+
+void Groups::add_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept
+{
+	for(auto& group : groups_)
+	{
+		auto gid = std::find(gid_list.begin(), gid_list.end(), group.id());
+		if(gid != gid_list.end())
+		{
+			group.add(uid);
+		}
+	}
+}
+
+void Groups::remove_user_from_all(user_id id) noexcept
+{
+	for(auto& g : groups_)
+	{
+		g.remove(id);
+	}
+}
+
 bool Groups::contains(group_id id) const noexcept
 {
 	for(auto& g : groups_)

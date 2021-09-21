@@ -1,15 +1,18 @@
 #include "auth_message.hpp"
 #include "rapidjson/document.h"
-#include "../message/types.hpp"
-#include "../message/make.hpp"
+#include "../../message/types.hpp"
+#include "../../message/make.hpp"
+#include "make.hpp"
 
+namespace Agro{
+namespace User{
 namespace Message{
 
 std::string user_error_authentication(std::error_code const& ec) noexcept
 {
 	rapidjson::Document doc;
 	doc.SetObject();
-	add_type(doc, type::user);
+	add_type(doc, ::Message::type::user);
 	doc.AddMember("command",
 			rapidjson::Value("authenticate", doc.GetAllocator()).Move(),
 			doc.GetAllocator());
@@ -21,36 +24,33 @@ std::string user_error_authentication(std::error_code const& ec) noexcept
 			rapidjson::Value(ec.message().data(), ec.message().size(), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 
-	return stringify(doc);
+	return ::Message::stringify(doc);
 }
 
 std::string user_authentication(Agro::User::Logged const& user) noexcept
 {
 	rapidjson::Document doc;
 	doc.SetObject();
-	add_type(doc, type::user);
+	::Message::add_type(doc, ::Message::type::user);
 	doc.AddMember("command",
 			rapidjson::Value("authenticate", doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 
 	rapidjson::Value data;
-	data.SetObject();
+	user_info(data, *user.info(), doc.GetAllocator());
 	data.AddMember("authenticated", true, doc.GetAllocator());
-	data.AddMember("name",
-			rapidjson::Value(user.info()->name().data(), user.info()->name().size(), doc.GetAllocator()).Move(),
-			doc.GetAllocator());
-	data.AddMember("email",
-				rapidjson::Value(user.info()->email().data(), user.info()->email().size(), doc.GetAllocator()).Move(),
-				doc.GetAllocator());
 	data.AddMember("sessionid",
 			rapidjson::Value(user.session_id().data(), user.session_id().size(), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
+	data.AddMember("policy", user.policy_rules(), doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 
-	return stringify(doc);
+	return ::Message::stringify(doc);
 }
 
 }//Message
+}//User
+}//Agro

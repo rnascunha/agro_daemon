@@ -1,4 +1,5 @@
 #include "list.hpp"
+#include <algorithm>
 
 namespace Agro{
 namespace User{
@@ -11,6 +12,33 @@ Info_List& Users::infos() noexcept
 Info_List const& Users::infos() const noexcept
 {
 	return user_list_;
+}
+
+bool Users::add_user(Info&& user) noexcept
+{
+	return user_list_.add(std::move(user));
+}
+
+void Users::add_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept
+{
+	groups_.add_user_to_groups(uid, gid_list);
+}
+
+bool Users::edit_user(user_id id,
+				std::string const& username,
+				std::string const& name,
+				std::string const& email,
+				std::vector<group_id> const& groups) noexcept
+{
+	if(!user_list_.update(id, username, name, email))
+	{
+		return false;
+	}
+
+	groups_.remove_user_from_all(id);
+	groups_.add_user_to_groups(id, groups);
+
+	return true;
 }
 
 Subscription_List& Users::subscriptions() noexcept

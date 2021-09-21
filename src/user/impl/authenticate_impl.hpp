@@ -220,12 +220,7 @@ bool authenticate(User::Logged& user,
 
 	//Getting user info
 	rapidjson::Value const& payload = doc["data"].GetObject();
-	//Verification already made
-//	if(!payload.HasMember("user") || !payload["user"].IsString())
-//	{
-//		ec = make_error_code(Error::ill_formed);
-//		return false;
-//	}
+
 	std::string const username = payload["user"].GetString();
 	user.info(instance.get_user_info(username));
 	if(!user.info())

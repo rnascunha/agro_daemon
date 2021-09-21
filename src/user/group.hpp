@@ -43,6 +43,10 @@ class Groups{
 		bool remove(group_id) noexcept;
 
 		bool add_user(group_id, user_id) noexcept;
+		void add_user(group_id gid, std::vector<user_id> const& uid_list) noexcept;
+		void add_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept;
+
+		void remove_user_from_all(user_id) noexcept;
 
 		bool contains(group_id) const noexcept;
 		bool contains(std::string const&) const noexcept;

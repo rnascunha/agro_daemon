@@ -9,6 +9,12 @@ namespace User{
 
 using user_id = int;
 static constexpr const user_id invalid_id = -1;
+/**
+ * Root definitions
+ */
+static constexpr const user_id root_id = 0;
+static constexpr const char* root_username = "root";
+static constexpr const char* root_name = "root";
 
 class Info{
 	public:
@@ -53,6 +59,12 @@ class Info_List{
 
 		user_id get_id(std::string const& username) const noexcept;
 		Info const* get(std::string const& username) const noexcept;
+		Info const* get(user_id) const noexcept;
+
+		bool update(user_id id,
+				std::string const& username,
+				std::string const& name,
+				std::string const& email) noexcept;
 
 		std::size_t size() const noexcept;
 
@@ -101,6 +113,11 @@ class Subscription_List{
 		void clear_subscription(user_id, std::string const& user_agent) noexcept;
 
 		std::size_t size() const noexcept;
+
+		std::vector<Subscription>::const_iterator begin() const { return list_.begin(); }
+		std::vector<Subscription>::const_iterator end() const { return list_.end(); }
+		std::vector<Subscription>::const_iterator cbegin() const { return list_.cbegin(); }
+		std::vector<Subscription>::const_iterator cend() const { return list_.cend(); }
 	private:
 		std::vector<Subscription> list_;
 };
@@ -172,10 +189,15 @@ class Logged{
 		void info(Info const*) noexcept;
 		Info const* info() const noexcept;
 
+		user_id id() const noexcept;
+
 		std::string const& user_agent() const noexcept;
 		void user_agent(std::string const&) noexcept;
 
 		std::string const& session_id() const noexcept;
+
+		void policy_rules(int) noexcept;
+		int policy_rules() const noexcept;
 
 		bool is_authenticated() const noexcept;
 		void authenticate() noexcept;
@@ -184,6 +206,7 @@ class Logged{
 	private:
 		std::string user_agent_;
 		std::string session_id_;
+		int			policy_rules_ = 0;
 
 		bool authenticated_ = false;
 		Info const*	 info_ = nullptr;

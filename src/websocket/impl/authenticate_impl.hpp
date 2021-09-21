@@ -3,7 +3,6 @@
 
 #include "../../user/authenticate.hpp"
 #include "../../user/authenticate_params.h"
-#include "../../user/auth_message.hpp"
 #include "../../message/user_types.hpp"
 #include "tt/tt.hpp"
 
@@ -48,13 +47,11 @@ check_authenticate(std::string const& data) noexcept
 		return false;
 	}
 
-	if(comm == Message::user_commands::autheticate)
+	if(comm == Message::user_commands::autheticate
+		&& user_.info()->id() != Agro::User::root_id)
 	{
 		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, instance(), ec);
 	}
-
-	tt::status("User %s (%s) authenticated", user_.info()->name().c_str(), user_.info()->username().c_str());
-	this->write(Message::user_authentication(user_));
 
 	return false;
 }

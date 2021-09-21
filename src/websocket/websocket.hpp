@@ -53,6 +53,10 @@ class Websocket final :
 
 		void write_all(std::string const data) noexcept;
 		void write_all(std::string const data, bool text) noexcept;
+		void write_policy(Agro::Authorization::rule rule,
+				std::shared_ptr<std::string const> data) noexcept;
+
+		Agro::User::Logged const& user() const noexcept;
 
 		std::shared_ptr<share<Websocket<UseSSL>>> get_share() noexcept;
 	protected:

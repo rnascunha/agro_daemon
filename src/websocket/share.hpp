@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <vector>
+#include "../user/policy.hpp"
 
 //#include "../agro.hpp"
 
@@ -61,6 +62,28 @@ class share{
 			for(auto const& wp : v){
 				if(auto sp = wp.lock()){
 					sp->func();
+				}
+			}
+		}
+
+		void exec_policy(Agro::Authorization::rule rule,
+				std::function<void(Session*)> func) noexcept
+		{
+			std::vector<std::weak_ptr<Session>> v;
+			{
+				std::lock_guard<std::mutex> lock(mutex_);
+				v.reserve(share_.size());
+				for(auto p : share_)
+				{
+					if(Agro::Authorization::can(p->user(), rule))
+						v.emplace_back(p->weak_from_this());
+				}
+			}
+
+			for(auto const& wp : v)
+			{
+				if(auto sp = wp.lock()){
+					func(sp.get());
 				}
 			}
 		}

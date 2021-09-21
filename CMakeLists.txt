@@ -305,9 +305,12 @@ set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					
 set(USER_DIR		${SRC_DIR}/user)
 set(USER_SRC		${USER_DIR}/user.cpp
-					${USER_DIR}/auth_message.cpp
 					${USER_DIR}/group.cpp
-					${USER_DIR}/list.cpp)
+					${USER_DIR}/list.cpp
+					${USER_DIR}/policy.cpp
+					${USER_DIR}/password.cpp
+					${USER_DIR}/message/auth_message.cpp
+					${USER_DIR}/message/user.cpp)
 
 set(DB_DIR			${SRC_DIR}/db)
 set(DB_SRC			${DB_DIR}/sqlite3.cpp
@@ -377,7 +380,8 @@ target_link_libraries(add_user ${SQLite3_LIBRARIES})
 #### add db
 add_executable(init_db tools/init_db.cpp 
 						${DB_DIR}/sqlite3.cpp
-						${SRC_DIR}/error.cpp)
+						${SRC_DIR}/error.cpp
+						${USER_DIR}/password.cpp)
 
 set_target_properties(init_db PROPERTIES
     CXX_STANDARD 17
@@ -396,6 +400,7 @@ add_executable(add_user_group tools/add_user_group.cpp
 						${USER_DIR}/user.cpp
 						${USER_DIR}/group.cpp
 						${USER_DIR}/list.cpp
+						${USER_DIR}/policy.cpp
 						${HELPER_SRC})
 
 set_target_properties(add_user_group PROPERTIES

@@ -4,6 +4,7 @@
 #include <ctime>
 #include <iomanip>
 #include <sstream>
+#include <memory>
 
 //https://stackoverflow.com/a/16166149
 #ifdef _WIN32
@@ -140,6 +141,78 @@ bool DB::read_user_all_db(User::Users& users) noexcept
 	return true;
 }
 
+bool DB::read_policy_types(Authorization::Policy_Types& policy_types) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare("SELECT policyid, name, code, description FROM policy_type", res);
+	if(rc != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		policy_types.emplace_back(
+				res.interger(0),
+				static_cast<Authorization::rule>(res.interger(2)),
+				res.text(1), res.text(3));
+	}
+
+	return true;
+}
+
+bool DB::read_policies(Authorization::Policies& policies) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare("SELECT policyid, groupid, rules FROM policy", res);
+	if(rc != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		policies.add(res.interger(0),
+				res.interger(1),
+				static_cast<Authorization::rule>(res.interger(2)));
+	}
+
+	return true;
+}
+
+//bool DB::read_permission_list(Authorization::Permission_List& list) noexcept
+//{
+//	sqlite3::statement res;
+//	if(db_.prepare("SELECT permissionid,type,action,effect,ref_type,ref_id FROM permission", res) != SQLITE_OK)
+//	{
+//		return false;
+//	}
+//
+//	while(res.step() == SQLITE_ROW)
+//	{
+//		if(res.interger(4) == static_cast<int>(Authorization::ref_type::single))
+//		{
+//			list.add(
+//					std::make_shared<Authorization::Permission_Single>(
+//						res.interger(0),
+//						static_cast<Authorization::type>(res.interger(1)),
+//						static_cast<Authorization::action>(res.interger(2)),
+//						res.interger(5),
+//						static_cast<Authorization::effect>(res.interger(3))));
+//		}
+//		else if(res.interger(4) == static_cast<int>(Authorization::ref_type::group))
+//		{
+////			list.add(
+////				std::make_shared<Authorization::Permission_Group>(
+////					res.interger(0),
+////					static_cast<Authorization::type>(res.interger(1)),
+////					static_cast<Authorization::effect>(res.interger(3)),
+////					static_cast<Authorization::action>(res.interger(2))));
+//		}
+//	}
+//	return true;
+//}
+
 User::Info DB::get_user(User::user_id id) noexcept
 {
 	sqlite3::statement res;
@@ -182,12 +255,37 @@ User::Info DB::get_user(std::string const& username) noexcept
 		res.text(3)};
 }
 
+bool DB::get_root_password(std::vector<unsigned char>& salt,
+					std::vector<unsigned char>& pass) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT root_password,root_salt FROM instance LIMIT 1",
+			res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	if(res.step() != SQLITE_ROW)
+	{
+		return false;
+	}
+
+	pass = res.blob(0);
+	salt = res.blob(1);
+
+	return true;
+}
+
 bool DB::get_password(std::string const& username,
 		std::vector<unsigned char>& salt,
 		std::vector<unsigned char>& pass) noexcept
 {
+	if(username == "root")
+	{
+		return get_root_password(salt, pass);
+	}
 	sqlite3::statement res;
-	if(db_.prepare_bind("SELECT userid,password,name,status,email,salt FROM user WHERE username = ?",
+	if(db_.prepare_bind("SELECT password,salt FROM user WHERE username = ?",
 			res, username) != SQLITE_OK)
 	{
 		return false;
@@ -198,21 +296,72 @@ bool DB::get_password(std::string const& username,
 		return false;
 	}
 
-	pass = res.blob(1);
-	salt = res.blob(5);
+	pass = res.blob(0);
+	salt = res.blob(1);
 
 	return true;
 }
 
 int DB::add_user(std::string const& username,
-		std::string const& password,
-		User::Info::status status /* = User::status::active */,
-		std::string const& name /* = std::string{} */,
-		std::string const& email /* = std::string{} */) noexcept
+			User::key_password const password,
+			User::salt_password const salt,
+			std::string const& name,
+			std::string const& email,
+			User::user_id& id,
+			User::Info::status status /* = User::Info::status::active */) noexcept
+{
+	id = User::invalid_id;
+	sqlite3::statement res;
+	int rc = db_.prepare_bind(
+			"INSERT INTO user(username,password,name,status,email,salt) VALUES(?,?,?,?,?,?)",
+			res,
+			username,
+			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
+			name,
+			static_cast<int>(status),
+			email,
+			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH});
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	rc = res.step();
+	if(rc == SQLITE_DONE)
+	{
+		id = db_.last_insert_rowid();
+	}
+	return rc;
+}
+
+int DB::edit_user(User::user_id id,
+				std::string const& username,
+				std::string const& name,
+				std::string const& email,
+				std::vector<User::group_id> const& groups) noexcept
 {
 	sqlite3::statement res;
-	int rc = db_.prepare_bind("INSERT INTO user(username,password,name,status,email) VALUES(?,?,?,?,?)",
-			res, username, password, name, static_cast<int>(status), email);
+	int rc = db_.prepare_bind(
+			"UPDATE user SET username = ?, name = ?, email = ? WHERE userid = ?",
+			res, username, name, email, id);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	rc = res.step();
+	if(rc != SQLITE_DONE)
+	{
+		return rc;
+	}
+
+	return set_user_to_groups(id, groups);
+}
+
+int DB::delete_user(User::user_id id) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind("DELETE FROM user WHERE userid = ?", res, id);
 	if(rc != SQLITE_OK)
 	{
 		return rc;
@@ -221,18 +370,104 @@ int DB::add_user(std::string const& username,
 	return res.step();
 }
 
-Agro::User::group_id DB::add_user_group(std::string const& name,
-				std::string const& description /* = std::string{} */) noexcept
+int DB::delete_user_from_group(User::user_id id) noexcept
 {
 	sqlite3::statement res;
-	if(db_.prepare_bind("INSERT INTO user_group(name, description) VALUES(?,?)",
-			res, name, description) != SQLITE_OK)
+	int rc = db_.prepare_bind("DELETE FROM user_user_group WHERE userid = ?", res, id);
+	if(rc != SQLITE_OK)
 	{
-		return -1;
+		return rc;
 	}
-	res.step();
 
-	return db_.last_insert_rowid();
+	return res.step();
+}
+
+//int DB::delete_permissions(
+//		Authorization::type tp,
+//		Authorization::ref_type reftype,
+//		Authorization::ref_id rid) noexcept
+//{
+//	sqlite3::statement res;
+//	int rc = db_.prepare_bind(
+//			"DELETE FROM permission WHERE type = ? AND ref_type = ? AND ref_id = ?",
+//			res,
+//			static_cast<int>(tp),
+//			static_cast<int>(reftype),
+//			static_cast<int>(rid));
+//	if(rc != SQLITE_OK)
+//	{
+//		return rc;
+//	}
+//
+//	return res.step();
+//}
+
+int DB::delete_group(User::group_id gid) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind(
+			"DELETE FROM user_user_group WHERE user_groupid = ?",
+			res,
+			static_cast<int>(gid));
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	rc = res.step();
+	if(rc != SQLITE_DONE)
+	{
+		return rc;
+	}
+
+	res.reset();
+	rc = db_.prepare_bind(
+				"DELETE FROM user_group WHERE user_groupid = ?",
+				res,
+				static_cast<int>(gid));
+
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
+
+int DB::remove_policy_group(User::group_id gid) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind(
+				"DELETE FROM policy WHERE groupid = ?",
+				res, gid);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
+
+int DB::add_user_group(std::string const& name,
+				std::string const& description,
+				User::group_id& id) noexcept
+{
+	id = User::invalid_id;
+	sqlite3::statement res;
+	int rc = db_.prepare_bind("INSERT INTO user_group(name, description) VALUES(?,?)",
+			res, name, description);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	rc = res.step();
+	if(rc == SQLITE_DONE)
+	{
+		id = db_.last_insert_rowid();
+	}
+
+	return rc;
 }
 
 int DB::add_user_to_group(Agro::User::group_id gid, Agro::User::user_id uid) noexcept
@@ -241,6 +476,42 @@ int DB::add_user_to_group(Agro::User::group_id gid, Agro::User::user_id uid) noe
 	int rc = db_.prepare_bind(
 			"INSERT INTO user_user_group(user_groupid, userid) VALUES(?,?)",
 			res, gid, uid);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
+
+void DB::add_user_to_group(User::group_id gid, std::vector<User::user_id> const& members) noexcept
+{
+	for(auto const& m : members)
+	{
+		add_user_to_group(gid, m);
+	}
+}
+
+int DB::set_user_to_groups(User::user_id uid, std::vector<User::group_id> const& gid_list) noexcept
+{
+	int rc = remove_all_user_groups(uid);
+	if(rc != SQLITE_DONE)
+	{
+		return rc;
+	}
+
+	for(auto const& gid : gid_list)
+	{
+		add_user_to_group(gid, uid);
+	}
+
+	return SQLITE_DONE;
+}
+
+int DB::remove_all_user_groups(User::user_id uid) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind("DELETE FROM user_user_group WHERE userid = ?", res, uid);
 	if(rc != SQLITE_OK)
 	{
 		return rc;

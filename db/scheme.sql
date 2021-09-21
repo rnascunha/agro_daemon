@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on qua. set. 8 12:06:01 2021
+-- File generated with SQLiteStudio v3.3.3 on ter. set. 21 07:33:58 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -12,7 +12,27 @@ CREATE TABLE instance (
     name               TEXT    NOT NULL,
     description        TEXT,
     notify_private_key TEXT,
-    subscribe          TEXT
+    subscribe          TEXT,
+    root_password      BLOB,
+    root_salt          BLOB
+);
+
+
+-- Table: policy
+CREATE TABLE policy (
+    policyid INTEGER PRIMARY KEY AUTOINCREMENT,
+    groupid          REFERENCES user_group (user_groupid) 
+                     NOT NULL,
+    rules    INTEGER NOT NULL
+);
+
+
+-- Table: policy_type
+CREATE TABLE policy_type (
+    policyid    INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT,
+    code        INTEGER NOT NULL,
+    description TEXT
 );
 
 
@@ -51,6 +71,36 @@ CREATE TABLE user (
                        NOT NULL,
     email    TEXT,
     salt     BLOB (32) NOT NULL
+);
+
+
+-- Table: user_group
+CREATE TABLE user_group (
+    user_groupid INTEGER PRIMARY KEY AUTOINCREMENT,
+    name         TEXT    UNIQUE
+                         NOT NULL,
+    description  TEXT    DEFAULT ('') 
+);
+
+
+-- Table: user_user_group
+CREATE TABLE user_user_group (
+    user_user_groupid INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid            INTEGER REFERENCES user (userid) 
+                              NOT NULL,
+    user_groupid      INTEGER REFERENCES user_group (user_groupid) 
+                              NOT NULL,
+    UNIQUE (
+        userid,
+        user_groupid
+    )
+);
+
+
+-- Index: 
+CREATE UNIQUE INDEX "" ON push_notify (
+    userid,
+    user_agent
 );
 
 
