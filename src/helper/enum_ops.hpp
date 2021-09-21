@@ -18,7 +18,7 @@ constexpr bool operator&(Enum const lhs, Enum const rhs) noexcept
 }
 
 template<typename Enum>
-constexpr Enum operator|=(Enum lhs, Enum const rhs) noexcept
+constexpr Enum operator|=(Enum& lhs, Enum const rhs) noexcept
 {
 	static_assert(std::is_enum<Enum>::value, "Must be 'enum' type");
 	lhs = static_cast<Enum>(static_cast<int>(lhs) | static_cast<int>(rhs));
