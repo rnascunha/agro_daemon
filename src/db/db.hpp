@@ -10,6 +10,9 @@
 #include "../user/policy.hpp"
 #include "../user/password.hpp"
 
+#include "../device/list.hpp"
+#include "../device/net.hpp"
+
 namespace Agro{
 
 class DB{
@@ -96,6 +99,18 @@ class DB{
 				std::string const& user_agent) noexcept;
 
 		std::string notify_private_key() noexcept;
+
+		/**
+		 * Device interface
+		 */
+		bool read_devices_net(Device::Net_List&) noexcept;
+		bool read_devices(Device::Device_List&, Device::Net_List const&) noexcept;
+
+		int add_device(mesh_addr_t const&, Device::device_id&) noexcept;
+		int add_net(mesh_addr_t const&, Device::net_id&, std::string const& = "") noexcept;
+
+		int update_device(Device::Device const&) noexcept;
+		int update_device_route(Device::Device const&) noexcept;
 
 		const char* error(){ return db_.error(); };
 	private:

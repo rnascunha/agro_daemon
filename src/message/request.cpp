@@ -29,7 +29,7 @@ static void request_cb(void const* trans,
 		CoAP::Message::message const* response,
 		void* request,
 		Agro::websocket_ptr ws,
-		Device_List& dev_list) noexcept
+		Agro::instance& instance) noexcept
 {
 	std::cout << "Request callback called...\n";
 
@@ -60,7 +60,7 @@ static void request_cb(void const* trans,
 					t->request(),
 					*response,
 					t->status(),
-					dev_list,
+					instance,
 					ws);
 		}
 	}
@@ -74,7 +74,7 @@ static void request_cb(void const* trans,
 		rapidjson::Document doc;
 		Message::make_response(doc, t->request(), t->endpoint(), t->status());
 
-		std::string resp_str{Message::stringify(doc)};
+		std::string resp_str = Message::stringify(doc);
 		std::cout << resp_str << "\n";
 
 		ws->write_all(resp_str);
@@ -134,8 +134,7 @@ static void send_request(
 		Message::requests request_type,
 		Message::request_message const& msg,
 		Agro::websocket_ptr ws,
-		engine& coap_engine,
-		Device_List& dev_list,
+		Agro::instance& instance,
 		rapidjson::Document const& doc) noexcept
 {
 	engine::request req{ep};
@@ -169,15 +168,15 @@ static void send_request(
 	}
 
 	req.callback(std::bind(request_cb,
-				std::placeholders::_1,
-				std::placeholders::_2,
-				std::placeholders::_3,
-				ws,
-				std::ref(dev_list)),
+					std::placeholders::_1,
+					std::placeholders::_2,
+					std::placeholders::_3,
+					ws,
+					std::ref(instance)),
 			reinterpret_cast<int*>(request_type));
 
 	CoAP::Error ec;
-	coap_engine.send(req, ec);
+	instance.coap_engine().send(req, ec);
 	if(ec)
 	{
 		std::cerr << "Send Request error[" << ec.value() << "/" << ec.message() << "]\n";
@@ -185,9 +184,9 @@ static void send_request(
 }
 
 void process_request(rapidjson::Document const& doc,
-			Agro::websocket_ptr ws,
-			Device_List& device_list,
-			engine& coap_engine) noexcept
+				Agro::websocket_ptr ws,
+				Agro::instance& instance,
+				Agro::User::Logged&) noexcept
 {
 	if(!doc.HasMember("request") || !doc["request"].IsString())
 	{
@@ -208,7 +207,7 @@ void process_request(rapidjson::Document const& doc,
 		std::cerr << "Request device not found\n";
 		return;
 	}
-	Device const* dev = device_list[doc["device"].GetString()];
+	Agro::Device::Device const* dev = instance.device_list()[doc["device"].GetString()];
 	if(!dev)
 	{
 		std::cerr << "Device not found\n";
@@ -235,8 +234,7 @@ void process_request(rapidjson::Document const& doc,
 			config->mtype,
 			*req,
 			ws,
-			coap_engine,
-			device_list,
+			instance,
 			doc);
 }
 

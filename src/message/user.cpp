@@ -179,7 +179,7 @@ static void add_user(rapidjson::Document const& doc,
 		}
 		tt::status("New user '%s'(%s) added successfully!",
 				info->name().c_str(), info->username().c_str());
-		ws->write_policy(Agro::Authorization::rule::user_admin,
+		ws->write_all_policy(Agro::Authorization::rule::user_admin,
 				std::make_shared<std::string>(Agro::User::Message::added_new_user(*info, groups)));
 	}
 }
@@ -244,7 +244,7 @@ static void edit_user(rapidjson::Document const& doc,
 		}
 		tt::status("Edited user '%s'(%s) successfully!",
 				info->name().c_str(), info->username().c_str());
-		ws->write_policy(Agro::Authorization::rule::user_admin,
+		ws->write_all_policy(Agro::Authorization::rule::user_admin,
 				std::make_shared<std::string>(Agro::User::Message::edited_user(*info, groups)));
 	}
 }
@@ -282,7 +282,7 @@ static void delete_user(rapidjson::Document const& doc,
 	}
 
 	tt::status("User '%d' delete successfully", id);
-	ws->write_policy(Agro::Authorization::rule::user_admin,
+	ws->write_all_policy(Agro::Authorization::rule::user_admin,
 			std::make_shared<std::string>(Agro::User::Message::deleted_user(id)));
 }
 
@@ -338,7 +338,7 @@ static void add_group(rapidjson::Document const& doc,
 		}
 		tt::status("New group '%s' added successfully!",
 						name.c_str());
-		ws->write_policy(Agro::Authorization::rule::user_admin,
+		ws->write_all_policy(Agro::Authorization::rule::user_admin,
 				std::make_shared<std::string>(Agro::User::Message::added_new_group(*group)));
 	}
 }
@@ -375,7 +375,7 @@ void delete_group(rapidjson::Document const& doc,
 	}
 
 	tt::status("Group '%d' delete successfully", id);
-	ws->write_policy(Agro::Authorization::rule::user_admin,
+	ws->write_all_policy(Agro::Authorization::rule::user_admin,
 			std::make_shared<std::string>(Agro::User::Message::deleted_group(id)));
 }
 

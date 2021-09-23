@@ -105,6 +105,28 @@ class share{
 			}
 		}
 
+		void write_all_policy(Agro::Authorization::rule rule,
+						std::shared_ptr<std::string const> const data) noexcept
+		{
+			std::vector<std::weak_ptr<Session>> v;
+			{
+				std::lock_guard<std::mutex> lock(mutex_);
+				v.reserve(share_.size());
+				for(auto p : share_)
+				{
+					if(Agro::Authorization::can(p->user(), rule))
+						v.emplace_back(p->weak_from_this());
+				}
+			}
+
+			for(auto const& wp : v)
+			{
+				if(auto sp = wp.lock()){
+					sp->write(data);
+				}
+			}
+		}
+
 		Agro::instance const& instance() const noexcept
 		{
 			return instance_;

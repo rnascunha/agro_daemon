@@ -32,6 +32,7 @@ class sqlite3{
 				int bind(int, binary const& data, destructor_type = static_destructor) noexcept;
 
 				int reset() noexcept;
+				int clear_bidings() noexcept;
 
 				int interger(int) noexcept;
 				std::string text(int) noexcept;

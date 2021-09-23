@@ -1,17 +1,19 @@
 #include "types.hpp"
 #include <iostream>
 #include "../../websocket/types.hpp"
-#include "../device.hpp"
+#include "../../device/message/device.hpp"
 
 namespace Message{
 
-static void process_jobs(Device_List& device_list,
+static void process_jobs(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		std::uint8_t const* data, std::size_t size,
 		Agro::websocket_ptr ws) noexcept
 {
-	auto& dev = device_list.update_jobs(host, data, size);
-	ws->write_all(device_jobs_to_json(dev));
+	auto* dev = device_list[host];
+	dev->jobs(data, size);
+	ws->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_jobs_to_json(*dev)));
 }
 
 static void send_job_response(
@@ -21,7 +23,7 @@ static void send_job_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -33,7 +35,8 @@ static void send_job_response(
 		);
 		return;
 	}
-	process_jobs(device_list, host, static_cast<std::uint8_t const*>(request.payload), request.payload_len, ws);
+	process_jobs(instance.device_list(), host,
+			static_cast<std::uint8_t const*>(request.payload), request.payload_len, ws);
 }
 
 static void get_job_response(
@@ -43,7 +46,7 @@ static void get_job_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -55,7 +58,8 @@ static void get_job_response(
 		);
 		return;
 	}
-	process_jobs(device_list, host, static_cast<std::uint8_t const*>(response.payload), response.payload_len, ws);
+	process_jobs(instance.device_list(), host,
+			static_cast<std::uint8_t const*>(response.payload), response.payload_len, ws);
 }
 
 static void delete_job_response(
@@ -65,10 +69,10 @@ static void delete_job_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const&,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
-	process_jobs(device_list, host, static_cast<std::uint8_t const*>(nullptr), 0, ws);
+	process_jobs(instance.device_list(), host, static_cast<std::uint8_t const*>(nullptr), 0, ws);
 }
 
 static std::size_t send_job_payload(rapidjson::Document const& doc, void* buf, std::size_t, std::error_code& ec)

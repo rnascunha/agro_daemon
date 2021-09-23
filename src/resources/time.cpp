@@ -12,6 +12,7 @@ void get_time_handler(engine::message const& request,
 	if(!CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host))
 	{
 		printf("TIME RESOURCE error getting host...\n");
+		return;
 	}
 	else
 	{

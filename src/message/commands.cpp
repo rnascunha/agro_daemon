@@ -2,12 +2,12 @@
 #include <iostream>
 #include "types.hpp"
 #include "../websocket/types.hpp"
-#include "device.hpp"
+#include "../device/message/device.hpp"
 
 namespace Message{
 
 void process_commands(rapidjson::Document const& d,
-		Agro::websocket_ptr ws, Device_List& list) noexcept
+		Agro::websocket_ptr ws, Agro::Device::Device_List& list) noexcept
 {
 	std::cout << "Processing commands\n";
 	if(!(d.HasMember("device") && d["device"].IsString()))
@@ -48,8 +48,10 @@ void process_commands(rapidjson::Document const& d,
 			}
 
 			std::string name{d["data"].GetString()};
-			auto& dev = list.update_name(addr, name);
-			ws->write_all(Message::device_to_json(dev));
+			Agro::Device::Device* dev = list[addr];
+			dev->name(name);
+			ws->write_all_policy(Agro::Authorization::rule::view_device,
+					std::make_shared<std::string>(Agro::Device::Message::device_to_json(*dev)));
 			std::cout << "message updated[" << mac << "]: " << name << "\n";
 		}
 			break;

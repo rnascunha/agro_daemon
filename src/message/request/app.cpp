@@ -3,7 +3,7 @@
 #include "../../websocket/types.hpp"
 #include "../../app/app.hpp"
 #include "../../error.hpp"
-#include "../device.hpp"
+#include "../../device/message/device.hpp"
 
 namespace Message{
 
@@ -14,7 +14,7 @@ struct app{
 	unsigned 	size = 0;
 };
 
-static void process_get_app(Device_List& device_list,
+static void process_get_app(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		const void* data, std::size_t data_len,
 		Agro::websocket_ptr ws) noexcept
@@ -34,7 +34,7 @@ static void process_get_app(Device_List& device_list,
 		data8 += sizeof(app);
 	}
 
-	ws->write_all(device_apps_to_json(*dev));
+	ws->write_all(Agro::Device::Message::device_apps_to_json(*dev));
 }
 
 static void process_send_app(CoAP::Message::message const& response,
@@ -51,7 +51,7 @@ static void get_app_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -66,7 +66,7 @@ static void get_app_response(
 				);
 		return;
 	}
-	process_get_app(device_list,
+	process_get_app(instance.device_list(),
 			host,
 			response.payload, response.payload_len, ws);
 }
@@ -78,7 +78,7 @@ static void send_app_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List&,
+		Agro::instance&,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -103,7 +103,7 @@ static void exec_app_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance&,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -139,7 +139,7 @@ static void delete_app_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -154,9 +154,9 @@ static void delete_app_response(
 						);
 		return;
 	}
-	auto const dev = device_list[host];
+	auto const dev = instance.device_list()[host];
 	dev->delete_app(std::string{static_cast<const char*>(request.payload), request.payload_len});
-	ws->write_all(device_apps_to_json(*dev));
+	ws->write_all(Agro::Device::Message::device_apps_to_json(*dev));
 }
 
 static std::size_t name_app_payload(

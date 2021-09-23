@@ -3,39 +3,39 @@
 
 #include <vector>
 #include <memory>
-#include "../device/list.hpp"
+#include "../agro.hpp"
 #include "../websocket/types.hpp"
 
 namespace Resource{
 
 void init(engine&,
-		Device_List&,
+		Agro::instance&,
 		Agro::share_ptr,
 		std::vector<engine::resource_node>&) noexcept;
 
 void put_route_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance&,
 								Agro::share_ptr) noexcept;
 void put_status_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance&,
 								Agro::share_ptr) noexcept;
 void put_board_config_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance&,
 								Agro::share_ptr) noexcept;
 void put_config_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance&,
 								Agro::share_ptr) noexcept;
 void put_full_config_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance&,
 								Agro::share_ptr) noexcept;
 void put_sensor_data_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance&,
 								Agro::share_ptr) noexcept;
 void get_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept;

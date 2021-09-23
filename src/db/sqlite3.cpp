@@ -118,6 +118,11 @@ int sqlite3::statement::reset() noexcept
 	return sqlite3_reset(stmt_);
 }
 
+int sqlite3::statement::clear_bidings() noexcept
+{
+	return sqlite3_clear_bindings(stmt_);
+}
+
 int sqlite3::statement::interger(int index) noexcept
 {
 	return sqlite3_column_int(stmt_, index);

@@ -1,6 +1,8 @@
 #include "device.hpp"
-#include "make.hpp"
+#include "../../message/make.hpp"
 
+namespace Agro{
+namespace Device{
 namespace Message{
 
 template<typename Allocator>
@@ -28,18 +30,32 @@ static void make_apps(rapidjson::Value& data, Device const& dev, Allocator& allo
 template<typename Allocator>
 static void make_device_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 
+static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept
+{
+	auto const* config = get_config(comm);
+	if(!config) return false;
+
+	doc.AddMember("command",
+			rapidjson::Value(config->name, doc.GetAllocator()).Move(),
+			doc.GetAllocator());
+
+	return true;
+}
+
 void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_config_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_config_to_json(Device const& dev) noexcept
@@ -47,21 +63,23 @@ std::string device_config_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_config_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_status_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_status_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_status_to_json(Device const& dev) noexcept
@@ -69,21 +87,23 @@ std::string device_status_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_status_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_route_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_route_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_route_to_json(Device const& dev) noexcept
@@ -91,21 +111,23 @@ std::string device_route_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_route_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_full_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_full_config_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_full_config_to_json(Device const& dev) noexcept
@@ -113,21 +135,23 @@ std::string device_full_config_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_full_config_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_board_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_board_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_board_to_json(Device const& dev) noexcept
@@ -135,43 +159,48 @@ std::string device_board_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_board_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_sensor_data_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_sensor_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_sensor_data_to_json(Device const& dev) noexcept
 {
 	rapidjson::Document doc;
 	device_sensor_data_to_json(doc, dev);
+	add_command(doc, device_commands::data);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_gpios_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 
 	make_gpios(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_gpios_to_json(Device const& dev) noexcept
@@ -179,22 +208,25 @@ std::string device_gpios_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_gpios_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_uptime_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
-	rapidjson::Value v;
-	data.AddMember("uptime", make_value(v, dev.uptime(), doc.GetAllocator()), doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	rapidjson::Value v;
+	data.AddMember("uptime", ::Message::make_value(v, dev.uptime(), doc.GetAllocator()), doc.GetAllocator());
+
+	::Message::add_data(doc, data);
 }
 
 std::string device_uptime_to_json(Device const& dev) noexcept
@@ -202,22 +234,24 @@ std::string device_uptime_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_uptime_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_rtc_time_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
-	rapidjson::Value v;
-	data.AddMember("rtc", make_value(v, dev.rtc_time(), doc.GetAllocator()), doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	rapidjson::Value v;
+	data.AddMember("rtc", ::Message::make_value(v, dev.rtc_time(), doc.GetAllocator()), doc.GetAllocator());
+
+	::Message::add_data(doc, data);
 }
 
 std::string device_rtc_time_to_json(Device const& dev) noexcept
@@ -225,22 +259,24 @@ std::string device_rtc_time_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_rtc_time_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_fuse_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 	rapidjson::Value v;
 	data.AddMember("fuse", dev.fuse(), doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_fuse_to_json(Device const& dev) noexcept
@@ -248,22 +284,24 @@ std::string device_fuse_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_fuse_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 
 }
 
 void device_jobs_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 	make_jobs(data, dev, doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_jobs_to_json(Device const& dev) noexcept
@@ -271,7 +309,7 @@ std::string device_jobs_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_jobs_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_ota_to_json(rapidjson::Document& doc,
@@ -279,16 +317,18 @@ void device_ota_to_json(rapidjson::Document& doc,
 		std::string const& version) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 	rapidjson::Value v;
 	data.AddMember("ota_version", STRING_TO_JSON_VALUE(version.c_str(), doc), doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_ota_to_json(Device const& dev, std::string const& version) noexcept
@@ -296,22 +336,24 @@ std::string device_ota_to_json(Device const& dev, std::string const& version) no
 	rapidjson::Document doc;
 	device_ota_to_json(doc, dev, version);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_apps_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
-	add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
 	rapidjson::Value v;
 	make_apps(data, dev, doc.GetAllocator());
 
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_apps_to_json(Device const& dev) noexcept
@@ -319,21 +361,22 @@ std::string device_apps_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_apps_to_json(doc, dev);
 
-	return std::string{stringify(doc)};
+	return ::Message::stringify(doc);
 }
 
 void device_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
 	doc.SetObject();
 
-	add_type(doc, type::device);
-	add_device(doc, dev.mac());
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
 
 	rapidjson::Value data;
 	data.SetObject();
 
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
 	make_device_data(data, dev, doc.GetAllocator());
-	add_data(doc, data);
+	::Message::add_data(doc, data);
 }
 
 std::string device_to_json(Device const& dev) noexcept
@@ -341,14 +384,16 @@ std::string device_to_json(Device const& dev) noexcept
 	rapidjson::Document doc;
 	device_to_json(doc, dev);
 
-	return stringify(doc);
+	return ::Message::stringify(doc);
 }
 
 void device_list_to_json(rapidjson::Document& doc, Device_List const& list) noexcept
 {
 	doc.SetObject();
 
-	add_type(doc, type::device_list);
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::list);
+
 	rapidjson::Value dev_arr;
 	dev_arr.SetArray();
 
@@ -358,11 +403,11 @@ void device_list_to_json(rapidjson::Document& doc, Device_List const& list) noex
 		devj.SetObject();
 
 		make_device_data(devj, dev, doc.GetAllocator());
-		add_device(devj, dev.mac(), doc.GetAllocator());
+		::Message::add_device(devj, dev.mac(), doc.GetAllocator());
 
 		dev_arr.PushBack(devj, doc.GetAllocator());
 	}
-	add_data(doc, dev_arr);
+	::Message::add_data(doc, dev_arr);
 }
 
 std::string device_list_to_json(Device_List const& list) noexcept
@@ -370,7 +415,7 @@ std::string device_list_to_json(Device_List const& list) noexcept
 	rapidjson::Document doc;
 	device_list_to_json(doc, list);
 
-	return stringify(doc);
+	return ::Message::stringify(doc);
 }
 
 /**
@@ -464,7 +509,7 @@ template<typename Allocator>
 static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
 {
 	rapidjson::Value gpios_v;
-	make_value_list_array(gpios_v, dev.gpios(), alloc);
+	::Message::make_value_list_array(gpios_v, dev.gpios(), alloc);
 	data.AddMember("gpios", gpios_v, alloc);
 }
 
@@ -540,15 +585,15 @@ static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocato
 	data.AddMember("time", dev.last_packet_time(), alloc);
 
 	rapidjson::Value temp_v;
-	make_value_list_array(temp_v, dev.temperature(), alloc);
+	::Message::make_value_list_array(temp_v, dev.temperature(), alloc);
 	data.AddMember("temp", temp_v, alloc);
 
 	rapidjson::Value rssi_v;
-	make_value_list_array(rssi_v, dev.rssi(), alloc);
+	::Message::make_value_list_array(rssi_v, dev.rssi(), alloc);
 	data.AddMember("rssi", rssi_v, alloc);
 
 	rapidjson::Value gpios_v;
-	make_value_list_array(gpios_v, dev.gpios(), alloc);
+	::Message::make_value_list_array(gpios_v, dev.gpios(), alloc);
 	data.AddMember("gpios", gpios_v, alloc);
 }
 
@@ -561,7 +606,7 @@ static void make_others_data(rapidjson::Value& data, Device const& dev, Allocato
 template<typename Allocator>
 static void make_device_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
 {
-	add_endpoint(data, dev.get_endpoint(), alloc);
+	::Message::add_endpoint(data, dev.get_endpoint(), alloc);
 	//Config
 	make_config_data(data, dev, alloc);
 	//Status
@@ -576,3 +621,6 @@ static void make_device_data(rapidjson::Value& data, Device const& dev, Allocato
 }
 
 }//Message
+}//Device
+}//Agro
+

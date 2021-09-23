@@ -10,13 +10,13 @@
 
 namespace Message{
 
-void process_request(rapidjson::Document const& doc,
-		Agro::websocket_ptr ws,
-			Device_List& device_list,
-			engine& coap_engine) noexcept;
-void process_commands(rapidjson::Document const& d,
-		Agro::websocket_ptr ws,
-			Device_List& list) noexcept;
+void process_request(rapidjson::Document const&,
+				Agro::websocket_ptr,
+				Agro::instance&,
+				Agro::User::Logged&) noexcept;
+void process_commands(rapidjson::Document const&,
+		Agro::websocket_ptr,
+			Agro::Device::Device_List&) noexcept;
 void process(std::string&& str,
 		Agro::websocket_ptr,
 		Agro::instance&,

@@ -53,6 +53,20 @@ instance::instance(
 		return;
 	}
 
+	if(!db_.read_devices_net(net_list_))
+	{
+		ec = make_error_code(Error::internal_error);
+		tt::error("Error reading device nets from database!");
+		return;
+	}
+
+	if(!db_.read_devices(device_list_, net_list_))
+	{
+		ec = make_error_code(Error::internal_error);
+		tt::error("Error reading devices from database!");
+		return;
+	}
+
 //	if(!db_.read_permission_list(permissions_))
 //	{
 //		ec = make_error_code(Error::internal_error);
@@ -62,7 +76,7 @@ instance::instance(
 
 	auto sh = std::make_shared<Agro::share>(*this);
 
-	Resource::init(coap_engine_, device_list_, sh, vresource_);
+	Resource::init(coap_engine_, *this, sh, vresource_);
 
 	boost::system::error_code ecb;
 #if USE_SSL == 0
@@ -360,12 +374,12 @@ void instance::notify_all(std::string const& data) noexcept
 	}
 }
 
-Device_List const& instance::device_list() const noexcept
+Device::Device_List const& instance::device_list() const noexcept
 {
 	return device_list_;
 }
 
-Device_List& instance::device_list() noexcept
+Device::Device_List& instance::device_list() noexcept
 {
 	return device_list_;
 }
@@ -389,6 +403,63 @@ User::Users const& instance::users() const noexcept
 //{
 //	return permissions_;
 //}
+
+bool instance::process_device_request(engine::message const& request,
+		Device::Device** dev,
+		CoAP::Message::Option::option& op) noexcept
+{
+	*dev = nullptr;
+	if(!CoAP::Message::Option::get_option(request,
+			op,
+			CoAP::Message::Option::code::uri_host))
+	{
+		tt::debug("Ignoring device packet! Missing uri-host option");
+		return false;
+	}
+
+	std::error_code ec;
+	mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
+	if(ec)
+	{
+		tt::debug("Ignoring device packet! Error parsing address [%d/%s]", ec.value(), ec.message().c_str());
+		return false;
+	}
+
+	*dev = device_list_[host];
+	if(!(*dev))
+	{
+		//Device does's exists
+		//notify users IF they have view_device authorization
+		Device::device_id id;
+		db_.add_device(host, id);
+		*dev = device_list_.add(Device::Device{id, host});
+	}
+
+	return true;
+}
+
+bool instance::update_db_device(Device::Device const& device) noexcept
+{
+	int rc = db_.update_device(device);
+	if(rc != SQLITE_DONE)
+	{
+		tt::error("Error updating device database [%d]", rc);
+	}
+	return rc == SQLITE_DONE;
+}
+
+Device::Net* instance::get_or_add_net(mesh_addr_t const& net_addr) noexcept
+{
+	Device::Net* net = net_list_.get(net_addr);
+	if(!net)
+	{
+		int id;
+		db_.add_net(net_addr, id);
+		net = net_list_.add(Device::Net{id, net_addr});
+	}
+
+	return net;
+}
 
 }//Agro
 

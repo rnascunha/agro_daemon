@@ -10,7 +10,7 @@ static void custom_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t status,
-		Device_List& device_list,
+		Agro::instance&,
 		Agro::websocket_ptr ws) noexcept
 {
 	rapidjson::Document doc;

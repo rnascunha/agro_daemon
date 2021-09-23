@@ -10,19 +10,32 @@
 #include "../error.hpp"
 #include "../coap_engine.hpp"
 
+namespace Agro{
+namespace Device{
+
+using device_id = int;
+
+class Net;
+
 class Device{
 	public:
-		Device();			//Must be default constructable to use map
+		Device();			//Must be default constructible to use map
 		Device(mesh_addr_t const& mac_);
 		Device(const char* mac_str, unsigned, Error& ec);
+		Device(device_id, mesh_addr_t const&,
+				std::string const& name = "",
+				std::string const& fw_version = "",
+				std::string const& hw_version = "");
 
 		/**
 		 * Getters
 		 */
-		int id() const noexcept;
+		device_id id() const noexcept;
+		Net const* net() const noexcept;
+		void net(Net const*) noexcept;
 
 		mesh_addr_t const& mac() const noexcept;
-		mesh_addr_t const & parent() const noexcept;
+		mesh_addr_t const& parent() const noexcept;
 		mesh_addr_t const& mac_ap() const noexcept;
 		mesh_addr_t const& net_id() const noexcept;
 
@@ -39,8 +52,8 @@ class Device{
 		std::vector<mesh_addr_t> const& children_table() const noexcept;
 		std::vector<mesh_addr_t> const& children() const noexcept;
 
-		std::string firmware_version() const noexcept;
-		std::string hardware_version() const noexcept;
+		std::string const& firmware_version() const noexcept;
+		std::string const& hardware_version() const noexcept;
 
 		Value_List<std::int8_t> const& rssi() const noexcept;
 
@@ -64,8 +77,11 @@ class Device{
 		/**
 		 * Updates
 		 */
+		void clear_children() noexcept;
+		void add_children(mesh_addr_t const&) noexcept;
+
 		void update(endpoint const&, Resource::status const&) noexcept;
-		void update(endpoint const&, Resource::config const&) noexcept;
+		void update(endpoint const&, Resource::config const&, Net* net) noexcept;
 		void update(endpoint const&, Resource::route const&,
 				const uint8_t* children, std::size_t children_size) noexcept;
 		void update(endpoint const&, Resource::full_config const&,
@@ -82,12 +98,13 @@ class Device{
 	private:
 		void update_endpoint(endpoint const& ep) noexcept;
 
-		int id_ = 0;
+		device_id	id_ = -1;
 
 		mesh_addr_t	mac_;
 		mesh_addr_t parent_;
 		mesh_addr_t mac_ap_;
 		mesh_addr_t net_id_;
+		Net const*	net_ = nullptr;
 
 		endpoint	ep_;
 
@@ -121,5 +138,9 @@ class Device{
 		std::vector<job>	jobs_;
 		std::vector<app>	apps_;
 };
+
+}//Device
+}//Agro
+
 
 #endif /* AGRO_DAEMON_DEVICE_HPP__ */

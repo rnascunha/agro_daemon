@@ -81,14 +81,14 @@ void make_info(rapidjson::Document& doc, info inf, const char* message, const ch
 void make_info(rapidjson::Document& doc, info inf, mesh_addr_t const& addr, const char* message, const char* data/* = nullptr */) noexcept
 {
 	make_info(doc, inf, info_category::device, message, data);
-	add_device(doc, addr);
+	add_device(doc, addr, doc.GetAllocator());
 }
 
 void make_info(rapidjson::Document& doc, info inf, CoAP::Message::Option::option const& addr,
 		const char* message, const char* data/* = nullptr */) noexcept
 {
 	make_info(doc, inf, info_category::device, message, data);
-	add_device(doc, addr);
+	add_device(doc, addr, doc.GetAllocator());
 }
 
 std::string make_info(info inf, info_category category, const char* message, const char* data/* = nullptr */) noexcept

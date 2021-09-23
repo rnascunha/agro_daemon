@@ -1,17 +1,18 @@
 #include "types.hpp"
 #include <iostream>
 #include "../../websocket/types.hpp"
-#include "../device.hpp"
+#include "../../device/message/device.hpp"
 
 namespace Message{
 
-static void process_uptime(Device_List& device_list,
+static void process_uptime(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		int64_t uptime,
 		Agro::websocket_ptr ws) noexcept
 {
-	auto& dev = device_list.update_uptime(host, uptime);
-	ws->write_all(device_uptime_to_json(dev));
+	auto* dev = device_list[host];
+	ws->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_uptime_to_json(*dev)));
 }
 
 static void update_ota_response(
@@ -21,11 +22,11 @@ static void update_ota_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	std::string time{static_cast<const char*>(response.payload), response.payload_len};
-	process_uptime(device_list, host, std::strtoll(time.c_str(), nullptr, 10), ws);
+	process_uptime(instance.device_list(), host, std::strtoll(time.c_str(), nullptr, 10), ws);
 }
 
 static request_message const req_uptime = {

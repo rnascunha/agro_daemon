@@ -1,17 +1,19 @@
 #include "types.hpp"
 #include <iostream>
 #include "../../websocket/types.hpp"
-#include "../device.hpp"
+#include "../../device/message/device.hpp"
 
 namespace Message{
 
-static void process_rtc_time(Device_List& device_list,
+static void process_rtc_time(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		value_time time,
 		Agro::websocket_ptr ws) noexcept
 {
-	auto& dev = device_list.update_rtc_time(host, time);
-	ws->write_all(device_rtc_time_to_json(dev));
+	auto* dev = device_list[host];
+	dev->update_rtc_time(time);
+	ws->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_rtc_time_to_json(*dev)));
 }
 
 static void get_rtc_response(
@@ -21,7 +23,7 @@ static void get_rtc_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -33,7 +35,7 @@ static void get_rtc_response(
 		);
 		return;
 	}
-	process_rtc_time(device_list, host, *static_cast<const value_time*>(response.payload), ws);
+	process_rtc_time(instance.device_list(), host, *static_cast<const value_time*>(response.payload), ws);
 }
 
 static void update_rtc_response(
@@ -43,7 +45,7 @@ static void update_rtc_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -55,16 +57,18 @@ static void update_rtc_response(
 		);
 		return;
 	}
-	process_rtc_time(device_list, host, *static_cast<const value_time*>(request.payload), ws);
+	process_rtc_time(instance.device_list(), host, *static_cast<const value_time*>(request.payload), ws);
 }
 
-static void process_fuse(Device_List& device_list,
+static void process_fuse(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		std::int32_t time,
 		Agro::websocket_ptr ws) noexcept
 {
-	auto& dev = device_list.update_fuse(host, time);
-	ws->write_all(device_fuse_to_json(dev));
+	auto* dev = device_list[host];
+	dev->fuse(time);
+	ws->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_fuse_to_json(*dev)));
 }
 
 static void get_fuse_response(
@@ -74,7 +78,7 @@ static void get_fuse_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -86,7 +90,7 @@ static void get_fuse_response(
 		);
 		return;
 	}
-	process_fuse(device_list, host, *static_cast<const int32_t*>(response.payload), ws);
+	process_fuse(instance.device_list(), host, *static_cast<const int32_t*>(response.payload), ws);
 }
 
 static void update_fuse_response(
@@ -96,7 +100,7 @@ static void update_fuse_response(
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
@@ -108,7 +112,7 @@ static void update_fuse_response(
 		);
 		return;
 	}
-	process_fuse(device_list, host, *static_cast<const int32_t*>(request.payload), ws);
+	process_fuse(instance.device_list(), host, *static_cast<const int32_t*>(request.payload), ws);
 }
 
 static std::size_t rtc_update_payload(rapidjson::Document const&, void* buf, std::size_t size, std::error_code&)

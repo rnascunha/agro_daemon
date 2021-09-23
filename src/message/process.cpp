@@ -8,7 +8,7 @@
 #include "types.hpp"
 #include "ota.hpp"
 #include "user.hpp"
-#include "device.hpp"
+#include "../device/message/device.hpp"
 #include "app.hpp"
 
 #include "../websocket/types.hpp"
@@ -44,11 +44,11 @@ void process(std::string&& data,
 		case Message::type::response:
 			break;
 		case Message::type::request:
-			process_request(d, ws, instance.device_list(), instance.coap_engine());
+			process_request(d, ws, instance, user);
 			break;
 		case Message::type::device:
-		case Message::type::device_list:
-			ws->write_all(Message::device_list_to_json(instance.device_list()));
+			ws->write_policy(Agro::Authorization::rule::view_device,
+					std::make_shared<std::string>(Agro::Device::Message::device_list_to_json(instance.device_list())));
 			break;
 		case Message::type::command:
 			process_commands(d, ws, instance.device_list());

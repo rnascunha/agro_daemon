@@ -1,5 +1,8 @@
 #include "device.hpp"
 
+namespace Agro{
+namespace Device{
+
 Device::Device(){}
 
 Device::Device(mesh_addr_t const& mac)
@@ -17,6 +20,30 @@ Device::Device(const char* mac_str, unsigned size, Error& ec)
 		return;
 	}
 	name_ = mac_str;
+}
+
+Device::Device(device_id id,
+				mesh_addr_t const& addr,
+				std::string const& name /* = "" */,
+				std::string const& fw_version /* = "" */,
+				std::string const& hw_version /* = "" */)
+	: id_(id), mac_(addr),
+	  fw_version_(fw_version),
+	  hw_version_(hw_version){}
+
+device_id Device::id() const noexcept
+{
+	return id_;
+}
+
+Net const* Device::net() const noexcept
+{
+	return net_;
+}
+
+void Device::net(Net const* net_ptr) noexcept
+{
+	net_ = net_ptr;
 }
 
 mesh_addr_t const& Device::mac() const noexcept
@@ -79,12 +106,12 @@ std::vector<mesh_addr_t> const& Device::children() const noexcept
 	return children_;
 }
 
-std::string Device::firmware_version() const noexcept
+std::string const& Device::firmware_version() const noexcept
 {
 	return fw_version_;
 }
 
-std::string Device::hardware_version() const noexcept
+std::string const& Device::hardware_version() const noexcept
 {
 	return hw_version_;
 }
@@ -163,13 +190,23 @@ Value<int64_t> const& Device::uptime() const noexcept
 	return uptime_;
 }
 
+void Device::clear_children() noexcept
+{
+	children_table_.clear();
+}
+
+void Device::add_children(mesh_addr_t const& child) noexcept
+{
+	children_table_.push_back(child);
+}
+
 void Device::update(endpoint const& ep, Resource::status const& sts) noexcept
 {
 	update_endpoint(ep);
 	rssi_.add(sts.rssi);
 }
 
-void Device::update(endpoint const& ep, Resource::config const& cfg) noexcept
+void Device::update(endpoint const& ep, Resource::config const& cfg, Net* net) noexcept
 {
 	update_endpoint(ep);
 
@@ -177,6 +214,7 @@ void Device::update(endpoint const& ep, Resource::config const& cfg) noexcept
 	ch_conn_ = cfg.channel_conn;
 	mac_ap_ = cfg.mac_ap;
 	net_id_ = cfg.net_id;
+	net_ = net;
 }
 
 void Device::update(endpoint const& ep, Resource::route const& route,
@@ -310,3 +348,6 @@ void Device::delete_app(std::string const& name) noexcept
 {
 	apps_.erase(std::remove_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; }), apps_.end());
 }
+
+}//Device
+}//Agro

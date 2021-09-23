@@ -1,24 +1,30 @@
 #include "../coap_engine.hpp"
 #include "../error.hpp"
-#include "../device/list.hpp"
+#include "../agro.hpp"
 #include "../websocket/types.hpp"
 #include "process.hpp"
 
 namespace Resource{
 
 void put_config_handler(engine::message const& request,
-								engine::response& response, void*,
-								Device_List& device_list,
-								Agro::share_ptr data_share) noexcept
+						engine::response& response, void*,
+						Agro::instance& instance,
+						Agro::share_ptr data_share) noexcept
 {
 	CoAP::Message::Option::option op;
-	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
+	Agro::Device::Device* dev;
+	if(!instance.process_device_request(request, &dev, op))
+	{
+		//Missing host... nothing to do
+		//(reality is that without host message wouldn't even get here)
+		return;
+	}
 
 	std::error_code ec;
-	if(!process_config(device_list,
+	if(!process_config(*dev,
 						data_share,
+						instance,
 						response.endpoint(),
-						op,
 						request.payload, request.payload_len,
 						ec))
 	{
@@ -30,6 +36,8 @@ void put_config_handler(engine::message const& request,
 			.serialize();
 		return;
 	}
+
+	instance.update_db_device(*dev);
 
 	if(request.mtype == CoAP::Message::type::confirmable)
 	{

@@ -1,11 +1,11 @@
 #include "types.hpp"
 #include <iostream>
 #include "../../websocket/types.hpp"
-#include "../device.hpp"
+#include "../../device/message/device.hpp"
 
 namespace Message{
 
-static void process_get_ota(Device_List& device_list,
+static void process_get_ota(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		std::string&& version,
 		Agro::websocket_ptr ws) noexcept
@@ -16,7 +16,7 @@ static void process_get_ota(Device_List& device_list,
 		std::cerr << "Device " << host.to_string() << " not found\n";
 		return;
 	}
-	ws->write_all(device_ota_to_json(*dev, version));
+	ws->write_all(Agro::Device::Message::device_ota_to_json(*dev, version));
 }
 
 static void process_update_ota(CoAP::Message::message const& response,
@@ -42,10 +42,10 @@ static void get_ota_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
-	process_get_ota(device_list,
+	process_get_ota(instance.device_list(),
 			host,
 			std::string{static_cast<const char*>(response.payload), response.payload_len},
 			ws);
@@ -58,7 +58,7 @@ static void update_ota_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List&,
+		Agro::instance&,
 		Agro::websocket_ptr ws) noexcept
 {
 	process_update_ota(response, host, ws);

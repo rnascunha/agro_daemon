@@ -6,16 +6,16 @@
 #include "db/db.hpp"
 #include "coap_engine.hpp"
 #include "device/list.hpp"
+#include "device/net.hpp"
 #include "notify/notify_request.hpp"
 #include "user/list.hpp"
 #include "user/policy.hpp"
-//#include "websocket/types.hpp"
 
 namespace Agro{
 
 class instance{
 	public:
-	instance(boost::asio::io_context& ioc,
+		instance(boost::asio::io_context& ioc,
 			std::string const& db_file,
 			std::string const& notify_priv_key,
 			std::string_view const& subscriber,
@@ -90,9 +90,19 @@ class instance{
 				std::string const& user_agent) noexcept;
 
 		void notify_all(std::string const& data) noexcept;
+//		void notify_policy(Authorization::rule rule, std::string const& data) noexcept;
 
-		Device_List const& device_list() const noexcept;
-		Device_List& device_list() noexcept;
+		/**
+		 *
+		 */
+		bool process_device_request(engine::message const&,
+				Device::Device**,
+				CoAP::Message::Option::option&) noexcept;
+		bool update_db_device(Device::Device const&) noexcept;
+		Device::Net* get_or_add_net(mesh_addr_t const&) noexcept;
+
+		Device::Device_List const& device_list() const noexcept;
+		Device::Device_List& device_list() noexcept;
 
 		engine const& coap_engine() const noexcept;
 		engine& coap_engine() noexcept;
@@ -104,10 +114,9 @@ class instance{
 		DB					db_;
 		engine				coap_engine_;
 		notify_factory 		notify_;
-		Device_List			device_list_;
+		Device::Device_List	device_list_;
+		Device::Net_List	net_list_;
 		User::Users			users_;
-
-//		std::shared_ptr<Agro::share> share_;
 
 		Authorization::Policies		policy_rules_;
 

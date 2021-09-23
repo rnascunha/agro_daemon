@@ -278,7 +278,7 @@ std::string const& Session::session_id() const noexcept
 	return session_id_;
 }
 
-bool Session::check(User::user_id id,
+bool Session::check(user_id id,
 				std::string const& session_id,
 				std::string const& user_agent) const noexcept
 {
@@ -377,7 +377,7 @@ bool Session_List::remove(std::string const& session_id) noexcept
 }
 
 bool Session_List::check_user_session_id(
-				User::user_id id,
+				user_id id,
 				std::string const& session_id,
 				std::string const& user_agent,
 				long& session_time) const noexcept
@@ -459,6 +459,137 @@ void Logged::authenticate(std::string const& session_id,
 Info const* Logged::info() const noexcept
 {
 	return info_;
+}
+
+/***
+ *
+ *
+ *
+ *
+ */
+User::User(user_id id, Info&& info)
+	: id_(id), info_(info){}
+
+user_id	User::id() const noexcept
+{
+	return id_;
+}
+
+int User::policy() const noexcept
+{
+	return policy_;
+}
+
+Info const& User::info() const noexcept
+{
+	return info_;
+}
+Info& User::info() noexcept
+{
+	return info_;
+}
+
+Subscription_List const& User::subscriptions() const noexcept
+{
+	return subscriptions_;
+}
+
+Subscription_List& User::subscriptions() noexcept
+{
+	return subscriptions_;
+}
+
+Session_List const& User::sessions() const noexcept
+{
+	return sessions_;
+}
+
+Session_List& User::sessions() noexcept
+{
+	return sessions_;
+}
+
+User* User_List::add(User&& user) noexcept
+{
+	auto u = list_.find(user.id());
+	if(u != list_.end())
+	{
+		return nullptr;
+	}
+
+	return &list_.emplace(user.id(), user).first->second;
+}
+
+bool User_List::remove(user_id id) noexcept
+{
+	auto u = list_.find(id);
+	if(u != list_.end())
+	{
+		return false;
+	}
+	list_.erase(id);
+
+	return true;
+}
+
+User const* User_List::get(user_id id) const noexcept
+{
+	for(auto const& [uid, user] : list_)
+	{
+		if(uid == id)
+			return &user;
+	}
+	return nullptr;
+}
+
+User* User_List::get(user_id) noexcept
+{
+	for(auto & [uid, user] : list_)
+	{
+		if(uid == id)
+			return &user;
+	}
+	return nullptr;
+}
+
+User const* User_List::get(std::string const& username) const noexcept
+{
+	for(auto const& [uid, user] : list_)
+	{
+		if(user.info().username() == username)
+			return &user;
+	}
+	return nullptr;
+}
+
+User* User_List::get(std::string const& username) noexcept
+{
+	for(auto& [uid, user] : list_)
+	{
+		if(user.info().username() == username)
+			return &user;
+	}
+	return nullptr;
+}
+
+User const* User_List::operator[](user_id id) const noexcept
+{
+	return get(id);
+}
+
+User* User_List::operator[](user_id id) noexcept
+{
+	return get(id);
+}
+
+User const* User_List::operator[](std::string const& username) const noexcept
+{
+	return get(username);
+}
+
+User* User_List::operator[](std::string const& username) noexcept
+{
+	return get(username);
 }
 
 }//User

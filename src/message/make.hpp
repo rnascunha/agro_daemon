@@ -11,10 +11,12 @@ namespace Message{
 
 std::string stringify(rapidjson::Document const&) noexcept;
 
-template<typename Message>
-bool add_device(rapidjson::Document&, Message const&) noexcept;
-void add_device(rapidjson::Document&, CoAP::Message::Option::option const& op) noexcept;
-void add_device(rapidjson::Document&, mesh_addr_t const&) noexcept;
+template<typename Message, typename Allocator>
+bool add_device(rapidjson::Value&, Message const&, Allocator&) noexcept;
+template<typename Allocator>
+void add_device(rapidjson::Value&, CoAP::Message::Option::option const& op, Allocator&) noexcept;
+template<typename Allocator>
+void add_device(rapidjson::Value&, mesh_addr_t const&, Allocator&) noexcept;
 template<typename Allocator>
 void add_device(rapidjson::Value&, mesh_addr_t const&, Allocator&) noexcept;
 

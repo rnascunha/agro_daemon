@@ -1,20 +1,21 @@
 #ifndef AGRO_DAEMON_MAKE_MESSAGE_IMPL_HPP__
 #define AGRO_DAEMON_MAKE_MESSAGE_IMPL_HPP__
 
+#include "../../device/helper.hpp"
 #include "../make.hpp"
 
 namespace Message{
 
-template<typename Message>
-bool add_device(rapidjson::Document& doc, Message const& msg) noexcept
+template<typename Message, typename Allocator>
+bool add_device(rapidjson::Value& value, Message const& msg, Allocator& alloc) noexcept
 {
 	CoAP::Message::Option::option op;
 	if(!CoAP::Message::Option::get_option(msg, op, CoAP::Message::Option::code::uri_host))
 		return false;
 
-	doc.AddMember("device",
-			rapidjson::Value(static_cast<const char*>(op.value), op.length, doc.GetAllocator()).Move(),
-			doc.GetAllocator());
+	value.AddMember("device",
+			rapidjson::Value(static_cast<const char*>(op.value), op.length, alloc).Move(),
+			alloc);
 
 	return true;
 }
@@ -26,6 +27,26 @@ void add_device(rapidjson::Value& data, mesh_addr_t const& addr, Allocator& allo
 	data.AddMember("device",
 			rapidjson::Value(addr.to_string(buf, 18), alloc).Move(),
 			alloc);
+}
+
+template<typename Allocator>
+void add_device(rapidjson::Value& value, CoAP::Message::Option::option const& op, Allocator& alloc) noexcept
+{
+	value.AddMember("device",
+			rapidjson::Value(static_cast<const char*>(op.value), op.length,
+					alloc).Move(),
+				alloc);
+}
+
+template<typename Allocator>
+void add_device(rapidjson::Document& doc, mesh_addr_t const& mesh, Allocator& alloc) noexcept
+{
+	char addr[18];
+	snprintf(addr, 18, MACSTR, MAC2STR(mesh.addr));
+	doc.AddMember("device",
+				rapidjson::Value(addr,
+					alloc).Move(),
+					alloc);
 }
 
 template<typename Endpoint>
@@ -115,7 +136,7 @@ void make_resource(rapidjson::Document& doc,
 	doc.SetObject();
 
 	add_type(doc, type::resource);
-	add_device(doc, uri_host);
+	add_device(data, uri_host, doc.GetAllocator());
 	add_resource(doc, msg);
 	add_endpoint(doc, ep);
 	add_data(doc, data);
@@ -131,7 +152,7 @@ void make_response(rapidjson::Document& doc,
 {
 	doc.SetObject();
 
-	add_device(doc, request);
+	add_device(doc, request, doc.GetAllocator());
 	add_type(doc, type::response);
 	add_resource(doc, request);
 	add_endpoint(doc, ep);
@@ -150,7 +171,7 @@ void make_response(rapidjson::Document& doc,
 {
 	doc.SetObject();
 
-	add_device(doc, request);
+	add_device(doc, request, doc.GetAllocator());
 	add_resource(doc, request);
 	add_endpoint(doc, ep);
 	add_transaction_status(doc, status);

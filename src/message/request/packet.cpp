@@ -12,55 +12,54 @@ static void packet_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
-	CoAP::Message::Option::option op;
-	CoAP::Message::Option::get_option(response, op, CoAP::Message::Option::code::uri_host);
-
+	Agro::Device::Device* dev = instance.device_list()[host];
 	switch(req)
 	{
 		case requests::sensor: {
 			std::error_code ec;
-			Resource::process_sensor_data(device_list,
+			Resource::process_sensor_data(*dev,
 					ws->get_share(),
-					ep, op,
+					ep,
 					response.payload, response.payload_len,
 					ec);
 		}
 			break;
 		case requests::board: {
 			std::error_code ec;
-			Resource::process_board(device_list,
+			Resource::process_board(*dev,
 					ws->get_share(),
-					ep, op,
+					ep,
 					response.payload, response.payload_len,
 					ec);
 		}
 		break;
 		case requests::config: {
 			std::error_code ec;
-			Resource::process_config(device_list,
+			Resource::process_config(*dev,
 					ws->get_share(),
-					ep, op,
+					instance,
+					ep,
 					response.payload, response.payload_len,
 					ec);
 		}
 		break;
 		case requests::full_config: {
 			std::error_code ec;
-			Resource::process_full_config(device_list,
+			Resource::process_full_config(*dev,
 					ws->get_share(),
-					ep, op,
+					ep,
 					response.payload, response.payload_len,
 					ec);
 		}
 		break;
 		case requests::route: {
 			std::error_code ec;
-			Resource::process_route(device_list,
+			Resource::process_route(*dev,
 					ws->get_share(),
-					ep, op,
+					ep,
 					response.payload, response.payload_len,
 					ec);
 		}

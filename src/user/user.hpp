@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 namespace Agro{
 namespace User{
@@ -182,6 +183,55 @@ class Session_List{
 		std::size_t size() const noexcept;
 	private:
 		std::vector<Session> list_;
+};
+
+class User{
+	public:
+		User(user_id, Info&&);
+
+		user_id	id() const noexcept;
+		int policy() const noexcept;
+
+		Info const& info() const noexcept;
+		Info& info() noexcept;
+
+		Subscription_List const& subscriptions() const noexcept;
+		Subscription_List& subscriptions() noexcept;
+
+		Session_List const& sessions() const noexcept;
+		Session_List& sessions() noexcept;
+	private:
+		user_id id_;
+		int 	policy_ = 0;
+
+		Info		info_;
+		Subscription_List subscriptions_;
+		Session_List sessions_;
+};
+
+class User_List{
+	public:
+		User* add(User&&) noexcept;
+		bool remove(user_id) noexcept;
+
+		User const* get(user_id) const noexcept;
+		User* get(user_id) noexcept;
+
+		User const* get(std::string const&) const noexcept;
+		User* get(std::string const&) noexcept;
+
+		User const* operator[](user_id) const noexcept;
+		User* operator[](user_id) noexcept;
+
+		User const* operator[](std::string const&) const noexcept;
+		User* operator[](std::string const&) noexcept;
+
+		std::unordered_map<user_id, User>::const_iterator begin() const { return list_.begin(); }
+		std::unordered_map<user_id, User>::const_iterator end() const { return list_.end(); }
+		std::unordered_map<user_id, User>::const_iterator cbegin() const { return list_.cbegin(); }
+		std::unordered_map<user_id, User>::const_iterator cend() const { return list_.cend(); }
+	private:
+		std::unordered_map<user_id, User> list_;
 };
 
 class Logged{

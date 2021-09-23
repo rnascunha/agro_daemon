@@ -8,7 +8,7 @@
 #include <utility>
 #include <string_view>
 
-#include "../../message/device.hpp"
+#include "../../device/message/device.hpp"
 #include "../../user/message/auth_message.hpp"
 
 #include "../../notify/message.hpp"
@@ -67,7 +67,7 @@ write_all(std::string const data, bool text) noexcept
 template<bool UseSSL>
 void
 Websocket<UseSSL>::
-write_policy(Agro::Authorization::rule rule,
+write_all_policy(Agro::Authorization::rule rule,
 		std::shared_ptr<std::string const> data) noexcept
 {
 	share_->exec_policy(rule,
@@ -75,6 +75,18 @@ write_policy(Agro::Authorization::rule rule,
 				&self_type::write_share,
 				std::placeholders::_1,
 				data));
+}
+
+template<bool UseSSL>
+void
+Websocket<UseSSL>::
+write_policy(Agro::Authorization::rule rule,
+				std::shared_ptr<std::string const> data) noexcept
+{
+	if(Agro::Authorization::can(user_, rule))
+	{
+		this->write(data);
+	}
 }
 
 template<bool UseSSL>
@@ -114,10 +126,8 @@ read_handler(std::string data) noexcept
 			{
 				this->write(Message::make_public_key(instance().get_notify_public_key()));
 			}
-			if(Agro::Authorization::can(user_, Agro::Authorization::rule::view_device))
-			{
-				this->write(Message::device_list_to_json(instance().device_list()));
-			}
+			write_policy(Agro::Authorization::rule::view_device,
+				std::make_shared<std::string>(Agro::Device::Message::device_list_to_json(instance().device_list())));
 //			this->write(Message::ota_image_list(ota_path()));
 //			this->write(Message::app_list(app_path()));
 		}

@@ -1,16 +1,17 @@
 #include "types.hpp"
 #include "../../websocket/types.hpp"
-#include "../device.hpp"
+#include "../../device/message/device.hpp"
 
 namespace Message{
 
-static void process_ac_load(Device_List& device_list,
+static void process_ac_load(Agro::Device::Device_List& device_list,
 		Agro::websocket_ptr ws,
 		mesh_addr_t const& host,
 		unsigned index, bool value) noexcept
 {
-	auto& dev = device_list.update_ac_load(host, index, value);
-	ws->write_all(device_gpios_to_json(dev));
+	auto* dev = device_list[host];//device_list.update_ac_load(host, index, value);
+	ws->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_gpios_to_json(*dev)));
 }
 
 static void ac_load_response(
@@ -20,22 +21,28 @@ static void ac_load_response(
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Device_List& device_list,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	switch(req)
 	{
 		case requests::ac_load1_on:
 		case requests::ac_load1_off:
-			process_ac_load(device_list, ws, host, 0, static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
+			process_ac_load(instance.device_list(),
+					ws, host, 0,
+					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
 		break;
 		case requests::ac_load2_on:
 		case requests::ac_load2_off:
-			process_ac_load(device_list, ws, host, 1, static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
+			process_ac_load(instance.device_list(),
+					ws, host, 1,
+					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
 		break;
 		case requests::ac_load3_on:
 		case requests::ac_load3_off:
-			process_ac_load(device_list, ws, host, 2, static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
+			process_ac_load(instance.device_list(),
+					ws, host, 2,
+					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
 		break;
 		default:
 			break;

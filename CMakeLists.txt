@@ -234,7 +234,7 @@ add_definitions(-DCOAP_TE_LOG_COLOR=1
 
 set(RAPIDJSON_PATH 	${RAPIDJSON_ROOT})
 
-add_subdirectory(third/coap-te)#
+add_subdirectory(third/coap-te)
 include_directories(third/coap-te/src)		
 
 ###########################
@@ -273,7 +273,6 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
-					${MESSAGE_DIR}/device.cpp
 					${MESSAGE_DIR}/commands.cpp
 					${MESSAGE_DIR}/request.cpp
 					${MESSAGE_DIR}/process.cpp
@@ -299,6 +298,8 @@ set(NOTIFY_SRC		${NOTIFY_DIR}/notify_request.cpp
 
 set(DEVICE_DIR		${SRC_DIR}/device)
 set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
+					${DEVICE_DIR}/net.cpp
+					${DEVICE_DIR}/message/device.cpp
 					${DEVICE_DIR}/helper.cpp
 					${DEVICE_DIR}/types.cpp
 					${DEVICE_DIR}/list.cpp)
@@ -314,7 +315,9 @@ set(USER_SRC		${USER_DIR}/user.cpp
 
 set(DB_DIR			${SRC_DIR}/db)
 set(DB_SRC			${DB_DIR}/sqlite3.cpp
-					${DB_DIR}/db.cpp)
+					${DB_DIR}/db.cpp
+					${DB_DIR}/user.cpp
+					${DB_DIR}/device.cpp)
 					
 set(HELPER_DIR		${SRC_DIR}/helper)
 set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
@@ -394,23 +397,26 @@ target_link_libraries(init_db ${SQLite3_LIBRARIES})
 target_link_libraries(init_db pusha)
 
 #### add user group
-add_executable(add_user_group tools/add_user_group.cpp 
-						${SRC_DIR}/error.cpp
-						${DB_SRC}
-						${USER_DIR}/user.cpp
-						${USER_DIR}/group.cpp
-						${USER_DIR}/list.cpp
-						${USER_DIR}/policy.cpp
-						${HELPER_SRC})
-
-set_target_properties(add_user_group PROPERTIES
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS ON
-)
-
-target_link_libraries(add_user_group OpenSSL::SSL)
-target_link_libraries(add_user_group ${SQLite3_LIBRARIES})
+#add_executable(add_user_group tools/add_user_group.cpp 
+#						${SRC_DIR}/error.cpp
+#						${DB_SRC}
+#						${DEVICE_SRC}
+#						${MESSAGE_SRC}
+#						${USER_DIR}/user.cpp
+#						${USER_DIR}/group.cpp
+#						${USER_DIR}/list.cpp
+#						${USER_DIR}/policy.cpp
+#						${HELPER_SRC})
+#
+#set_target_properties(add_user_group PROPERTIES
+#    CXX_STANDARD 17
+#    CXX_STANDARD_REQUIRED ON
+#    CXX_EXTENSIONS ON
+#)
+#
+#target_link_libraries(add_user_group OpenSSL::SSL)
+#target_link_libraries(add_user_group ${SQLite3_LIBRARIES})
+#target_link_libraries(add_user_group pusha)
 
 #add_executable(db_test tools/db_test.cpp 
 #						${DB_DIR}/sqlite3.cpp

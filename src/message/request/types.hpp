@@ -1,5 +1,5 @@
 #include "../../coap_engine.hpp"
-#include "../../device/list.hpp"
+#include "../../agro.hpp"
 #include "../../websocket/types.hpp"
 #include <vector>
 
@@ -53,7 +53,7 @@ struct request_config{
 			CoAP::Message::message const&,
 			CoAP::Message::message const&,
 			CoAP::Transmission::status_t,
-			Device_List&,
+			Agro::instance&,
 			Agro::websocket_ptr) noexcept = nullptr;
 };
 

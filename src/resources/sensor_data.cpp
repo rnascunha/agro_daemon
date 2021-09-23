@@ -1,5 +1,5 @@
 #include "../coap_engine.hpp"
-#include "../device/list.hpp"
+#include "../agro.hpp"
 #include "../websocket/types.hpp"
 #include "process.hpp"
 #include <cstdio>
@@ -8,22 +8,26 @@ namespace Resource{
 
 void put_sensor_data_handler(engine::message const& request,
 								engine::response& response, void*,
-								Device_List& device_list,
+								Agro::instance& instance,
 								Agro::share_ptr data_share) noexcept
 {
-	printf("Resource Sensor data handler\n");
-
 	CoAP::Message::Option::option op;
-	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
+	Agro::Device::Device* dev;
+	if(!instance.process_device_request(request, &dev, op))
+	{
+		//Missing host... nothing to do
+		//(reality is that without host message wouldn't even get here)
+		return;
+	}
 
 	std::error_code ec;
-	if(!process_sensor_data(device_list,
+	if(!process_sensor_data(*dev,
 					data_share,
 					response.endpoint(),
-					op,
 					request.payload, request.payload_len,
 					ec))
 	{
+		tt::debug("Sensor request error!");
 		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(CoAP::Message::code::bad_request)
@@ -32,6 +36,9 @@ void put_sensor_data_handler(engine::message const& request,
 			.serialize();
 		return;
 	}
+
+	tt::debug("Sensor request OK!");
+	instance.update_db_device(*dev);
 
 	if(request.mtype == CoAP::Message::type::confirmable)
 	{

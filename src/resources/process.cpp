@@ -1,14 +1,13 @@
 #include "process.hpp"
 #include "types.hpp"
 #include "../error.hpp"
-#include "../message/device.hpp"
+#include "../device/message/device.hpp"
 
 namespace Resource{
 
-bool process_status(Device_List& list,
+bool process_status(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
 					engine::endpoint const& ep,
-					CoAP::Message::Option::option const& uri_host,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -19,20 +18,17 @@ bool process_status(Device_List& list,
 	}
 	status const* rt = static_cast<status const*>(payload);
 
-	::mesh_addr_t host{static_cast<const char*>(uri_host.value), uri_host.length, ec};
-	if(ec) return false;
+	device.update(ep, *rt);
 
-	auto& dev = list.update(host, ep, *rt);
-
-	data_share->write_all(std::make_shared<std::string>(Message::device_status_to_json(dev)));
+	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_status_to_json(device)));
 
 	return true;
 }
 
-bool process_route(Device_List& list,
+bool process_route(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
 					engine::endpoint const& ep,
-					CoAP::Message::Option::option const& uri_host,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -43,22 +39,19 @@ bool process_route(Device_List& list,
 	}
 	route const* rt = static_cast<route const*>(payload);
 
-	::mesh_addr_t host{static_cast<const char*>(uri_host.value), uri_host.length, ec};
-	if(ec) return false;
+	device.update(ep, *rt,
+			static_cast<const uint8_t*>(payload) + sizeof(route),
+			payload_len - sizeof(route));
 
-	auto& dev = list.update(host, ep, *rt,
-							static_cast<const uint8_t*>(payload) + sizeof(route),
-							payload_len - sizeof(route));
-
-	data_share->write_all(std::make_shared<std::string>(Message::device_route_to_json(dev)));
+	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
 
 	return true;
 }
 
-bool process_board(Device_List& list,
+bool process_board(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
 					engine::endpoint const& ep,
-					CoAP::Message::Option::option const& uri_host,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -69,22 +62,20 @@ bool process_board(Device_List& list,
 	}
 	board_config const* rt = static_cast<board_config const*>(payload);
 
-	::mesh_addr_t host{static_cast<const char*>(uri_host.value), uri_host.length, ec};
-	if(ec) return false;
+	device.update(ep, *rt,
+				static_cast<const char*>(payload) + sizeof(board_config),
+				payload_len - sizeof(board_config));
 
-	auto& dev = list.update(host, ep, *rt,
-							static_cast<const char*>(payload) + sizeof(board_config),
-							payload_len - sizeof(board_config));
-
-	data_share->write_all(std::make_shared<std::string>(Message::device_board_to_json(dev)));
+	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_board_to_json(device)));
 
 	return true;
 }
 
-bool process_config(Device_List& list,
+bool process_config(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
+					Agro::instance& instance,
 					engine::endpoint const& ep,
-					CoAP::Message::Option::option const& uri_host,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -95,20 +86,19 @@ bool process_config(Device_List& list,
 	}
 	config const* rt = static_cast<config const*>(payload);
 
-	::mesh_addr_t host{static_cast<const char*>(uri_host.value), uri_host.length, ec};
-	if(ec) return false;
+	::mesh_addr_t net_addr{rt->net_id.addr};
+	Agro::Device::Net* net = instance.get_or_add_net(net_addr);
+	device.update(ep, *rt, net);
 
-	auto& dev = list.update(host, ep, *rt);
-
-	data_share->write_all(std::make_shared<std::string>(Message::device_config_to_json(dev)));
+	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_config_to_json(device)));
 
 	return true;
 }
 
-bool process_full_config(Device_List& list,
+bool process_full_config(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
 					engine::endpoint const& ep,
-					CoAP::Message::Option::option const& uri_host,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -119,22 +109,19 @@ bool process_full_config(Device_List& list,
 	}
 	full_config const* rt = static_cast<full_config const*>(payload);
 
-	::mesh_addr_t host{static_cast<const char*>(uri_host.value), uri_host.length, ec};
-	if(ec) return false;
-
-	auto& dev = list.update(host, ep, *rt,
+	device.update(ep, *rt,
 			static_cast<const uint8_t*>(payload) + sizeof(route) + sizeof(status) + sizeof(config),
 			payload_len - sizeof(route) - sizeof(status) - sizeof(config));
 
-	data_share->write_all(std::make_shared<std::string>(Message::device_full_config_to_json(dev)));
+	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_full_config_to_json(device)));
 
 	return true;
 }
 
-bool process_sensor_data(Device_List& list,
+bool process_sensor_data(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
 					engine::endpoint const& ep,
-					CoAP::Message::Option::option const& uri_host,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -145,12 +132,10 @@ bool process_sensor_data(Device_List& list,
 	}
 	sensor_data const* rt = static_cast<sensor_data const*>(payload);
 
-	::mesh_addr_t host{static_cast<const char*>(uri_host.value), uri_host.length, ec};
-	if(ec) return false;
+	device.update(ep, *rt);
 
-	auto& dev = list.update(host, ep, *rt);
-
-	data_share->write_all(std::make_shared<std::string>(Message::device_sensor_data_to_json(dev)));
+	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_sensor_data_to_json(device)));
 
 	return true;
 }
