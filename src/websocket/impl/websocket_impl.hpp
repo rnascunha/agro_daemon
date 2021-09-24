@@ -117,10 +117,9 @@ read_handler(std::string data) noexcept
 		if(user_.is_authenticated())
 		{
 			tt::status("User %s (%s) authenticated",
-					user_.info()->name().c_str(),
-					user_.info()->username().c_str());
+					user_.user()->info().name().c_str(),
+					user_.user()->info().username().c_str());
 
-			instance().policy_rules(user_);
 			this->write(Agro::User::Message::user_authentication(user_));
 			if(instance().notify_is_valid())
 			{

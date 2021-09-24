@@ -46,13 +46,6 @@ instance::instance(
 		return;
 	}
 
-	if(!db_.read_policies(policy_rules_))
-	{
-		ec = make_error_code(Error::internal_error);
-		tt::error("Error reading policy rules from database!");
-		return;
-	}
-
 	if(!db_.read_devices_net(net_list_))
 	{
 		ec = make_error_code(Error::internal_error);
@@ -66,13 +59,6 @@ instance::instance(
 		tt::error("Error reading devices from database!");
 		return;
 	}
-
-//	if(!db_.read_permission_list(permissions_))
-//	{
-//		ec = make_error_code(Error::internal_error);
-//		tt::error("Error reading permissions from database!");
-//		return;
-//	}
 
 	auto sh = std::make_shared<Agro::share>(*this);
 
@@ -123,24 +109,34 @@ bool instance::check_user_session_id(
 				std::string const& user_agent,
 				long& session_time) const noexcept
 {
-	return users_.sessions()
+	auto const* user = users_[id];
+	if(!user) return false;
+
+	return user->sessions()
 			.check_user_session_id(
-					id,
 					session_id,
 					user_agent,
 					session_time);
 }
 
-User::Info const* instance::get_user_info(std::string const& username) const noexcept
+User::User const* instance::get_user(std::string const& username) const noexcept
 {
 	if(username == User::root_username) return &root_;
-	return users_.infos().get(username);
+
+	auto const* user = users_[username];
+	if(!user) return nullptr;
+
+	return user;
 }
 
-User::Info const* instance::get_user_info(User::user_id id) const noexcept
+User::User const* instance::get_user(User::user_id id) const noexcept
 {
 	if(id == User::root_id) return &root_;
-	return users_.infos().get(id);
+
+	auto const* user = users_[id];
+	if(!user) return nullptr;
+
+	return user;
 }
 
 bool instance::get_user_password(std::string const& username,
@@ -172,7 +168,7 @@ bool instance::add_user(std::string const& username,
 		return false;
 	}
 
-	if(!users_.add_user(User::Info{id, username, name, User::Info::status::active, email}))
+	if(!users_.add(User::User{id, User::Info{username, name, User::Info::status::active, email}}))
 	{
 		tt::error("Error adding user '%s'!", username.c_str());
 		return false;
@@ -189,7 +185,7 @@ bool instance::add_user_to_group(User::user_id uid, User::group_id gid) noexcept
 		return false;
 	}
 
-	if(!users_.groups().add_user(gid, uid))
+	if(!users_.add_user_to_group(uid, gid))
 	{
 		tt::error("Error adding user '%d' to group '%d'", uid, gid);
 		return false;
@@ -233,7 +229,7 @@ bool instance::delete_user(User::user_id id) noexcept
 		return false;
 	}
 
-	if(!users_.infos().remove(id))
+	if(!users_.remove(id))
 	{
 		tt::error("Error deleteing user '%d'", id);
 		return false;
@@ -245,18 +241,7 @@ bool instance::delete_user(User::user_id id) noexcept
 		return false;
 	}
 
-	users_.groups().remove_user_from_all(id);
-
-//	if(db_.delete_permissions(Authorization::type::user,
-//			Authorization::ref_type::single, id) != SQLITE_DONE)
-//	{
-//		tt::error("Error deleteing user '%d' permissions form database", id);
-//		return false;
-//	}
-
-//	permissions_.remove_all(Authorization::type::user,
-//			Authorization::ref_type::single,
-//			id);
+	users_.remove_user_from_all_groups(id);
 
 	return true;
 }
@@ -278,14 +263,14 @@ bool instance::add_group(std::string const& name,
 		return false;
 	}
 
-	if(!users_.groups().add(User::Group{id, name, description}))
+	if(!users_.add_group(User::Group{id, name, description}))
 	{
 		tt::error("Error adding group '%s'", name.c_str());
 		return false;
 	}
 
 	db_.add_user_to_group(id, members);
-	users_.groups().add_user(id, members);
+	users_.add_user_to_groups(id, members);
 
 	return true;
 }
@@ -299,29 +284,13 @@ bool instance::delete_group(User::group_id id) noexcept
 		return false;
 	}
 
-	if(!users_.groups().remove(id))
+	if(!users_.remove_group(id))
 	{
 		tt::error("Error deleteing group '%d'", id);
 		return false;
 	}
 
-//	if(db_.delete_permissions(Authorization::type::user_group,
-//			Authorization::ref_type::group, id) != SQLITE_DONE)
-//	{
-//		tt::error("Error deleteing group '%d' permissions form database", id);
-//		return false;
-//	}
-
-//	permissions_.remove_all(Authorization::type::user_group,
-//			Authorization::ref_type::group,
-//			id);
-
 	return true;
-}
-
-void instance::policy_rules(User::Logged& user) const noexcept
-{
-	user.policy_rules(static_cast<int>(policy_rules_.get_policy(user.id(), users_.groups())));
 }
 
 bool instance::notify_is_valid() const noexcept
@@ -338,7 +307,10 @@ bool instance::update_user_session_id(User::user_id id,
 				std::string const& session_id,
 				std::string const& user_agent) noexcept
 {
-	users_.sessions().add_or_update(id, user_agent, session_id);
+	auto* user = users_[id];
+	if(!user) return false;
+
+	user->sessions().add_or_update(user_agent, session_id);
 	return db_.update_user_session_id(id, session_id, user_agent);
 }
 
@@ -348,29 +320,51 @@ void instance::push_subscribe_user(User::user_id id,
 			std::string const& p256dh,
 			std::string const& auth) noexcept
 {
-	users_.subscriptions().add_or_update(id, user_agent, endpoint, p256dh, auth);
+	auto* user = users_[id];
+	if(!user) return;
+
+	user->subscriptions().add_or_update(user_agent, endpoint, p256dh, auth);
 	db_.push_subscribe_user(id, user_agent, endpoint, p256dh, auth);
 }
 
 void instance::push_unsubscribe_user(User::user_id id,
 			std::string const& user_agent) noexcept
 {
-	users_.subscriptions().remove(id, user_agent);
+	auto* user = users_[id];
+	if(!user) return;
+
+	user->subscriptions().remove(user_agent);
 	db_.push_unsubscribe_user(id, user_agent);
 }
 
 void instance::clear_session_user_agent(User::user_id id,
 			std::string const& user_agent) noexcept
 {
-	users_.subscriptions().clear_subscription(id, user_agent);
+	auto* user = users_[id];
+	if(!user) return;
+
+	user->subscriptions().clear_subscription(user_agent);
 	db_.clear_session_user_agent(id, user_agent);
 }
 
 void instance::notify_all(std::string const& data) noexcept
 {
-	for(auto const& s : users_.subscriptions())
+	for(auto const& [uid, u] : users_)
 	{
-		notify_.notify(s, data);
+		for(auto const& s : u.subscriptions() )
+			notify_.notify(s, data);
+	}
+}
+
+void instance::notify_all_policy(Authorization::rule rule, std::string const& data) noexcept
+{
+	for(auto const& [uid, u] : users_)
+	{
+		if(Authorization::can(u, rule))
+		{
+			for(auto const& s : u.subscriptions() )
+				notify_.notify(s, data);
+		}
 	}
 }
 
@@ -394,15 +388,10 @@ engine& instance::coap_engine() noexcept
 	return coap_engine_;
 }
 
-User::Users const& instance::users() const noexcept
+User::User_List const& instance::users() const noexcept
 {
 	return users_;
 }
-
-//Authorization::Permission_List const& instance::permissions() const noexcept
-//{
-//	return permissions_;
-//}
 
 bool instance::process_device_request(engine::message const& request,
 		Device::Device** dev,
@@ -429,10 +418,13 @@ bool instance::process_device_request(engine::message const& request,
 	if(!(*dev))
 	{
 		//Device does's exists
-		//notify users IF they have view_device authorization
 		Device::device_id id;
 		db_.add_device(host, id);
 		*dev = device_list_.add(Device::Device{id, host});
+
+		std::string msg = "New device added: ";
+		msg += host.to_string();
+		notify_all_policy(Authorization::rule::view_device, msg);
 	}
 
 	return true;

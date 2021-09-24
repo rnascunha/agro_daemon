@@ -97,7 +97,7 @@ static bool is_auth_package(rapidjson::Document const& doc,
 static bool check_user_status(User::Logged const& user,
 		std::error_code& ec) noexcept
 {
-	switch(user.info()->get_status())
+	switch(user.user()->info().get_status())
 	{
 		case User::Info::status::active:
 			break;
@@ -133,7 +133,7 @@ static bool check_password(User::Logged& user,
 	}
 
 	std::vector<unsigned char> salt, pass;
-	if(!instance.get_user_password(user.info()->username(), salt, pass))
+	if(!instance.get_user_password(user.user()->info().username(), salt, pass))
 	{
 		ec = make_error_code(Error::internal_error);
 		return false;
@@ -182,7 +182,7 @@ static bool check_session_id(User::Logged& user,
 
 	long session_time;
 	if(!instance.check_user_session_id(
-					user.info()->id(),
+					user.id(),
 					sessionid,
 					user_agent,
 					session_time))
@@ -222,8 +222,8 @@ bool authenticate(User::Logged& user,
 	rapidjson::Value const& payload = doc["data"].GetObject();
 
 	std::string const username = payload["user"].GetString();
-	user.info(instance.get_user_info(username));
-	if(!user.info())
+	user.user(instance.get_user(username));
+	if(!user.user())
 	{
 		ec = make_error_code(Error::user_not_found);
 		return false;
@@ -259,7 +259,7 @@ bool create_session_id(User::Logged& user,
 	std::string const user_agent = payload["user_agent"].GetString();
 	std::string const session_id = Agro::generate_session_id<SessionIDLenght>();
 
-	if(!instance.update_user_session_id(user.info()->id(), session_id, user_agent))
+	if(!instance.update_user_session_id(user.id(), session_id, user_agent))
 	{
 		ec = make_error_code(Error::statement_error);
 		return false;

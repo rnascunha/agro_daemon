@@ -7,21 +7,20 @@ namespace User{
 
 Info::Info(){}
 
-Info::Info(int id, std::string const& username, std::string const& name,
+Info::Info(std::string const& username, std::string const& name,
 		status stat, std::string const& email)
-	: id_(id), username_(username), name_(name),
+	: username_(username), name_(name),
 	  status_(stat), email_(email){}
 
-Info::Info(int id, const char* username, const char* name,
+Info::Info(const char* username, const char* name,
 		status stat, const char* email)
-	: id_(id), username_(username), name_(name ? name : ""),
+	: username_(username), name_(name ? name : ""),
 	  status_(stat), email_(email ? email : ""){}
 
 
-void Info::set(int id, std::string const& username, std::string const& name,
+void Info::set(std::string const& username, std::string const& name,
 		status stat, std::string const& email) noexcept
 {
-	id_ = id;
 	username_ = username;
 	name_ = name;
 	status_ = stat;
@@ -31,11 +30,6 @@ void Info::set(int id, std::string const& username, std::string const& name,
 bool Info::is_valid() const noexcept
 {
 	return status_ != status::invalid;
-}
-
-int Info::id() const noexcept
-{
-	return id_;
 }
 
 std::string const& Info::username() const noexcept
@@ -67,101 +61,12 @@ Info::operator bool() const noexcept
  *
  *
  */
-bool Info_List::add(Info&& info) noexcept
-{
-	for(auto const& l : list_)
-		if(l.id() == info.id()
-			|| info.username().empty()
-			|| info.username() == l.username())
-		{
-			return false;
-		}
-
-	list_.push_back(info);
-	return true;
-}
-
-bool Info_List::remove(user_id id) noexcept
-{
-	int i = 0;
-	for(auto& l : list_)
-	{
-		if(l.id() == id)
-		{
-			list_.erase(list_.begin() + i);
-			return true;
-		}
-		i++;
-	}
-	return false;
-}
-
-user_id Info_List::get_id(std::string const& username) const noexcept
-{
-	for(auto const& l : list_)
-	{
-		if(l.username() == username)
-			return l.id();
-	}
-	return invalid_id;
-}
-
-Info const* Info_List::get(user_id id) const noexcept
-{
-	for(auto& l : list_)
-	{
-		if(l.id() == id)
-			return &l;
-	}
-	return nullptr;
-}
-
-Info const* Info_List::get(std::string const& username) const noexcept
-{
-	for(auto& l : list_)
-	{
-		if(l.username() == username)
-			return &l;
-	}
-	return nullptr;
-}
-
-bool Info_List::update(user_id id,
-				std::string const& username,
-				std::string const& name,
-				std::string const& email) noexcept
-{
-	for(auto& info : list_)
-	{
-		if(info.id() == id)
-		{
-			info.set(id, username, name, info.get_status(), email);
-			return true;
-		}
-	}
-	return false;
-}
-
-std::size_t Info_List::size() const noexcept
-{
-	return list_.size();
-}
-
-/**
- *
- *
- */
-Subscription::Subscription(user_id id, std::string const user_agent,
+Subscription::Subscription(std::string const user_agent,
 		std::string const& endpoint,
 		std::string const& p256dh,
 		std::string const auth)
-	: id_(id), user_agent_(user_agent), endpoint_(endpoint),
+	: user_agent_(user_agent), endpoint_(endpoint),
 	  p256dh_(p256dh), auth_(auth){}
-
-user_id Subscription::id() const noexcept
-{
-	return id_;
-}
 
 std::string const& Subscription::user_agent() const noexcept
 {
@@ -195,7 +100,7 @@ void Subscription::update(std::string const& endpoint,
 /**
  *
  */
-void Subscription_List::add_or_update(user_id id,
+void Subscription_List::add_or_update(
 		std::string const& user_agent,
 		std::string const& endpoint,
 		std::string const& p256dh,
@@ -203,21 +108,21 @@ void Subscription_List::add_or_update(user_id id,
 {
 	for(auto& l : list_)
 	{
-		if(l.id() == id && l.user_agent() == user_agent)
+		if(l.user_agent() == user_agent)
 		{
 			l.update(endpoint, p256dh, auth);
 			return;
 		}
 	}
-	list_.emplace_back(id, user_agent, endpoint, p256dh, auth);
+	list_.emplace_back(user_agent, endpoint, p256dh, auth);
 }
 
-bool Subscription_List::remove(user_id id, std::string const& user_agent) noexcept
+bool Subscription_List::remove(std::string const& user_agent) noexcept
 {
 	int i = 0;
 	for(auto& l : list_)
 	{
-		if(l.id() == id && l.user_agent() == user_agent)
+		if(l.user_agent() == user_agent)
 		{
 			list_.erase(list_.begin() + i);
 			return true;
@@ -227,11 +132,11 @@ bool Subscription_List::remove(user_id id, std::string const& user_agent) noexce
 	return false;
 }
 
-void Subscription_List::clear_subscription(user_id id, std::string const& user_agent) noexcept
+void Subscription_List::clear_subscription(std::string const& user_agent) noexcept
 {
     auto iter_end = std::remove_if(list_.begin(), list_.end(),
-    		[&id, &user_agent](Subscription const& sub){
-    	return sub.id() == id && sub.user_agent() == user_agent;
+    		[&user_agent](Subscription const& sub){
+    	return sub.user_agent() == user_agent;
     });
 
     list_.erase(iter_end, list_.end());
@@ -246,27 +151,18 @@ std::size_t Subscription_List::size() const noexcept
  *
  *
  */
-Session::Session(user_id id,
-		std::string const& user_agent,
+Session::Session(std::string const& user_agent,
 		std::string const& session_id,
 		long session_time)
-	: id_(id),
-	  user_agent_(user_agent),
+	:  user_agent_(user_agent),
 	  session_id_(session_id),
 	  session_time_(session_time){}
 
-Session::Session(user_id id,
-				std::string const& user_agent,
+Session::Session(std::string const& user_agent,
 				std::string const& session_id)
-	: id_(id),
-	 user_agent_(user_agent),
+	: user_agent_(user_agent),
 	 session_id_(session_id),
 	 session_time_(time_epoch_seconds()){}
-
-user_id Session::id() const noexcept
-{
-	return id_;
-}
 
 std::string const& Session::user_agent() const noexcept
 {
@@ -278,12 +174,10 @@ std::string const& Session::session_id() const noexcept
 	return session_id_;
 }
 
-bool Session::check(user_id id,
-				std::string const& session_id,
+bool Session::check(std::string const& session_id,
 				std::string const& user_agent) const noexcept
 {
-	return id_ == id &&
-			session_id_ == session_id &&
+	return session_id_ == session_id &&
 			user_agent_ == user_agent;
 }
 
@@ -337,7 +231,7 @@ void Session_List::add_or_update(Session&& session) noexcept
 {
 	for(auto& l : list_)
 	{
-		if(l.id() == session.id() && l.user_agent() == session.user_agent())
+		if(l.user_agent() == session.user_agent())
 		{
 			l.update(session.session_id());
 			return;
@@ -346,19 +240,18 @@ void Session_List::add_or_update(Session&& session) noexcept
 	list_.emplace_back(session);
 }
 
-void Session_List::add_or_update(user_id id,
-				std::string const& session_id,
+void Session_List::add_or_update(std::string const& session_id,
 				std::string const& user_agent) noexcept
 {
 	for(auto& l : list_)
 	{
-		if(l.id() == id && l.user_agent() == user_agent)
+		if(l.user_agent() == user_agent)
 		{
 			l.update(session_id);
 			return;
 		}
 	}
-	list_.emplace_back(id, session_id, user_agent);
+	list_.emplace_back(session_id, user_agent);
 }
 
 bool Session_List::remove(std::string const& session_id) noexcept
@@ -377,7 +270,6 @@ bool Session_List::remove(std::string const& session_id) noexcept
 }
 
 bool Session_List::check_user_session_id(
-				user_id id,
 				std::string const& session_id,
 				std::string const& user_agent,
 				long& session_time) const noexcept
@@ -385,7 +277,7 @@ bool Session_List::check_user_session_id(
 	session_time = 0;
 	for(auto const& l : list_)
 	{
-		if(l.check(id, session_id, user_agent))
+		if(l.check(session_id, user_agent))
 		{
 			session_time = l.session_time();
 			return true;
@@ -403,14 +295,14 @@ std::size_t Session_List::size() const noexcept
 /**
  *
  */
-void Logged::info(Info const* info) noexcept
+void Logged::user(User const* user) noexcept
 {
-	info_ = info;
+	user_ = user;
 }
 
 user_id Logged::id() const noexcept
 {
-	return info_ == nullptr ? invalid_id : info_->id();
+	return user_ == nullptr ? invalid_id : user_->id();
 }
 
 std::string const& Logged::user_agent() const noexcept
@@ -428,14 +320,9 @@ std::string const& Logged::session_id() const noexcept
 	return session_id_;
 }
 
-void Logged::policy_rules(int rules) noexcept
-{
-	policy_rules_ = rules;
-}
-
 int Logged::policy_rules() const noexcept
 {
-	return policy_rules_;
+	return user_ == nullptr ? 0 : user_->policy();
 }
 
 bool Logged::is_authenticated() const noexcept
@@ -456,9 +343,9 @@ void Logged::authenticate(std::string const& session_id,
 	authenticated_ = true;
 }
 
-Info const* Logged::info() const noexcept
+User const* Logged::user() const noexcept
 {
-	return info_;
+	return user_;
 }
 
 /***
@@ -478,6 +365,11 @@ user_id	User::id() const noexcept
 int User::policy() const noexcept
 {
 	return policy_;
+}
+
+void User::policy(int pol) noexcept
+{
+	policy_ = pol;
 }
 
 Info const& User::info() const noexcept
@@ -507,89 +399,6 @@ Session_List const& User::sessions() const noexcept
 Session_List& User::sessions() noexcept
 {
 	return sessions_;
-}
-
-User* User_List::add(User&& user) noexcept
-{
-	auto u = list_.find(user.id());
-	if(u != list_.end())
-	{
-		return nullptr;
-	}
-
-	return &list_.emplace(user.id(), user).first->second;
-}
-
-bool User_List::remove(user_id id) noexcept
-{
-	auto u = list_.find(id);
-	if(u != list_.end())
-	{
-		return false;
-	}
-	list_.erase(id);
-
-	return true;
-}
-
-User const* User_List::get(user_id id) const noexcept
-{
-	for(auto const& [uid, user] : list_)
-	{
-		if(uid == id)
-			return &user;
-	}
-	return nullptr;
-}
-
-User* User_List::get(user_id) noexcept
-{
-	for(auto & [uid, user] : list_)
-	{
-		if(uid == id)
-			return &user;
-	}
-	return nullptr;
-}
-
-User const* User_List::get(std::string const& username) const noexcept
-{
-	for(auto const& [uid, user] : list_)
-	{
-		if(user.info().username() == username)
-			return &user;
-	}
-	return nullptr;
-}
-
-User* User_List::get(std::string const& username) noexcept
-{
-	for(auto& [uid, user] : list_)
-	{
-		if(user.info().username() == username)
-			return &user;
-	}
-	return nullptr;
-}
-
-User const* User_List::operator[](user_id id) const noexcept
-{
-	return get(id);
-}
-
-User* User_List::operator[](user_id id) noexcept
-{
-	return get(id);
-}
-
-User const* User_List::operator[](std::string const& username) const noexcept
-{
-	return get(username);
-}
-
-User* User_List::operator[](std::string const& username) noexcept
-{
-	return get(username);
 }
 
 }//User

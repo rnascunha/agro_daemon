@@ -48,7 +48,7 @@ check_authenticate(std::string const& data) noexcept
 	}
 
 	if(comm == Message::user_commands::autheticate
-		&& user_.info()->id() != Agro::User::root_id)
+		&& user_.user()->id() != Agro::User::root_id)
 	{
 		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, instance(), ec);
 	}

@@ -39,7 +39,7 @@ std::string user_authentication(Agro::User::Logged const& user) noexcept
 			doc.GetAllocator());
 
 	rapidjson::Value data;
-	user_info(data, *user.info(), doc.GetAllocator());
+	user_info(data, *user.user(), doc.GetAllocator());
 	data.AddMember("authenticated", true, doc.GetAllocator());
 	data.AddMember("sessionid",
 			rapidjson::Value(user.session_id().data(), user.session_id().size(), doc.GetAllocator()).Move(),

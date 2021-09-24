@@ -25,69 +25,7 @@ static long db_time_to_epoch(std::string const& str_time)
 							.count();
 }
 
-bool DB::read_users_infos(User::Info_List& infos) noexcept
-{
-	sqlite3::statement res;
-	if(db_.prepare("SELECT userid,username,name,status,email FROM user",
-			res) != SQLITE_OK)
-	{
-		return false;
-	}
-
-	while(res.step() == SQLITE_ROW)
-	{
-		infos.add(User::Info{res.interger(0),
-				res.text(1),
-				res.text(2),
-				static_cast<User::Info::status>(res.interger(3)),
-				res.text(4)});
-	}
-
-	return true;
-}
-
-bool DB::read_users_sessions(User::Session_List& sessions) noexcept
-{
-	sqlite3::statement res;
-	if(db_.prepare("SELECT userid,user_agent,session_id,session_time FROM session",
-			res) != SQLITE_OK)
-	{
-		return false;
-	}
-
-	while(res.step() == SQLITE_ROW)
-	{
-		sessions.add_or_update(User::Session{
-				res.interger(0),
-				res.text(1),
-				res.text(2),
-				db_time_to_epoch(res.text(3))});
-	}
-	return true;
-}
-
-bool DB::read_users_subscriptions(User::Subscription_List& subscriptions) noexcept
-{
-	sqlite3::statement res;
-	if(db_.prepare("SELECT userid,user_agent,endpoint,p256dh,auth FROM push_notify",
-			res) != SQLITE_OK)
-	{
-		return false;
-	}
-
-	while(res.step() == SQLITE_ROW)
-	{
-		subscriptions.add_or_update(
-				res.interger(0),
-				res.text(1),
-				res.text(2),
-				res.text(3),
-				res.text(4));
-	}
-	return true;
-}
-
-bool DB::read_users_groups(User::Groups& groups) noexcept
+bool DB::read_users_groups(User::User_List& users) noexcept
 {
 	/**
 	 * Adding groups
@@ -101,7 +39,7 @@ bool DB::read_users_groups(User::Groups& groups) noexcept
 
 	while(res.step() == SQLITE_ROW)
 	{
-		groups.add(User::Group{
+		users.add_group(User::Group{
 				res.interger(0),
 				res.text(1),
 				res.text(2)});
@@ -118,18 +56,76 @@ bool DB::read_users_groups(User::Groups& groups) noexcept
 
 	while(res.step() == SQLITE_ROW)
 	{
-		groups.add_user(res.interger(1), res.interger(0));
+		users.add_user_to_group(res.interger(0), res.interger(1));
 	}
 
 	return true;
 }
 
-bool DB::read_user_all_db(User::Users& users) noexcept
+bool DB::read_user_subscriptions(User::user_id id,
+		User::Subscription_List& subscriptions) noexcept
 {
-	if(!read_users_infos(users.infos())) return false;
-	if(!read_users_sessions(users.sessions())) return false;
-	if(!read_users_subscriptions(users.subscriptions())) return false;
-	if(!read_users_groups(users.groups())) return false;
+	sqlite3::statement res;
+	if(db_.prepare_bind("SELECT userid,user_agent,endpoint,p256dh,auth FROM push_notify WHERE userid = ?",
+			res, id) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		subscriptions.add_or_update(
+				res.text(1),
+				res.text(2),
+				res.text(3),
+				res.text(4));
+	}
+	return true;
+}
+
+bool DB::read_user_sessions(User::user_id id, User::Session_List& sessions) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare_bind("SELECT userid,user_agent,session_id,session_time FROM session WHERE userid = ?",
+			res, id) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		sessions.add_or_update(User::Session{
+				res.text(1),
+				res.text(2),
+				db_time_to_epoch(res.text(3))});
+	}
+	return true;
+}
+
+bool DB::read_user_all_db(User::User_List& users) noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT userid,username,name,status,email FROM user",
+			res) != SQLITE_OK)
+	{
+		return false;
+	}
+
+	while(res.step() == SQLITE_ROW)
+	{
+		User::user_id  id = res.interger(0);
+		auto* nuser = users.add(User::User{id,
+				User::Info{
+				res.text(1),
+				res.text(2),
+				static_cast<User::Info::status>(res.interger(3)),
+				res.text(4)}});
+		read_user_sessions(id, nuser->sessions());
+		read_user_subscriptions(id, nuser->subscriptions());
+	}
+
+	if(!read_policies(users.policies())) return false;
+	if(!read_users_groups(users)) return false;
 
 	return true;
 }
@@ -220,7 +216,7 @@ User::Info DB::get_user(User::user_id id) noexcept
 		return User::Info{};
 	}
 
-	return User::Info{id,
+	return User::Info{
 		res.text(0),
 		res.text(2),
 		static_cast<User::Info::status>(res.interger(3)),
@@ -241,7 +237,7 @@ User::Info DB::get_user(std::string const& username) noexcept
 		return User::Info{};
 	}
 
-	return User::Info{res.interger(0),
+	return User::Info{
 		username,
 		res.text(1),
 		static_cast<User::Info::status>(res.interger(2)),

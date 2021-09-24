@@ -8,20 +8,20 @@ namespace User{
 namespace Message{
 
 template<typename Allocator>
-void user_info(rapidjson::Value& user, Info const& info, Allocator& alloc) noexcept
+void user_info(rapidjson::Value& user, User const& iuser, Allocator& alloc) noexcept
 {
 	user.SetObject();
-	user.AddMember("id", info.id(), alloc);
+	user.AddMember("id", iuser.id(), alloc);
 	user.AddMember("username",
-			rapidjson::Value(info.username().data(), info.username().size(), alloc).Move(),
+			rapidjson::Value(iuser.info().username().data(), iuser.info().username().size(), alloc).Move(),
 			alloc);
 	user.AddMember("name",
-				rapidjson::Value(info.name().data(), info.name().size(), alloc).Move(),
+				rapidjson::Value(iuser.info().name().data(), iuser.info().name().size(), alloc).Move(),
 				alloc);
 	user.AddMember("email",
-					rapidjson::Value(info.email().data(), info.email().size(), alloc).Move(),
+					rapidjson::Value(iuser.info().email().data(), iuser.info().email().size(), alloc).Move(),
 					alloc);
-	user.AddMember("status", static_cast<int>(info.get_status()), alloc);
+	user.AddMember("status", static_cast<int>(iuser.info().get_status()), alloc);
 }
 
 template<typename Allocator>
@@ -49,25 +49,11 @@ void group_info(rapidjson::Value& group, Group const& info, Allocator& alloc) no
 	group.AddMember("members", members, alloc);
 }
 
-//template<typename Allocator>
-//void permission_info(rapidjson::Value& perm,
-//		Authorization::Permission const& info, Allocator& alloc) noexcept
-//{
-//	perm.SetObject();
-//
-//	perm.AddMember("id", info.id(), alloc);
-//	perm.AddMember("type", static_cast<int>(info.get_type()), alloc);
-//	perm.AddMember("action", static_cast<int>(info.get_action()), alloc);
-//	perm.AddMember("effect", static_cast<int>(info.get_effect()), alloc);
-//	perm.AddMember("ref_type", static_cast<int>(info.reference_type()), alloc);
-//	perm.AddMember("ref_id", static_cast<int>(info.reference_id()), alloc);
-//}
-
 template<typename Allocator>
-void user_list(rapidjson::Value& ulist, Info_List const& infos, Allocator& alloc) noexcept
+void user_list(rapidjson::Value& ulist, User_List const& users, Allocator& alloc) noexcept
 {
 	ulist.SetArray();
-	for(auto const& u : infos)
+	for(auto const& [uid, u] : users)
 	{
 		rapidjson::Value user;
 		user_info(user, u, alloc);
@@ -86,19 +72,6 @@ void group_list(rapidjson::Value& glist, Groups const& groups, Allocator& alloc)
 		glist.PushBack(group, alloc);
 	}
 }
-
-//template<typename Allocator>
-//void permission_list(rapidjson::Value& plist,
-//		Authorization::Permission_List const& permissions, Allocator alloc) noexcept
-//{
-//	plist.SetArray();
-//	for(auto const& p : permissions)
-//	{
-//		rapidjson::Value perm;
-//		permission_info(perm, *p, alloc);
-//		plist.PushBack(perm, alloc);
-//	}
-//}
 
 }//Message
 }//User

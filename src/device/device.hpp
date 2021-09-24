@@ -50,7 +50,6 @@ class Device{
 		int layer() const noexcept;
 
 		std::vector<mesh_addr_t> const& children_table() const noexcept;
-		std::vector<mesh_addr_t> const& children() const noexcept;
 
 		std::string const& firmware_version() const noexcept;
 		std::string const& hardware_version() const noexcept;
@@ -115,7 +114,6 @@ class Device{
 
 		int layer_ = -1;
 		std::vector<mesh_addr_t> children_table_;
-		std::vector<mesh_addr_t> children_;
 
 		Value_List<std::int8_t> rssi_;
 

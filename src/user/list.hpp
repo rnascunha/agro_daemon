@@ -3,16 +3,39 @@
 
 #include "user.hpp"
 #include "group.hpp"
+#include "policy.hpp"
 
 namespace Agro{
 namespace User{
 
-class Users{
+class User_List{
 	public:
-		Info_List& infos() noexcept;
-		Info_List const& infos() const noexcept;
+		User* add(User&&) noexcept;
+		bool remove(user_id) noexcept;
 
-		bool add_user(Info&& user) noexcept;
+		User const* get(user_id) const noexcept;
+		User* get(user_id) noexcept;
+
+		User const* get(std::string const&) const noexcept;
+		User* get(std::string const&) noexcept;
+
+		User const* operator[](user_id) const noexcept;
+		User* operator[](user_id) noexcept;
+
+		User const* operator[](std::string const&) const noexcept;
+		User* operator[](std::string const&) noexcept;
+
+//		Groups& groups() noexcept;
+		Groups const& groups() const noexcept;
+
+		bool add_group(Group&&) noexcept;
+		bool remove_group(group_id) noexcept;
+		void remove_user_from_all_groups(user_id) noexcept;
+
+		Authorization::Policies const& policies() const noexcept;
+		Authorization::Policies& policies() noexcept;
+
+		bool add_user_to_group(user_id, group_id gid) noexcept;
 		void add_user_to_groups(user_id, std::vector<group_id> const&) noexcept;
 		bool edit_user(user_id id,
 				std::string const& username,
@@ -20,20 +43,23 @@ class Users{
 				std::string const& email,
 				std::vector<group_id> const&) noexcept;
 
-		Subscription_List& subscriptions() noexcept;
-		Subscription_List const& subscriptions() const noexcept;
+		std::unordered_map<user_id, User>::iterator begin() { return list_.begin(); }
+		std::unordered_map<user_id, User>::iterator end() { return list_.end(); }
 
-		Session_List& sessions() noexcept;
-		Session_List const& sessions() const noexcept;
-
-		Groups& groups() noexcept;
-		Groups const& groups() const noexcept;
+		std::unordered_map<user_id, User>::const_iterator begin() const { return list_.begin(); }
+		std::unordered_map<user_id, User>::const_iterator end() const { return list_.end(); }
+		std::unordered_map<user_id, User>::const_iterator cbegin() const { return list_.cbegin(); }
+		std::unordered_map<user_id, User>::const_iterator cend() const { return list_.cend(); }
 	private:
-		Info_List			user_list_;
-		Subscription_List	sub_list_;
-		Session_List		session_list_;
-		Groups				groups_;
+		std::unordered_map<user_id, User>	list_;
+		Groups								groups_;
+		Authorization::Policies				policy_rules_;
+
+		void update_user_policy(user_id) noexcept;
+		void update_user_policy(User& user) noexcept;
+		void update_user_policy() noexcept;
 };
+
 
 }//User
 }//Agro

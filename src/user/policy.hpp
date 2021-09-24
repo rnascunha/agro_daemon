@@ -68,6 +68,7 @@ class Policies{
 };
 
 bool can(User::Logged const&, rule) noexcept;
+bool can(User::User const&, rule) noexcept;
 
 }//Authorization
 }//Agro

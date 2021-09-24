@@ -25,7 +25,7 @@ std::string user_group_permissions(Logged const&, instance const& instance) noex
 	data.SetObject();
 
 	rapidjson::Value ulist;
-	user_list(ulist, instance.users().infos(), doc.GetAllocator());
+	user_list(ulist, instance.users(), doc.GetAllocator());
 	data.AddMember("users", ulist.Move(), doc.GetAllocator());
 
 	rapidjson::Value glist;
@@ -41,7 +41,7 @@ std::string user_group_permissions(Logged const&, instance const& instance) noex
 	return ::Message::stringify(doc);
 }
 
-std::string added_new_user(Info const& info, std::vector<group_id> const& gid_list) noexcept
+std::string added_new_user(User const& user, std::vector<group_id> const& gid_list) noexcept
 {
 	rapidjson::Document doc;
 
@@ -54,7 +54,7 @@ std::string added_new_user(Info const& info, std::vector<group_id> const& gid_li
 			doc.GetAllocator());
 
 	rapidjson::Value data;
-	user_info(data, info, doc.GetAllocator());
+	user_info(data, user, doc.GetAllocator());
 
 	/**
 	 * Adding groups
@@ -72,7 +72,7 @@ std::string added_new_user(Info const& info, std::vector<group_id> const& gid_li
 	return ::Message::stringify(doc);
 }
 
-std::string edited_user(Info const& info, std::vector<group_id> const& gid_list) noexcept
+std::string edited_user(User const& user, std::vector<group_id> const& gid_list) noexcept
 {
 	rapidjson::Document doc;
 
@@ -85,7 +85,7 @@ std::string edited_user(Info const& info, std::vector<group_id> const& gid_list)
 			doc.GetAllocator());
 
 	rapidjson::Value data;
-	user_info(data, info, doc.GetAllocator());
+	user_info(data, user, doc.GetAllocator());
 
 	/**
 	 * Adding groups

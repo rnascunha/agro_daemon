@@ -39,8 +39,8 @@ class instance{
 						std::string const& user_agent,
 						long& session_time) const noexcept;
 
-		User::Info const* get_user_info(std::string const& username) const noexcept;
-		User::Info const* get_user_info(User::user_id) const noexcept;
+		User::User const* get_user(std::string const& username) const noexcept;
+		User::User const* get_user(User::user_id) const noexcept;
 		bool get_user_password(std::string const& username,
 						std::vector<unsigned char>& salt,
 						std::vector<unsigned char>& pass) noexcept;
@@ -68,8 +68,6 @@ class instance{
 						User::group_id&) noexcept;
 		bool delete_group(User::group_id) noexcept;
 
-		void policy_rules(User::Logged&) const noexcept;
-
 		bool notify_is_valid() const noexcept;
 		std::string_view const& get_notify_public_key() const noexcept;
 
@@ -90,7 +88,7 @@ class instance{
 				std::string const& user_agent) noexcept;
 
 		void notify_all(std::string const& data) noexcept;
-//		void notify_policy(Authorization::rule rule, std::string const& data) noexcept;
+		void notify_all_policy(Authorization::rule rule, std::string const& data) noexcept;
 
 		/**
 		 *
@@ -107,8 +105,7 @@ class instance{
 		engine const& coap_engine() const noexcept;
 		engine& coap_engine() noexcept;
 
-//		Authorization::Permission_List const& permissions() const noexcept;
-		User::Users const& users() const noexcept;
+		User::User_List const& users() const noexcept;
 	private:
 		boost::asio::io_context& ioc_;
 		DB					db_;
@@ -116,15 +113,14 @@ class instance{
 		notify_factory 		notify_;
 		Device::Device_List	device_list_;
 		Device::Net_List	net_list_;
-		User::Users			users_;
+		User::User_List		users_;
 
-		Authorization::Policies		policy_rules_;
-
-		User::Info root_{User::root_id,
+		User::User root_{User::root_id,
+							User::Info{
 							User::root_username,
 							User::root_name,
 							User::Info::status::active,
-							"" /* email */};
+							"" /* email */}};
 
 		std::vector<engine::resource_node> vresource_;
 #if USE_SSL == 1

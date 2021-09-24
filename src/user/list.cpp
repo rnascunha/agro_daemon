@@ -4,71 +4,187 @@
 namespace Agro{
 namespace User{
 
-Info_List& Users::infos() noexcept
+User* User_List::add(User&& user) noexcept
 {
-	return user_list_;
+	auto u = list_.find(user.id());
+	if(u != list_.end())
+	{
+		return nullptr;
+	}
+
+	return &list_.emplace(user.id(), user).first->second;
 }
 
-Info_List const& Users::infos() const noexcept
+bool User_List::remove(user_id id) noexcept
 {
-	return user_list_;
-}
-
-bool Users::add_user(Info&& user) noexcept
-{
-	return user_list_.add(std::move(user));
-}
-
-void Users::add_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept
-{
-	groups_.add_user_to_groups(uid, gid_list);
-}
-
-bool Users::edit_user(user_id id,
-				std::string const& username,
-				std::string const& name,
-				std::string const& email,
-				std::vector<group_id> const& groups) noexcept
-{
-	if(!user_list_.update(id, username, name, email))
+	auto u = list_.find(id);
+	if(u != list_.end())
 	{
 		return false;
 	}
-
-	groups_.remove_user_from_all(id);
-	groups_.add_user_to_groups(id, groups);
+	list_.erase(id);
 
 	return true;
 }
 
-Subscription_List& Users::subscriptions() noexcept
+User const* User_List::get(user_id id) const noexcept
 {
-	return sub_list_;
+	for(auto const& [uid, user] : list_)
+	{
+		if(uid == id)
+			return &user;
+	}
+	return nullptr;
 }
 
-Subscription_List const& Users::subscriptions() const noexcept
+User* User_List::get(user_id id) noexcept
 {
-	return sub_list_;
+	for(auto & [uid, user] : list_)
+	{
+		if(uid == id)
+			return &user;
+	}
+	return nullptr;
 }
 
-Session_List& Users::sessions() noexcept
+User const* User_List::get(std::string const& username) const noexcept
 {
-	return session_list_;
+	for(auto const& [uid, user] : list_)
+	{
+		if(user.info().username() == username)
+			return &user;
+	}
+	return nullptr;
 }
 
-Session_List const& Users::sessions() const noexcept
+User* User_List::get(std::string const& username) noexcept
 {
-	return session_list_;
+	for(auto& [uid, user] : list_)
+	{
+		if(user.info().username() == username)
+			return &user;
+	}
+	return nullptr;
 }
 
-Groups& Users::groups() noexcept
+User const* User_List::operator[](user_id id) const noexcept
+{
+	return get(id);
+}
+
+User* User_List::operator[](user_id id) noexcept
+{
+	return get(id);
+}
+
+User const* User_List::operator[](std::string const& username) const noexcept
+{
+	return get(username);
+}
+
+User* User_List::operator[](std::string const& username) noexcept
+{
+	return get(username);
+}
+
+//Groups& User_List::groups() noexcept
+//{
+//	return groups_;
+//}
+
+Groups const& User_List::groups() const noexcept
 {
 	return groups_;
 }
 
-Groups const& Users::groups() const noexcept
+bool User_List::add_group(Group&& group) noexcept
 {
-	return groups_;
+	bool ret = groups_.add(std::move(group));
+	if(ret)
+	{
+		update_user_policy();
+	}
+	return groups_.add(std::move(group));
+}
+
+bool User_List::remove_group(group_id gid) noexcept
+{
+	bool ret = groups_.remove(gid);
+	if(ret)
+	{
+		update_user_policy();
+	}
+
+	return ret;
+}
+
+Authorization::Policies const& User_List::policies() const noexcept
+{
+	return policy_rules_;
+}
+
+Authorization::Policies& User_List::policies() noexcept
+{
+	return policy_rules_;
+}
+
+bool User_List::add_user_to_group(user_id uid, group_id gid) noexcept
+{
+	bool ret = groups_.add_user(gid, uid);
+	if(ret)
+		update_user_policy(uid);
+	return ret;
+}
+
+void User_List::add_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept
+{
+	groups_.add_user_to_groups(uid, gid_list);
+	update_user_policy(uid);
+}
+
+void User_List::remove_user_from_all_groups(user_id uid) noexcept
+{
+	groups_.remove_user_from_all(uid);
+}
+
+bool User_List::edit_user(user_id id,
+		std::string const& username,
+		std::string const& name,
+		std::string const& email,
+		std::vector<group_id> const& groups) noexcept
+{
+	auto* user = get(id);
+	if(!user) return false;
+
+	user->info().set(username, name, user->info().get_status(), email);
+
+	groups_.remove_user_from_all(id);
+	groups_.add_user_to_groups(id, groups);
+
+	update_user_policy(*user);
+
+	return true;
+}
+
+void User_List::update_user_policy(user_id id) noexcept
+{
+	auto* user = get(id);
+	if(!user) return;
+
+	user->policy(static_cast<int>(policy_rules_.get_policy(id, groups_)));
+}
+
+void User_List::update_user_policy(User& user) noexcept
+{
+	user.policy(static_cast<int>(policy_rules_.get_policy(user.id(), groups_)));
+}
+
+void User_List::update_user_policy() noexcept
+{
+	for(auto& [uid, u] : list_)
+	{
+		update_user_policy(u);
+	}
 }
 
 }//User

@@ -59,5 +59,12 @@ bool can(User::Logged const& user, rule rule) noexcept
 	return user.policy_rules() & static_cast<int>(rule);
 }
 
+bool can(User::User const& user, rule rule) noexcept
+{
+	if(user.id() == User::root_id) return true;
+
+	return user.policy() & static_cast<int>(rule);
+}
+
 }//Authorization
 }//Agro

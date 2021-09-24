@@ -470,16 +470,6 @@ static void make_route_data(rapidjson::Value& data, Device const& dev, Allocator
 				alloc).Move(), alloc);
 	}
 	data.AddMember("children_table", child_arr, alloc);
-
-	rapidjson::Value child_arr2;
-	child_arr.SetArray();
-	for(auto const& child : dev.children())
-	{
-		char child_buf[18];
-		child_arr.PushBack(rapidjson::Value(child.to_string(child_buf, 18),
-				alloc).Move(), alloc);
-	}
-	data.AddMember("children", child_arr, alloc);
 }
 
 template<typename Allocator>

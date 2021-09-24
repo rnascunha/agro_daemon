@@ -28,17 +28,16 @@ class Info{
 		};
 
 		Info();
-		Info(user_id id, std::string const& username, std::string const& name,
+		Info(std::string const& username, std::string const& name,
 				status stat, std::string const& email);
-		Info(user_id id, const char* username, const char* name,
+		Info(const char* username, const char* name,
 				status stat, const char* email);
 
 		bool is_valid() const noexcept;
 
-		void set(int id, std::string const& username, std::string const& name,
+		void set(std::string const& username, std::string const& name,
 				status stat, std::string const& email) noexcept;
 
-		user_id id() const noexcept;
 		std::string const& username() const noexcept;
 		std::string const& name() const noexcept;
 		status get_status() const noexcept;
@@ -46,45 +45,19 @@ class Info{
 
 		operator bool() const noexcept;
 	private:
-		user_id		id_ = invalid_id;
 		std::string username_;
 		std::string name_;
 		status		status_ = status::invalid;
 		std::string	email_;
 };
 
-class Info_List{
-	public:
-		bool add(Info&&) noexcept;
-		bool remove(user_id) noexcept;
-
-		user_id get_id(std::string const& username) const noexcept;
-		Info const* get(std::string const& username) const noexcept;
-		Info const* get(user_id) const noexcept;
-
-		bool update(user_id id,
-				std::string const& username,
-				std::string const& name,
-				std::string const& email) noexcept;
-
-		std::size_t size() const noexcept;
-
-		std::vector<Info>::const_iterator begin() const { return list_.begin(); }
-		std::vector<Info>::const_iterator end() const { return list_.end(); }
-		std::vector<Info>::const_iterator cbegin() const { return list_.cbegin(); }
-		std::vector<Info>::const_iterator cend() const { return list_.cend(); }
-	private:
-		std::vector<Info> list_;
-};
-
 class Subscription{
 	public:
-		Subscription(user_id, std::string const user_agent,
+		Subscription(std::string const user_agent,
 				std::string const& endpoint,
 				std::string const& p256dh,
 				std::string const auth);
 
-		user_id id() const noexcept;
 		std::string const& user_agent() const noexcept;
 
 		std::string const& endpoint() const noexcept;
@@ -95,7 +68,6 @@ class Subscription{
 				std::string const& p256dh,
 				std::string const auth) noexcept;
 	private:
-		user_id		id_;
 		std::string user_agent_;
 
 		std::string	endpoint_;
@@ -105,13 +77,13 @@ class Subscription{
 
 class Subscription_List{
 	public:
-		void add_or_update(user_id, std::string const& user_agent,
+		void add_or_update(std::string const& user_agent,
 				std::string const& endpoint,
 				std::string const& p256dh,
 				std::string const& auth) noexcept;
-		bool remove(user_id, std::string const& user_agent) noexcept;
+		bool remove(std::string const& user_agent) noexcept;
 
-		void clear_subscription(user_id, std::string const& user_agent) noexcept;
+		void clear_subscription(std::string const& user_agent) noexcept;
 
 		std::size_t size() const noexcept;
 
@@ -125,16 +97,13 @@ class Subscription_List{
 
 class Session{
 	public:
-		Session(user_id,
-				std::string const& user_agent,
+		Session(std::string const& user_agent,
 				std::string const& session_id,
 				long session_time);
 
-		Session(user_id,
-				std::string const& user_agent,
+		Session(std::string const& user_agent,
 				std::string const& session_id);
 
-		user_id id() const noexcept;
 		std::string const& user_agent() const noexcept;
 
 		std::string const& session_id() const noexcept;
@@ -142,8 +111,7 @@ class Session{
 		long login_time() const noexcept;
 		long logout_time() const noexcept;
 
-		bool check(User::user_id id,
-				std::string const& session_id,
+		bool check(std::string const& session_id,
 				std::string const& user_agent) const noexcept;
 
 		bool check_time(long session_time) const noexcept;
@@ -155,7 +123,6 @@ class Session{
 
 		void update(std::string const& session_id) noexcept;
 	private:
-		user_id 	id_;
 		std::string user_agent_;
 		std::string session_id_;
 
@@ -169,13 +136,12 @@ class Session{
 class Session_List{
 	public:
 		void add_or_update(Session&& session) noexcept;
-		void add_or_update(user_id,
+		void add_or_update(
 				std::string const& session_id,
 				std::string const& user_agent) noexcept;
 		bool remove(std::string const& session_id) noexcept;
 
 		bool check_user_session_id(
-						User::user_id id,
 						std::string const& session_id,
 						std::string const& user_agent,
 						long& session_time) const noexcept;
@@ -191,6 +157,7 @@ class User{
 
 		user_id	id() const noexcept;
 		int policy() const noexcept;
+		void policy(int pol) noexcept;
 
 		Info const& info() const noexcept;
 		Info& info() noexcept;
@@ -209,35 +176,10 @@ class User{
 		Session_List sessions_;
 };
 
-class User_List{
-	public:
-		User* add(User&&) noexcept;
-		bool remove(user_id) noexcept;
-
-		User const* get(user_id) const noexcept;
-		User* get(user_id) noexcept;
-
-		User const* get(std::string const&) const noexcept;
-		User* get(std::string const&) noexcept;
-
-		User const* operator[](user_id) const noexcept;
-		User* operator[](user_id) noexcept;
-
-		User const* operator[](std::string const&) const noexcept;
-		User* operator[](std::string const&) noexcept;
-
-		std::unordered_map<user_id, User>::const_iterator begin() const { return list_.begin(); }
-		std::unordered_map<user_id, User>::const_iterator end() const { return list_.end(); }
-		std::unordered_map<user_id, User>::const_iterator cbegin() const { return list_.cbegin(); }
-		std::unordered_map<user_id, User>::const_iterator cend() const { return list_.cend(); }
-	private:
-		std::unordered_map<user_id, User> list_;
-};
-
 class Logged{
 	public:
-		void info(Info const*) noexcept;
-		Info const* info() const noexcept;
+		void user(User const*) noexcept;
+		User const* user() const noexcept;
 
 		user_id id() const noexcept;
 
@@ -256,10 +198,9 @@ class Logged{
 	private:
 		std::string user_agent_;
 		std::string session_id_;
-		int			policy_rules_ = 0;
 
 		bool authenticated_ = false;
-		Info const*	 info_ = nullptr;
+		User const*	 user_ = nullptr;
 };
 
 }//User

@@ -101,11 +101,6 @@ std::vector<mesh_addr_t> const& Device::children_table() const noexcept
 	return children_table_;
 }
 
-std::vector<mesh_addr_t> const& Device::children() const noexcept
-{
-	return children_;
-}
-
 std::string const& Device::firmware_version() const noexcept
 {
 	return fw_version_;
@@ -269,7 +264,7 @@ void Device::update(endpoint const&, Resource::board_config const& cfg,
 	}
 	else
 	{
-		fw_version_ = std::string{static_cast<const char*>(version), version_len};
+		fw_version_ = {static_cast<const char*>(version), version_len};
 		hw_version_ = "";
 	}
 }

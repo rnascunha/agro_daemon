@@ -22,11 +22,10 @@ class DB{
 		/**
 		 * User interface
 		 */
-		bool read_users_infos(User::Info_List&) noexcept;
-		bool read_users_sessions(User::Session_List&) noexcept;
-		bool read_users_subscriptions(User::Subscription_List&) noexcept;
-		bool read_users_groups(User::Groups&) noexcept;
-		bool read_user_all_db(User::Users&) noexcept;
+		bool read_users_groups(User::User_List&) noexcept;
+		bool read_user_sessions(User::user_id, User::Session_List&) noexcept;
+		bool read_user_subscriptions(User::user_id, User::Subscription_List&) noexcept;
+		bool read_user_all_db(User::User_List&) noexcept;
 
 		bool read_policy_types(Authorization::Policy_Types&) noexcept;
 		bool read_policies(Authorization::Policies&) noexcept;

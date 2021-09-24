@@ -15,20 +15,20 @@ static void add_subscription(
 		const char* auth) noexcept
 {
 	instance.push_subscribe_user(
-			user.info()->id(),
+			user.id(),
 			user.user_agent(),
 			endpoint, p256dh, auth);
 	tt::status("Subscribing %s(%s) to push notification",
-			user.info()->username().c_str(),
+			user.user()->info().username().c_str(),
 			user.user_agent().c_str());
 }
 
 static void remove_subcription(Agro::User::Logged const& user,
 		Agro::instance& instance) noexcept
 {
-	instance.push_unsubscribe_user(user.info()->id(), user.user_agent());
+	instance.push_unsubscribe_user(user.id(), user.user_agent());
 	tt::status("Unsubscribing %s(%s) to push notification",
-			user.info()->username().c_str(), user.user_agent().c_str());
+			user.user()->info().username().c_str(), user.user_agent().c_str());
 }
 
 void process_subscription(
@@ -91,8 +91,8 @@ static void logout(Agro::User::Logged const& user,
 		Agro::websocket_ptr ws) noexcept
 {
 	tt::debug("User %s (%s) logging out.",
-			user.info()->name().c_str(), user.info()->username().c_str());
-	instance.clear_session_user_agent(user.info()->id(), user.user_agent());
+			user.user()->info().name().c_str(), user.user()->info().username().c_str());
+	instance.clear_session_user_agent(user.id(), user.user_agent());
 	ws->close(1000);	//Normal close
 }
 
@@ -106,7 +106,7 @@ static void user_group_policies(Agro::websocket_ptr ws,
 		return;
 	}
 
-	tt::debug("User %s request all users data.", user.info()->username().c_str());
+	tt::debug("User %s request all users data.", user.user()->info().username().c_str());
 	ws->write(Agro::User::Message::user_group_permissions(user, instance));
 }
 
@@ -171,16 +171,16 @@ static void add_user(rapidjson::Document const& doc,
 	{
 		instance.add_user_to_group(id, groups);
 
-		auto const* info = instance.get_user_info(id);
-		if(!info)
+		auto const* user = instance.get_user(id);
+		if(!user)
 		{
 			tt::error("Error retriving added user value");
 			return;
 		}
 		tt::status("New user '%s'(%s) added successfully!",
-				info->name().c_str(), info->username().c_str());
+				user->info().name().c_str(), user->info().username().c_str());
 		ws->write_all_policy(Agro::Authorization::rule::user_admin,
-				std::make_shared<std::string>(Agro::User::Message::added_new_user(*info, groups)));
+				std::make_shared<std::string>(Agro::User::Message::added_new_user(*user, groups)));
 	}
 }
 
@@ -236,16 +236,16 @@ static void edit_user(rapidjson::Document const& doc,
 
 	if(instance.edit_user(uid, username, name, email, groups))
 	{
-		auto const* info = instance.get_user_info(uid);
-		if(!info)
+		auto const* user = instance.get_user(uid);
+		if(!user)
 		{
 			tt::error("Error retriving editin user value");
 			return;
 		}
 		tt::status("Edited user '%s'(%s) successfully!",
-				info->name().c_str(), info->username().c_str());
+				user->info().name().c_str(), user->info().username().c_str());
 		ws->write_all_policy(Agro::Authorization::rule::user_admin,
-				std::make_shared<std::string>(Agro::User::Message::edited_user(*info, groups)));
+				std::make_shared<std::string>(Agro::User::Message::edited_user(*user, groups)));
 	}
 }
 
