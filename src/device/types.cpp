@@ -77,5 +77,5 @@ char* mesh_addr_t::to_string(char* str, unsigned size) const noexcept
 std::string mesh_addr_t::to_string() const noexcept
 {
 	char buf[18];
-	return std::string{to_string(buf, 18)};
+	return to_string(buf, 18);
 }

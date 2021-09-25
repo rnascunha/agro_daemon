@@ -50,6 +50,7 @@ static void packet_response(
 			std::error_code ec;
 			Resource::process_full_config(*dev,
 					ws->get_share(),
+					instance,
 					ep,
 					response.payload, response.payload_len,
 					ec);

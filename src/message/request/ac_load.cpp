@@ -9,7 +9,9 @@ static void process_ac_load(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
 		unsigned index, bool value) noexcept
 {
-	auto* dev = device_list[host];//device_list.update_ac_load(host, index, value);
+	auto* dev = device_list[host];
+	dev->update_ac_load(index, value);
+
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_gpios_to_json(*dev)));
 }

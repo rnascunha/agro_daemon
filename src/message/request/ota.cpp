@@ -47,7 +47,7 @@ static void get_ota_response(
 {
 	process_get_ota(instance.device_list(),
 			host,
-			std::string{static_cast<const char*>(response.payload), response.payload_len},
+			{static_cast<const char*>(response.payload), response.payload_len},
 			ws);
 }
 

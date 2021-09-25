@@ -22,6 +22,7 @@ void put_full_config_handler(engine::message const& request,
 	std::error_code ec;
 	if(!process_full_config(*dev,
 					data_share,
+					instance,
 					response.endpoint(),
 					request.payload, request.payload_len,
 					ec))

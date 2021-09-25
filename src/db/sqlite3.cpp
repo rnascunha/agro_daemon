@@ -131,7 +131,7 @@ int sqlite3::statement::interger(int index) noexcept
 std::string sqlite3::statement::text(int index) noexcept
 {
 	const unsigned char* t = sqlite3_column_text(stmt_, index);
-	return std::string{reinterpret_cast<const char*>(t),
+	return {reinterpret_cast<const char*>(t),
 						static_cast<std::size_t>(sqlite3_column_bytes(stmt_, index))};
 }
 
@@ -152,7 +152,7 @@ const void* sqlite3::statement::blob(int index, int& size) noexcept
 std::vector<unsigned char> sqlite3::statement::blob(int index) noexcept
 {
 	const unsigned char* val = static_cast<const unsigned char*>(sqlite3_column_blob(stmt_, index));
-	return std::vector<unsigned char>{val,
+	return {val,
 		val + static_cast<std::size_t>(sqlite3_column_bytes(stmt_, index))};
 }
 

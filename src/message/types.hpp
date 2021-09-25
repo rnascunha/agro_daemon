@@ -20,7 +20,6 @@ enum class type{
 	response,    /**< response */
 	request,     /**< request */
 	device,      /**< device */
-	command,     /**< command */
 	image,       /**< image */
 	app,		/**< app */
 	user,		/**< user */
@@ -32,7 +31,6 @@ constexpr const config<type> tconfig[] = {
 	{type::response, "response"},
 	{type::request, "request"},
 	{type::device, "device"},
-	{type::command, "command"},
 	{type::image, "image"},
 	{type::app, "app"},
 	{type::user, "user"},

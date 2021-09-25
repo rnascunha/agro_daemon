@@ -78,6 +78,14 @@ class Value_List{
 		std::vector<value> list_;
 };
 
+//template<typename Number,
+//		unsigned Max>
+//class Sensor_List{
+//	public:
+//	private:
+//
+//};
+
 struct job{
 	static constexpr const std::size_t packet_size = 7;
 	struct time{

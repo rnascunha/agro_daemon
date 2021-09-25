@@ -24,27 +24,45 @@ struct group{
 	Agro::Authorization::rule	rules;
 };
 
+struct sensor_type{
+	std::string 				name;
+	std::string					type;
+	std::string					unit_name;
+	std::string					unit;
+};
+
 using namespace Agro::Authorization;
 
 static const Policy_Type policy_types[] = {
 		{1, rule::user_admin, "User Admin", "Add/remove users/groups/policies"},
 		{2, rule::view_device, "View Devices", "View devices data/status"},
-		{3, rule::get_resource, "GET resource", "GET resource operation"},
-		{4, rule::post_resource, "POST resource", "POST resource operation"},
-		{5, rule::put_resource, "PUT resource", "PUT resource operation"},
-		{6, rule::delete_resource, "DELETE resource", "DELETE resource operation"},
-		{7, rule::view_image, "View Image", "View Image"},
-		{8, rule::upload_image, "Upload Image", "Upload new image to server"},
-		{9, rule::install_image, "Install Image", "Install image at devices"},
-		{10, rule::upload_app, "Upload App", "Upload app to server"},
-		{11, rule::install_app, "Install App", "Install app at devices"}
+		{3, rule::edit_device, "Edit Devices", "Edit devices data/status"},
+		{4, rule::get_resource, "GET resource", "GET resource operation"},
+		{5, rule::post_resource, "POST resource", "POST resource operation"},
+		{6, rule::put_resource, "PUT resource", "PUT resource operation"},
+		{7, rule::delete_resource, "DELETE resource", "DELETE resource operation"},
+		{8, rule::view_image, "View Image", "View Image"},
+		{9, rule::upload_image, "Upload Image", "Upload new image to server"},
+		{10, rule::install_image, "Install Image", "Install image at devices"},
+		{11, rule::upload_app, "Upload App", "Upload app to server"},
+		{12, rule::install_app, "Install App", "Install app at devices"}
 };
 
 static const group groups[] = {
 		{1, "system", "System administrators", rule::all},
 		{2, "operator", "Can view e execute commands",
-						rule::view_device | rule::all_resources | rule::all_image | rule::all_app},
-		{3, "viewer", "Can only view devices", rule::view_device}
+						rule::all_device | rule::all_resources | rule::all_image | rule::all_app},
+		{3, "viewer", "Can only view devices", rule::view_device},
+		{4, "op_get", "Can view/get operations on devices", rule::all_device | rule::get_resource},
+		{5, "op_put", "Can view/put operations on devices", rule::all_device | rule::put_resource},
+		{6, "op_post", "Can view/post operations on devices", rule::all_device | rule::post_resource},
+		{6, "op_delete", "Can view/delete operations on devices", rule::all_device | rule::delete_resource},
+};
+
+static const sensor_type sensors[] = {
+		{"Received Signal Strength Indicator", "RSSI", "decibel miliwatt", "dBm"},
+		{"Temperature", "temperature", "celsius", "C"},
+		{"GPIOs", "gpios", "signal level", ""}
 };
 
 void usage(const char* program) noexcept
@@ -58,6 +76,12 @@ int main(int argc, char** argv)
 	{
 		std::cerr << "Error! Wrong number of argumetns!\n";
 		usage(argv[0]);
+		return 1;
+	}
+
+	if(std::filesystem::exists(argv[1]))
+	{
+		std::cerr << "File already exists! Quitting...\n";
 		return 1;
 	}
 
@@ -166,7 +190,7 @@ int main(int argc, char** argv)
 	 */
 	for(auto const& group : groups)
 	{
-		res.reset();
+		res.finalize();
 		rc = db.prepare_bind("INSERT INTO user_group(name, description) VALUES(?,?)",
 					res, group.name, group.description);
 		if(rc != SQLITE_OK)
@@ -180,7 +204,7 @@ int main(int argc, char** argv)
 			std::cerr << "Error inserting group '" << group.name << "' [" << rc << "]\n";
 		}
 
-		res.reset();
+		res.finalize();
 		int groupid = db.last_insert_rowid();
 		rc = db.prepare_bind("INSERT INTO policy(groupid, rules) VALUES(?,?)",
 				res, groupid, static_cast<int>(group.rules));
@@ -197,9 +221,9 @@ int main(int argc, char** argv)
 		}
 	}
 
+	res.finalize();
 	for(auto const& ptype : policy_types)
 	{
-		res.reset();
 		rc = db.prepare_bind("INSERT INTO policy_type(code, name, description) VALUES(?,?,?)",
 							res, static_cast<int>(ptype.code), ptype.name, ptype.description);
 		if(rc != SQLITE_OK)
@@ -212,6 +236,29 @@ int main(int argc, char** argv)
 		{
 			std::cerr << "Error inserting  policy type '" << ptype.name << "' [" << rc << "]\n";
 		}
+		res.clear_bidings();
+	}
+	res.finalize();
+
+	/**
+	 * Sensor types
+	 */
+	for(auto const& sensor : sensors)
+	{
+		rc = db.prepare_bind("INSERT INTO sensor_type(name, type, unit_name, unit) VALUES(?,?,?,?)",
+				res, sensor.name, sensor.type, sensor.unit_name, sensor.unit);
+		if(rc != SQLITE_OK)
+		{
+			std::cerr << "Error preparing to insert sensor type [" << rc << "]\n";
+			continue;
+		}
+
+		rc = res.step();
+		if(rc != SQLITE_DONE)
+		{
+			std::cerr << "Error preparing inserting sensor type [" << rc << "]\n";
+		}
+		res.clear_bidings();
 	}
 
 	return 0;

@@ -22,14 +22,25 @@ Device::Device(const char* mac_str, unsigned size, Error& ec)
 	name_ = mac_str;
 }
 
-Device::Device(device_id id,
-				mesh_addr_t const& addr,
-				std::string const& name /* = "" */,
-				std::string const& fw_version /* = "" */,
-				std::string const& hw_version /* = "" */)
-	: id_(id), mac_(addr),
-	  fw_version_(fw_version),
-	  hw_version_(hw_version){}
+Device::Device(device_id id, mesh_addr_t const& host)
+	: id_(id), mac_(host), name_(""), fw_version_(""),
+	  hw_version_(""){}
+
+Device::Device(device_id id, mesh_addr_t const& addr,
+		mesh_addr_t const& mac_ap,
+		mesh_addr_t const& parent,
+		endpoint const& ep,
+		std::string const& name/* = "" */,
+		std::string const& fw_version/* = "" */,
+		std::string const& hw_version/* = "" */,
+		uint8_t channel_config/* = 0 */, uint8_t channel/* = 0 */,
+		bool has_rtc/* = false */, bool has_temp_sensor/* = false */,
+		int layer)
+	: id_(id), mac_(addr), parent_(parent),
+	  mac_ap_(mac_ap), ep_(ep), name_(name),
+	  ch_config_(channel_config), ch_conn_(channel), layer_(layer),
+	  fw_version_(fw_version), hw_version_(hw_version),
+	  has_rtc_(has_rtc), has_sensor_temp_(has_temp_sensor){}
 
 device_id Device::id() const noexcept
 {
@@ -228,7 +239,7 @@ void Device::update(endpoint const& ep, Resource::route const& route,
 	}
 }
 
-void Device::update(endpoint const& ep, Resource::full_config const& cfg,
+void Device::update(endpoint const& ep, Resource::full_config const& cfg, Net* net,
 		const uint8_t* children, std::size_t children_size) noexcept
 {
 	rssi_.add(cfg.fstatus.rssi);
@@ -237,6 +248,7 @@ void Device::update(endpoint const& ep, Resource::full_config const& cfg,
 	ch_conn_ = cfg.fconfig.channel_conn;
 	mac_ap_ = cfg.fconfig.mac_ap;
 	net_id_ = cfg.fconfig.net_id;
+	net_ = net;
 
 	layer_ = static_cast<int>(ntohs(cfg.froute.layer));
 	parent_ = cfg.froute.parent;

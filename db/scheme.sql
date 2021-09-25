@@ -1,10 +1,41 @@
 --
--- File generated with SQLiteStudio v3.3.3 on ter. set. 21 07:33:58 2021
+-- File generated with SQLiteStudio v3.3.3 on sáb. set. 25 13:42:58 2021
 --
 -- Text encoding used: UTF-8
 --
 PRAGMA foreign_keys = off;
 BEGIN TRANSACTION;
+
+-- Table: children_table
+CREATE TABLE children_table (
+    children_tableid INTEGER PRIMARY KEY AUTOINCREMENT,
+    children_mac     TEXT    NOT NULL,
+    deviceid         INTEGER REFERENCES device (deviceid) 
+                             NOT NULL
+);
+
+
+-- Table: device
+CREATE TABLE device (
+    deviceid        INTEGER PRIMARY KEY AUTOINCREMENT,
+    mac             TEXT    UNIQUE
+                            NOT NULL,
+    name            TEXT,
+    fw_version      TEXT    DEFAULT (''),
+    hw_version      TEXT    DEFAULT (''),
+    netid           INTEGER REFERENCES net (netid),
+    mac_ap          TEXT,
+    fuse            INTEGER,
+    channel         INTEGER,
+    channel_config  INTEGER,
+    endpoint_addr   TEXT,
+    endpoint_port   INTEGER,
+    has_rtc         BOOLEAN DEFAULT (false),
+    has_temp_sensor BOOLEAN DEFAULT (false),
+    layer           INTEGER,
+    parent_mac      TEXT
+);
+
 
 -- Table: instance
 CREATE TABLE instance (
@@ -15,6 +46,14 @@ CREATE TABLE instance (
     subscribe          TEXT,
     root_password      BLOB,
     root_salt          BLOB
+);
+
+
+-- Table: net
+CREATE TABLE net (
+    netid    INTEGER PRIMARY KEY AUTOINCREMENT,
+    net_addr TEXT    NOT NULL,
+    name             DEFAULT ('') 
 );
 
 
@@ -45,6 +84,16 @@ CREATE TABLE push_notify (
     p256dh        TEXT,
     auth          TEXT,
     user_agent    TEXT
+);
+
+
+-- Table: sensor_type
+CREATE TABLE sensor_type (
+    sensor_typeid INTEGER PRIMARY KEY AUTOINCREMENT,
+    name          TEXT,
+    type          TEXT,
+    unit_name     TEXT,
+    unit          TEXT
 );
 
 

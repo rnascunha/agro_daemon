@@ -22,10 +22,17 @@ class Device{
 		Device();			//Must be default constructible to use map
 		Device(mesh_addr_t const& mac_);
 		Device(const char* mac_str, unsigned, Error& ec);
+		Device(device_id, mesh_addr_t const&);
 		Device(device_id, mesh_addr_t const&,
+				mesh_addr_t const& mac_ap,
+				mesh_addr_t const& parent,
+				endpoint const& ep,
 				std::string const& name = "",
 				std::string const& fw_version = "",
-				std::string const& hw_version = "");
+				std::string const& hw_version = "",
+				uint8_t channel_config = 0, uint8_t channel = 0,
+				bool has_rtc = false, bool has_temp_sensor = false,
+				int layer = -1);
 
 		/**
 		 * Getters
@@ -83,7 +90,7 @@ class Device{
 		void update(endpoint const&, Resource::config const&, Net* net) noexcept;
 		void update(endpoint const&, Resource::route const&,
 				const uint8_t* children, std::size_t children_size) noexcept;
-		void update(endpoint const&, Resource::full_config const&,
+		void update(endpoint const&, Resource::full_config const&, Net* net,
 				const uint8_t* children, std::size_t children_size) noexcept;
 		void update(endpoint const&, Resource::board_config const&,
 				const char* version, std::size_t version_len) noexcept;

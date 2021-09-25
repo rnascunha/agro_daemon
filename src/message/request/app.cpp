@@ -155,7 +155,7 @@ static void delete_app_response(
 		return;
 	}
 	auto const dev = instance.device_list()[host];
-	dev->delete_app(std::string{static_cast<const char*>(request.payload), request.payload_len});
+	dev->delete_app({static_cast<const char*>(request.payload), request.payload_len});
 	ws->write_all(Agro::Device::Message::device_apps_to_json(*dev));
 }
 
@@ -224,7 +224,7 @@ static std::size_t send_app_payload(
 		const char* c = doc["payload"].GetString();
 		s = std::strlen(c);
 		sha256_hash hash;
-		if(!calculate_app_hash(std::string{c}, hash))
+		if(!calculate_app_hash({c, s}, hash))
 		{
 			ec = make_error_code(Error::app_not_found);
 			return 0;

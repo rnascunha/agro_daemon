@@ -78,7 +78,7 @@ static bool is_auth_package(rapidjson::Document const& doc,
 	}
 	rapidjson::Value const& payload = doc["data"].GetObject();
 
-	auto const* user_type = Message::get_user_config(doc["command"].GetString());
+	Message::config<Message::user_commands> const* user_type = Message::get_user_config(doc["command"].GetString());
 	comm = user_type->mtype;
 	switch(comm)
 	{

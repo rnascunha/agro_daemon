@@ -183,10 +183,50 @@ static void send_request(
 	}
 }
 
+static bool is_user_allowed(CoAP::Message::code code, Agro::User::Logged& user) noexcept
+{
+	bool ret = true;
+	switch(code)
+	{
+		case CoAP::Message::code::get:
+			if(!Agro::Authorization::can(user, Agro::Authorization::rule::get_resource))
+			{
+				tt::warning("User '%d' not allowed to send GET requests!", user.id());
+				ret = false;
+			}
+			break;
+		case CoAP::Message::code::put:
+			if(!Agro::Authorization::can(user, Agro::Authorization::rule::put_resource))
+			{
+				tt::warning("User '%d' not allowed to send PUT requests!", user.id());
+				ret = false;
+			}
+			break;
+		case CoAP::Message::code::post:
+			if(!Agro::Authorization::can(user, Agro::Authorization::rule::post_resource))
+			{
+				tt::warning("User '%d' not allowed to send POST requests!", user.id());
+				ret = false;
+			}
+			break;
+		case CoAP::Message::code::cdelete:
+			if(!Agro::Authorization::can(user, Agro::Authorization::rule::delete_resource))
+			{
+				tt::warning("User '%d' not allowed to send DELETE requests!", user.id());
+				ret = false;
+			}
+			break;
+		default:
+			tt::warning("Wrong request method!");
+			ret = false;
+	}
+	return ret;
+}
+
 void process_request(rapidjson::Document const& doc,
 				Agro::websocket_ptr ws,
 				Agro::instance& instance,
-				Agro::User::Logged&) noexcept
+				Agro::User::Logged& user) noexcept
 {
 	if(!doc.HasMember("request") || !doc["request"].IsString())
 	{
@@ -228,6 +268,9 @@ void process_request(rapidjson::Document const& doc,
 		req = &custom_req;
 	}
 	std::cout << "Req: " << static_cast<int>(config->mtype) << " " << config->name << "\n";
+
+	//Checking if user is allowed
+	if(!is_user_allowed(req->method, user)) return;
 
 	send_request(doc["device"].GetString(),
 			dev->get_endpoint(),

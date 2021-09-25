@@ -8,7 +8,7 @@
 #include "types.hpp"
 #include "ota.hpp"
 #include "user.hpp"
-#include "../device/message/device.hpp"
+#include "../device/message/process.hpp"
 #include "app.hpp"
 
 #include "../websocket/types.hpp"
@@ -47,11 +47,7 @@ void process(std::string&& data,
 			process_request(d, ws, instance, user);
 			break;
 		case Message::type::device:
-			ws->write_policy(Agro::Authorization::rule::view_device,
-					std::make_shared<std::string>(Agro::Device::Message::device_list_to_json(instance.device_list())));
-			break;
-		case Message::type::command:
-			process_commands(d, ws, instance.device_list());
+			Agro::Device::Message::process(d, ws, instance, user);
 			break;
 		case Message::type::image:
 			process_image(d, ws);

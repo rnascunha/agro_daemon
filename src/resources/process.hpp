@@ -36,6 +36,7 @@ bool process_config(Agro::Device::Device&,
 
 bool process_full_config(Agro::Device::Device&,
 					Agro::share_ptr,
+					Agro::instance&,
 					engine::endpoint const&,
 					const void* payload, std::size_t payload_len,
 					std::error_code&) noexcept;

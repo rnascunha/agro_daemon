@@ -1,5 +1,6 @@
 #include "device.hpp"
 #include "../../message/make.hpp"
+#include "../net.hpp"
 
 namespace Agro{
 namespace Device{
@@ -29,18 +30,9 @@ template<typename Allocator>
 static void make_apps(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_device_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-
-static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept
-{
-	auto const* config = get_config(comm);
-	if(!config) return false;
-
-	doc.AddMember("command",
-			rapidjson::Value(config->name, doc.GetAllocator()).Move(),
-			doc.GetAllocator());
-
-	return true;
-}
+template<typename Allocator>
+static void make_mandatory_data_info(rapidjson::Value&, Device const&, Allocator&) noexcept;
+static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept;
 
 void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
@@ -51,8 +43,7 @@ void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_config_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -75,8 +66,7 @@ void device_status_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_status_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -99,8 +89,7 @@ void device_route_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_route_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -123,8 +112,7 @@ void device_full_config_to_json(rapidjson::Document& doc, Device const& dev) noe
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_full_config_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -147,8 +135,7 @@ void device_board_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_board_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -171,8 +158,7 @@ void device_sensor_data_to_json(rapidjson::Document& doc, Device const& dev) noe
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_sensor_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -196,8 +182,7 @@ void device_gpios_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	make_gpios(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
@@ -220,8 +205,7 @@ void device_uptime_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
 	rapidjson::Value v;
 	data.AddMember("uptime", ::Message::make_value(v, dev.uptime(), doc.GetAllocator()), doc.GetAllocator());
@@ -246,8 +230,8 @@ void device_rtc_time_to_json(rapidjson::Document& doc, Device const& dev) noexce
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
 	rapidjson::Value v;
 	data.AddMember("rtc", ::Message::make_value(v, dev.rtc_time(), doc.GetAllocator()), doc.GetAllocator());
 
@@ -271,8 +255,8 @@ void device_fuse_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
 	rapidjson::Value v;
 	data.AddMember("fuse", dev.fuse(), doc.GetAllocator());
 
@@ -297,8 +281,8 @@ void device_jobs_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
 	make_jobs(data, dev, doc.GetAllocator());
 
 	::Message::add_data(doc, data);
@@ -323,8 +307,8 @@ void device_ota_to_json(rapidjson::Document& doc,
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
 	rapidjson::Value v;
 	data.AddMember("ota_version", STRING_TO_JSON_VALUE(version.c_str(), doc), doc.GetAllocator());
 
@@ -348,8 +332,8 @@ void device_apps_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
-	::Message::add_endpoint(data, dev.get_endpoint(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
 	rapidjson::Value v;
 	make_apps(data, dev, doc.GetAllocator());
 
@@ -374,7 +358,8 @@ void device_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 	rapidjson::Value data;
 	data.SetObject();
 
-	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
 	make_device_data(data, dev, doc.GetAllocator());
 	::Message::add_data(doc, data);
 }
@@ -402,8 +387,8 @@ void device_list_to_json(rapidjson::Document& doc, Device_List const& list) noex
 		rapidjson::Value devj;
 		devj.SetObject();
 
+		make_mandatory_data_info(devj, dev, doc.GetAllocator());
 		make_device_data(devj, dev, doc.GetAllocator());
-		::Message::add_device(devj, dev.mac(), doc.GetAllocator());
 
 		dev_arr.PushBack(devj, doc.GetAllocator());
 	}
@@ -418,6 +403,28 @@ std::string device_list_to_json(Device_List const& list) noexcept
 	return ::Message::stringify(doc);
 }
 
+std::string device_edited_to_json(Device const& dev) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::edit);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	data.AddMember("name",
+			rapidjson::Value(dev.name().data(), dev.name().size(),
+						doc.GetAllocator()).Move(),
+			doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
 /**
  *
  */
@@ -427,8 +434,10 @@ static void make_config_data(rapidjson::Value& data, Device const& dev, Allocato
 	data.AddMember("ch_config", dev.channel_config(), alloc);
 	data.AddMember("ch_conn", dev.channel(), alloc);
 
-	char net_id[18], mac_ap[18];
-	data.AddMember("net_id", rapidjson::Value(dev.net_id().to_string(net_id, 18),
+	char mac_ap[18];
+	data.AddMember("net_id",
+			rapidjson::Value(dev.net()->net_addr().to_string().data(),
+					dev.net()->net_addr().to_string().size(),
 			alloc).Move(), alloc);
 	data.AddMember("mac_ap", rapidjson::Value(dev.mac_ap().to_string(mac_ap, 18),
 			alloc).Move(), alloc);
@@ -596,7 +605,6 @@ static void make_others_data(rapidjson::Value& data, Device const& dev, Allocato
 template<typename Allocator>
 static void make_device_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
 {
-	::Message::add_endpoint(data, dev.get_endpoint(), alloc);
 	//Config
 	make_config_data(data, dev, alloc);
 	//Status
@@ -609,6 +617,27 @@ static void make_device_data(rapidjson::Value& data, Device const& dev, Allocato
 	//Others
 	make_others_data(data, dev, alloc);
 }
+
+template<typename Allocator>
+static void make_mandatory_data_info(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
+{
+	data.AddMember("id", dev.id(), alloc);
+	::Message::add_device(data, dev.mac(), alloc);
+	::Message::add_endpoint(data, dev.get_endpoint(), alloc);
+}
+
+static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept
+{
+	auto const* config = get_config(comm);
+	if(!config) return false;
+
+	doc.AddMember("command",
+			rapidjson::Value(config->name, doc.GetAllocator()).Move(),
+			doc.GetAllocator());
+
+	return true;
+}
+
 
 }//Message
 }//Device

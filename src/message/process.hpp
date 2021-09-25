@@ -14,9 +14,6 @@ void process_request(rapidjson::Document const&,
 				Agro::websocket_ptr,
 				Agro::instance&,
 				Agro::User::Logged&) noexcept;
-void process_commands(rapidjson::Document const&,
-		Agro::websocket_ptr,
-			Agro::Device::Device_List&) noexcept;
 void process(std::string&& str,
 		Agro::websocket_ptr,
 		Agro::instance&,

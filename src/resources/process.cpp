@@ -98,6 +98,7 @@ bool process_config(Agro::Device::Device& device,
 
 bool process_full_config(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
+					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
@@ -109,7 +110,10 @@ bool process_full_config(Agro::Device::Device& device,
 	}
 	full_config const* rt = static_cast<full_config const*>(payload);
 
-	device.update(ep, *rt,
+	::mesh_addr_t net_addr{rt->fconfig.net_id.addr};
+	Agro::Device::Net* net = instance.get_or_add_net(net_addr);
+
+	device.update(ep, *rt, net,
 			static_cast<const uint8_t*>(payload) + sizeof(route) + sizeof(status) + sizeof(config),
 			payload_len - sizeof(route) - sizeof(status) - sizeof(config));
 

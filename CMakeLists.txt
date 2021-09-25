@@ -273,7 +273,6 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
-					${MESSAGE_DIR}/commands.cpp
 					${MESSAGE_DIR}/request.cpp
 					${MESSAGE_DIR}/process.cpp
 					${MESSAGE_DIR}/ota.cpp
@@ -300,6 +299,7 @@ set(DEVICE_DIR		${SRC_DIR}/device)
 set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					${DEVICE_DIR}/net.cpp
 					${DEVICE_DIR}/message/device.cpp
+					${DEVICE_DIR}/message/process.cpp
 					${DEVICE_DIR}/helper.cpp
 					${DEVICE_DIR}/types.cpp
 					${DEVICE_DIR}/list.cpp)

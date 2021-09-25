@@ -13,12 +13,14 @@ namespace Message{
 
 enum class device_commands{
 	list = 0,
-	data
+	data,
+	edit
 };
 
 constexpr const ::Message::config<device_commands> device_config[] = {
 	{device_commands::list, "list"},
-	{device_commands::data, "data"}
+	{device_commands::data, "data"},
+	{device_commands::edit, "edit"}
 };
 
 inline constexpr ::Message::config<device_commands> const* get_config(device_commands t) noexcept
@@ -83,6 +85,8 @@ std::string device_to_json(Device const& dev) noexcept;
 
 void device_list_to_json(rapidjson::Document& doc, Device_List const& list) noexcept;
 std::string device_list_to_json(Device_List const& list) noexcept;
+
+std::string device_edited_to_json(Device const& dev) noexcept;
 
 }//Message
 }//Device

@@ -48,7 +48,7 @@ std::string stringify(rapidjson::Document const& doc) noexcept
 	rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
 	doc.Accept(writer);
 
-	return std::string{sb.GetString()};
+	return sb.GetString();
 }
 
 }//Message
