@@ -3,11 +3,13 @@
 #include "process.hpp"
 #include "types.hpp"
 #include "request/types.hpp"
+#include "report.hpp"
+
 #include "coap-te-debug.hpp"
 #include "make.hpp"
 #include "../websocket/types.hpp"
 #include "../resources/process.hpp"
-#include "info.hpp"
+#include "../helper/coap_helper.hpp"
 
 namespace Message{
 
@@ -31,26 +33,40 @@ static void request_cb(void const* trans,
 		Agro::websocket_ptr ws,
 		Agro::instance& instance) noexcept
 {
-	std::cout << "Request callback called...\n";
-
 	auto const* t = static_cast<engine::transaction_t const*>(trans);
-	std::cout << "Status: " << static_cast<int>(t->status()) << "\n";
+	auto req = static_cast<Message::requests>(reinterpret_cast<std::uintptr_t>(request));
+
+	CoAP::Message::Option::option op;
+	if(!CoAP::Message::Option::get_option(t->request(), op, CoAP::Message::Option::code::uri_host))
+	{
+		/**
+		 * This is a impossible possibility! Something is wrong and must be
+		 * checked
+		 */
+		tt::error("Option uri-host not found!");
+		CoAP::Debug::print_message(t->request());
+//		return;
+		//goto end;
+	}
+	std::error_code ec;
+	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
+
+	std::string path = make_coap_path(t->request());
+
 	if(response)
 	{
 		std::cout << "Response received!\n\n";
 		CoAP::Debug::print_message_string(*response);
-
-		auto req = static_cast<Message::requests>(reinterpret_cast<std::uintptr_t>(request));
 		engine::endpoint const ep = t->endpoint();
 		Message::request_config const* config = Message::get_requests_config(req);
-		if(!config) return;
+		if(!config)
+		{
+			goto end;
+		}
 
-		CoAP::Message::Option::option op;
-		CoAP::Message::Option::get_option(*response, op, CoAP::Message::Option::code::uri_host);
 
-		std::error_code ec;
-		::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
-		if(ec) return;
+		ws->write(instance.make_report(Agro::Message::report_type::success,
+						host, "Request succeded", path, ws->user().id()));
 
 		if(config->response)
 		{
@@ -71,14 +87,11 @@ static void request_cb(void const* trans,
 		 */
 		std::cout << "Response NOT received\n";
 
-		rapidjson::Document doc;
-		Message::make_response(doc, t->request(), t->endpoint(), t->status());
-
-		std::string resp_str = Message::stringify(doc);
-		std::cout << resp_str << "\n";
-
-		ws->write_all(resp_str);
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+								host, "Request failed", path, ws->user().id()));
 	}
+end:
+	instance.remove_request_in_progress(host, t->request().mcode, req);
 }
 
 static void process_custom_request(rapidjson::Document const& d,
@@ -247,6 +260,7 @@ void process_request(rapidjson::Document const& doc,
 		std::cerr << "Request device not found\n";
 		return;
 	}
+
 	Agro::Device::Device const* dev = instance.device_list()[doc["device"].GetString()];
 	if(!dev)
 	{
@@ -271,6 +285,16 @@ void process_request(rapidjson::Document const& doc,
 
 	//Checking if user is allowed
 	if(!is_user_allowed(req->method, user)) return;
+
+	if(config->mtype != Message::requests::custom)
+	{
+		if(!instance.add_request_in_progress(dev->mac(), req->method, config->mtype, user.id()))
+		{
+			ws->write(instance.make_report(Agro::Message::report_type::warning,
+							dev->mac(), "Request in progress", make_coap_path(req->options), user.id()));
+			return;
+		}
+	}
 
 	send_request(doc["device"].GetString(),
 			dev->get_endpoint(),

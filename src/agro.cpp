@@ -259,7 +259,7 @@ bool instance::add_group(std::string const& name,
 	int rc = db_.add_user_group(name, description, id);
 	if(rc != SQLITE_DONE)
 	{
-		tt::error("Error adding group '%d' to database. [err=%d]", name.c_str(), rc);
+		tt::error("Error adding group '%s' to database. [err=%d]", name.c_str(), rc);
 		return false;
 	}
 
@@ -366,6 +366,47 @@ void instance::notify_all_policy(Authorization::rule rule, std::string const& da
 				notify_.notify(s, data);
 		}
 	}
+}
+
+bool instance::has_request_in_progress(mesh_addr_t const& address,
+		CoAP::Message::code method,
+		::Message::requests req) const noexcept
+{
+	return requests_.has(address, method, req);
+}
+
+bool instance::add_request_in_progress(mesh_addr_t const& address,
+		CoAP::Message::code method,
+		::Message::requests req,
+		User::user_id id) noexcept
+{
+	return requests_.add(address, method, req, id);
+}
+
+bool instance::remove_request_in_progress(mesh_addr_t const& address,
+		CoAP::Message::code method,
+		::Message::requests req) noexcept
+{
+	return requests_.remove(address, method, req);
+}
+
+/**
+ *
+ */
+
+bool instance::read_all_reports(std::vector<Message::report>& reports,
+		User::user_id id, int limit /* = 0 */) noexcept
+{
+	return db_.read_all_reports(reports, id, limit);
+}
+std::shared_ptr<std::string> instance::make_report(Message::report_type type,
+				mesh_addr_t const& addr,
+				std::string const& message,
+				std::string const& arg,
+				User::user_id id) noexcept
+{
+	db_.add_report(Message::report_commands::device, type, addr.to_string(), message, arg, id);
+	return std::make_shared<std::string>(Message::report_message(type, addr, message, arg));
 }
 
 Device::Device_List const& instance::device_list() const noexcept

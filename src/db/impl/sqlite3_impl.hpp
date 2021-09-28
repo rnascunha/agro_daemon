@@ -15,28 +15,6 @@ int sqlite3::prepare_bind_impl(statement& res, int index, Arg&& arg, Args&& ...a
 	return prepare_bind_impl(res, index, std::forward<Args>(args)...);
 }
 
-//template<typename ...Args>
-//int sqlite3::prepare_bind_impl(statement& res,
-//		int index,
-//		const void* data, int size,
-//		Args&& ...args) noexcept
-//{
-//	int rc = res.bind(++index, data, size);
-//	if(rc != SQLITE_OK) return rc;
-//	return prepare_bind_impl(res, index, std::forward<Args>(args)...);
-//}
-//
-//template<typename ...Args>
-//int sqlite3::prepare_bind_impl(statement& res,
-//				int index,
-//				const std::uint8_t* data, int size,
-//				Args&& ...args) noexcept
-//{
-//	int rc = res.bind(++index, static_cast<const void*>(data), size);
-//	if(rc != SQLITE_OK) return rc;
-//	return prepare_bind_impl(res, index, std::forward<Args>(args)...);
-//}
-
 template<typename ...Args>
 int sqlite3::prepare_bind(const std::string_view& sql_statement, statement& res, Args&& ...args) noexcept
 {

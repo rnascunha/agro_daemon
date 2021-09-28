@@ -27,6 +27,7 @@ class sqlite3{
 				int step() noexcept;
 
 				int bind(int, int) noexcept;
+				int bind(int, long) noexcept;
 				int bind(int, std::string const&, destructor_type = static_destructor) noexcept;
 				int bind(int, const void*, int, destructor_type = static_destructor) noexcept;
 				int bind(int, binary const& data, destructor_type = static_destructor) noexcept;
@@ -35,6 +36,7 @@ class sqlite3{
 				int clear_bidings() noexcept;
 
 				int interger(int) noexcept;
+				long long_interger(int) noexcept;
 				std::string text(int) noexcept;
 				const unsigned char* text(int, int& size) noexcept;
 				const void* blob(int, int& size) noexcept;

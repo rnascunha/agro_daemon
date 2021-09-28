@@ -14,6 +14,8 @@
 #include "../../notify/message.hpp"
 #include "tt/tt.hpp"
 
+#include "../../message/report.hpp"
+
 namespace Message{
 
 #if USE_SSL == 0
@@ -120,13 +122,34 @@ read_handler(std::string data) noexcept
 					user_.user()->info().name().c_str(),
 					user_.user()->info().username().c_str());
 
+			/**
+			 * Sending authenticate info
+			 */
 			this->write(Agro::User::Message::user_authentication(user_));
-			if(instance().notify_is_valid())
+
+			/**
+			 * Sending notify public key
+			 */
+			if(share_->instance().notify_is_valid())
 			{
-				this->write(Message::make_public_key(instance().get_notify_public_key()));
+				this->write(Message::make_public_key(share_->instance().get_notify_public_key()));
 			}
+
+			/**
+			 * Sending device data
+			 */
 			write_policy(Agro::Authorization::rule::view_device,
-				std::make_shared<std::string>(Agro::Device::Message::device_list_to_json(instance().device_list())));
+				std::make_shared<std::string>(
+						Agro::Device::Message::device_list_to_json(share_->instance().device_list())));
+
+			/**
+			 * Getting reports
+			 */
+			std::vector<Agro::Message::report> reports;
+			share_->instance().read_all_reports(reports, user_.id(), 20);
+
+			this->write(std::make_shared<std::string>(Agro::Message::report_message(reports)));
+
 //			this->write(Message::ota_image_list(ota_path()));
 //			this->write(Message::app_list(app_path()));
 		}
@@ -146,7 +169,7 @@ read_handler(std::string data) noexcept
 		tt::debug("Received[%zu]: %.*s", data.size(), data.size(), data.data());
 		Message::process(std::move(data),
 				this->shared_from_this(),
-				instance(),
+				share_->instance(),
 				user_);
 	}
 }

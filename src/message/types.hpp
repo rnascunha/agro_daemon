@@ -23,7 +23,8 @@ enum class type{
 	image,       /**< image */
 	app,		/**< app */
 	user,		/**< user */
-	info        /**< info */
+	info,        /**< info */
+	report,		/**< report */
 };
 
 constexpr const config<type> tconfig[] = {
@@ -34,9 +35,9 @@ constexpr const config<type> tconfig[] = {
 	{type::image, "image"},
 	{type::app, "app"},
 	{type::user, "user"},
-	{type::info, "info"}
+	{type::info, "info"},
+	{type::report, "report"}
 };
-
 
 inline constexpr config<type> const* get_type_config(type t) noexcept
 {

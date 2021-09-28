@@ -22,7 +22,7 @@ template<std::size_t Iterations,
 bool authenticate(User::Logged&,
 		rapidjson::Document const&,
 		instance&,
-		Message::user_commands&,
+		::Message::user_commands&,
 		std::error_code&) noexcept;
 template<unsigned SessionIDLenght>
 bool create_session_id(User::Logged& user,

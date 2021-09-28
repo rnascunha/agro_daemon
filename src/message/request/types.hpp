@@ -1,39 +1,15 @@
+#include <vector>
+
+#include "request_list.hpp"
 #include "../../coap_engine.hpp"
 #include "../../agro.hpp"
 #include "../../websocket/types.hpp"
-#include <vector>
+
+//namespace Agro{
+//class instance;
+//};
 
 namespace Message{
-
-enum class requests{
-	custom,
-	ac_load1_on,
-	ac_load1_off,
-	ac_load2_on,
-	ac_load2_off,
-	ac_load3_on,
-	ac_load3_off,
-	reset,
-	uptime,
-	get_rtc,
-	update_rtc,
-	get_fuse,
-	update_fuse,
-	sensor,
-	route,
-	board,
-	config,
-	full_config,
-	get_ota,
-	update_ota,
-	send_job,
-	get_job,
-	delete_job,
-	get_app,
-	send_app,
-	run_app,
-	delete_app
-};
 
 struct request_message
 {

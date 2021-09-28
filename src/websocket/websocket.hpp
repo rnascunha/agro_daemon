@@ -1,12 +1,13 @@
 #ifndef AGRO_MESH_WEBSOCKET_HPP__
 #define AGRO_MESH_WEBSOCKET_HPP__
 
+#include <string>
+#include <filesystem>
+
 #include "boost/asio.hpp"
 #include "my_async.hpp"
 #include "share.hpp"
-#include <string>
 
-#include "../agro.hpp"
 #include "../coap_engine.hpp"
 #include "../user/user.hpp"
 
@@ -40,16 +41,6 @@ class Websocket final :
 				share_(share){}
 
 		~Websocket();
-
-		Agro::instance const& instance() const noexcept
-		{
-			return share_->instance();
-		}
-
-		Agro::instance& instance() noexcept
-		{
-			return share_->instance();
-		}
 
 		void write_all(std::string const data) noexcept;
 		void write_all(std::string const data, bool text) noexcept;

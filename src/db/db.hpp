@@ -13,6 +13,8 @@
 #include "../device/list.hpp"
 #include "../device/net.hpp"
 
+#include "../message/report.hpp"
+
 namespace Agro{
 
 class DB{
@@ -29,8 +31,6 @@ class DB{
 
 		bool read_policy_types(Authorization::Policy_Types&) noexcept;
 		bool read_policies(Authorization::Policies&) noexcept;
-
-//		bool read_permission_list(Authorization::Permission_List&) noexcept;
 
 		User::Info get_user(User::user_id id) noexcept;
 		User::Info get_user(std::string const& username) noexcept;
@@ -57,8 +57,6 @@ class DB{
 
 		int delete_user(User::user_id) noexcept;
 		int delete_user_from_group(User::user_id) noexcept;
-//		int delete_permissions(Authorization::type,
-//				Authorization::ref_type, Authorization::ref_id) noexcept;
 
 		int delete_group(User::group_id) noexcept;
 
@@ -110,6 +108,18 @@ class DB{
 
 		int update_device(Device::Device const&) noexcept;
 		int update_device_route(Device::Device const&) noexcept;
+
+		/**
+		 *
+		 */
+		int read_all_reports(std::vector<Message::report>&, User::user_id, int limit = 0) noexcept;
+
+		int add_report(Message::report_commands command,
+				Message::report_type type,
+				std::string const& reference,
+				std::string const& message,
+				std::string const& arg,
+				User::user_id id) noexcept;
 
 		const char* error(){ return db_.error(); };
 	private:

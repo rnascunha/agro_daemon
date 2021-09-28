@@ -41,7 +41,7 @@ check_authenticate(std::string const& data) noexcept
 			USER_AUTH_INTERATION_NUMBER,
 			USER_AUTH_KEY_LENGTH,
 			USER_AUTH_SALT_LENGTH,
-			USER_SESSION_TIME_SECONDS>(user_, doc, instance(), comm, ec))
+			USER_SESSION_TIME_SECONDS>(user_, doc, share_->instance(), comm, ec))
 	{
 		error_auth(ec, "auth fail");
 		return false;
@@ -50,7 +50,7 @@ check_authenticate(std::string const& data) noexcept
 	if(comm == Message::user_commands::autheticate
 		&& user_.user()->id() != Agro::User::root_id)
 	{
-		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, instance(), ec);
+		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, share_->instance(), ec);
 	}
 
 	return false;

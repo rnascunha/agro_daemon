@@ -278,7 +278,8 @@ set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 					${MESSAGE_DIR}/ota.cpp
 					${MESSAGE_DIR}/app.cpp
 					${MESSAGE_DIR}/user.cpp
-					${MESSAGE_DIR}/info.cpp)
+					${MESSAGE_DIR}/info.cpp
+					${MESSAGE_DIR}/report.cpp)
 
 set(REQUEST_DIR		${MESSAGE_DIR}/request)					
 set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
@@ -288,8 +289,9 @@ set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
 					${REQUEST_DIR}/system.cpp
 					${REQUEST_DIR}/ota.cpp
 					${REQUEST_DIR}/app.cpp
-					${REQUEST_DIR}/time.cpp)
-
+					${REQUEST_DIR}/time.cpp
+					${REQUEST_DIR}/in_progress.cpp
+					)
 
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
 set(NOTIFY_SRC		${NOTIFY_DIR}/notify_request.cpp
@@ -317,11 +319,13 @@ set(DB_DIR			${SRC_DIR}/db)
 set(DB_SRC			${DB_DIR}/sqlite3.cpp
 					${DB_DIR}/db.cpp
 					${DB_DIR}/user.cpp
-					${DB_DIR}/device.cpp)
+					${DB_DIR}/device.cpp
+					${DB_DIR}/report.cpp)
 					
 set(HELPER_DIR		${SRC_DIR}/helper)
 set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
-					${HELPER_DIR}/time_helper.cpp)	
+					${HELPER_DIR}/time_helper.cpp
+					${HELPER_DIR}/coap_helper.cpp)	
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
 			${SRC_DIR}/error.cpp

@@ -298,11 +298,12 @@ std::size_t Session_List::size() const noexcept
 void Logged::user(User const* user) noexcept
 {
 	user_ = user;
+	id_ = user->id();
 }
 
 user_id Logged::id() const noexcept
 {
-	return user_ == nullptr ? invalid_id : user_->id();
+	return id_;
 }
 
 std::string const& Logged::user_agent() const noexcept

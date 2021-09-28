@@ -1,6 +1,7 @@
 #ifndef AGRO_DAEMON_USER_AUTH_IMPL_HPP__
 #define AGRO_DAEMON_USER_AUTH_IMPL_HPP__
 
+#include "../../agro.hpp"
 #include "../authenticate.hpp"
 #include "../authenticate_params.h"
 #include "../../error.hpp"
@@ -49,16 +50,16 @@ static bool check_auth_session_id_package(
 
 static bool is_auth_package(rapidjson::Document const& doc,
 		std::error_code& ec,
-		Message::user_commands& comm) noexcept
+		::Message::user_commands& comm) noexcept
 {
-	auto const* typec = Message::get_type_config(doc["type"].GetString());
+	auto const* typec = ::Message::get_type_config(doc["type"].GetString());
 	if(!typec)
 	{
 		ec = make_error_code(Error::missing_field);
 		return false;
 	}
 
-	if(typec->mtype != Message::type::user)
+	if(typec->mtype != ::Message::type::user)
 	{
 		ec = make_error_code(Error::invalid_value);
 		return false;
@@ -78,13 +79,13 @@ static bool is_auth_package(rapidjson::Document const& doc,
 	}
 	rapidjson::Value const& payload = doc["data"].GetObject();
 
-	Message::config<Message::user_commands> const* user_type = Message::get_user_config(doc["command"].GetString());
+	::Message::config<::Message::user_commands> const* user_type = ::Message::get_user_config(doc["command"].GetString());
 	comm = user_type->mtype;
 	switch(comm)
 	{
-		case Message::user_commands::autheticate:
+		case ::Message::user_commands::autheticate:
 			return check_authentice_package(payload, ec);
-		case Message::user_commands::auth_session_id:
+		case ::Message::user_commands::auth_session_id:
 			return check_auth_session_id_package(payload, ec);
 		default:
 			ec = make_error_code(Error::invalid_value);
@@ -209,7 +210,7 @@ template<std::size_t Iterations,
 bool authenticate(User::Logged& user,
 		rapidjson::Document const& doc,
 		instance& instance,
-		Message::user_commands& comm,
+		::Message::user_commands& comm,
 		std::error_code& ec) noexcept
 {
 	//Checking package
@@ -231,9 +232,9 @@ bool authenticate(User::Logged& user,
 
 	switch(comm)
 	{
-		case Message::user_commands::autheticate:
+		case ::Message::user_commands::autheticate:
 			return check_password<Iterations, KeyLength, SaltLength>(user, payload, instance, ec);
-		case Message::user_commands::auth_session_id:
+		case ::Message::user_commands::auth_session_id:
 			return check_session_id<SessionTime>(user, payload, instance, ec);
 		default:
 			ec = make_error_code(Error::invalid_value);

@@ -18,7 +18,7 @@ User* User_List::add(User&& user) noexcept
 bool User_List::remove(user_id id) noexcept
 {
 	auto u = list_.find(id);
-	if(u != list_.end())
+	if(u == list_.end())
 	{
 		return false;
 	}

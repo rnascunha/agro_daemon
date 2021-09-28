@@ -10,6 +10,12 @@ static void edit_device(rapidjson::Document const& doc,
 		Agro::instance& instance,
 		Agro::User::Logged& user) noexcept
 {
+	if(!Authorization::can(user, Authorization::rule::edit_device))
+	{
+		tt::warning("User %d can't edit device.", user.id());
+		return;
+	}
+
 	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
 		tt::warning("Device data not found or wrong type");

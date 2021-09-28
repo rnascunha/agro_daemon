@@ -8,8 +8,6 @@
 #include <vector>
 #include "../user/policy.hpp"
 
-//#include "../agro.hpp"
-
 namespace Agro{
 
 class instance;

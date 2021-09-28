@@ -1,0 +1,65 @@
+#include "in_progress.hpp"
+#include <algorithm>
+
+namespace Message{
+
+request_in_progress::request_in_progress(mesh_addr_t const& address,
+			CoAP::Message::code code,
+			requests req,
+			Agro::User::user_id uid)
+	: addr(address), method(code), request(req), id(uid){}
+
+bool request_in_progress::is_equal(mesh_addr_t const& address,
+		CoAP::Message::code code,
+		requests req) const noexcept
+{
+	return addr == address && method == code && request == req;
+}
+
+bool Request_in_Pogress_List::has(mesh_addr_t const& address,
+		CoAP::Message::code method,
+		requests req) const noexcept
+{
+	for(auto const& r : list_)
+	{
+		if(r.is_equal(address, method, req))
+			return true;
+	}
+	return false;
+}
+
+bool Request_in_Pogress_List::add(mesh_addr_t const& address,
+		CoAP::Message::code method,
+		requests req,
+		Agro::User::user_id uid) noexcept
+{
+	if(has(address, method, req))
+	{
+		return false;
+	}
+
+	list_.emplace_back(address, method, req, uid);
+
+	return true;
+}
+
+bool Request_in_Pogress_List::remove(mesh_addr_t const& address,
+		CoAP::Message::code method,
+		requests req) noexcept
+{
+	auto p = std::remove_if(list_.begin(), list_.end(),
+			[&address, &method, &req](request_in_progress const& rp){
+		return rp.is_equal(address, method, req);
+	});
+
+	if(p == list_.end())
+	{
+		return false;
+	}
+
+	list_.erase(p, list_.end());
+
+	return true;
+}
+
+}//Message

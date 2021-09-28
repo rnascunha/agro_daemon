@@ -11,6 +11,9 @@
 #include "user/list.hpp"
 #include "user/policy.hpp"
 
+#include "message/report.hpp"
+#include "message/request/in_progress.hpp"
+
 namespace Agro{
 
 class instance{
@@ -99,6 +102,33 @@ class instance{
 		bool update_db_device(Device::Device const&) noexcept;
 		Device::Net* get_or_add_net(mesh_addr_t const&) noexcept;
 
+		/**
+		 *
+		 */
+		bool has_request_in_progress(mesh_addr_t const&,
+				CoAP::Message::code,
+				::Message::requests) const noexcept;
+		bool add_request_in_progress(mesh_addr_t const&,
+				CoAP::Message::code,
+				::Message::requests,
+				User::user_id) noexcept;
+		bool remove_request_in_progress(mesh_addr_t const&,
+				CoAP::Message::code,
+				::Message::requests) noexcept;
+
+		/**
+		 *
+		 */
+		bool read_all_reports(std::vector<Message::report>&, User::user_id, int limit = 0) noexcept;
+		std::shared_ptr<std::string> make_report(Message::report_type,
+				mesh_addr_t const&,
+				std::string const& /* message */,
+				std::string const& /* arg */,
+				User::user_id) noexcept;
+
+		/**
+		 *
+		 */
 		Device::Device_List const& device_list() const noexcept;
 		Device::Device_List& device_list() noexcept;
 
@@ -121,6 +151,8 @@ class instance{
 							User::root_name,
 							User::Info::status::active,
 							"" /* email */}};
+
+		::Message::Request_in_Pogress_List requests_;
 
 		std::vector<engine::resource_node> vresource_;
 #if USE_SSL == 1

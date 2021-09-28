@@ -196,6 +196,8 @@ class Logged{
 		void authenticate(std::string const& session_id,
 				std::string const& user_agent) noexcept;
 	private:
+		user_id id_ = invalid_id;
+
 		std::string user_agent_;
 		std::string session_id_;
 

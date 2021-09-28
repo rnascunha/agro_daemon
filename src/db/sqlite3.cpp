@@ -96,6 +96,11 @@ int sqlite3::statement::bind(int index, int value) noexcept
 	return sqlite3_bind_int(stmt_, index, value);
 }
 
+int sqlite3::statement::bind(int index, long value) noexcept
+{
+	return sqlite3_bind_int64(stmt_, index, value);
+}
+
 int sqlite3::statement::bind(int index,
 		std::string const& value,
 		destructor_type destructor/* = static_destructor */) noexcept
@@ -126,6 +131,11 @@ int sqlite3::statement::clear_bidings() noexcept
 int sqlite3::statement::interger(int index) noexcept
 {
 	return sqlite3_column_int(stmt_, index);
+}
+
+long sqlite3::statement::long_interger(int index) noexcept
+{
+	return sqlite3_column_int64(stmt_, index);
 }
 
 std::string sqlite3::statement::text(int index) noexcept
