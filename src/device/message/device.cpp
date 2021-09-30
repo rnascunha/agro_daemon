@@ -510,6 +510,9 @@ static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& all
 	rapidjson::Value gpios_v;
 	::Message::make_value_list_array(gpios_v, dev.gpios(), alloc);
 	data.AddMember("gpios", gpios_v, alloc);
+	rapidjson::Value gpios_v_out;
+	::Message::make_value_list_array(gpios_v_out, dev.gpios_out(), alloc);
+	data.AddMember("gpios_out", gpios_v_out, alloc);
 }
 
 template<typename Allocator>
@@ -591,9 +594,7 @@ static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocato
 	::Message::make_value_list_array(rssi_v, dev.rssi(), alloc);
 	data.AddMember("rssi", rssi_v, alloc);
 
-	rapidjson::Value gpios_v;
-	::Message::make_value_list_array(gpios_v, dev.gpios(), alloc);
-	data.AddMember("gpios", gpios_v, alloc);
+	make_gpios(data, dev, alloc);
 }
 
 template<typename Allocator>

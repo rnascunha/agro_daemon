@@ -152,6 +152,11 @@ Value_List<std::uint8_t> const& Device::gpios() const noexcept
 	return gpios_;
 }
 
+Value_List<std::uint8_t> const& Device::gpios_out() const noexcept
+{
+	return gpios_out_;
+}
+
 Value<value_time> const& Device::rtc_time() const noexcept
 {
 	return rtc_time_;
@@ -204,6 +209,11 @@ void Device::clear_children() noexcept
 void Device::add_children(mesh_addr_t const& child) noexcept
 {
 	children_table_.push_back(child);
+}
+
+bool Device::operator==(Device const& rhs) const noexcept
+{
+	return mac_ == rhs.mac_;
 }
 
 void Device::update(endpoint const& ep, Resource::status const& sts) noexcept
@@ -288,8 +298,10 @@ void Device::update(endpoint const& ep, Resource::sensor_data const& data) noexc
 	last_packet_time_ = data.time;
 	std::uint8_t gpios_value = data.wl1 | (data.wl2 << 1) |
 								(data.wl3 << 2) | (data.wl4 << 3) |
-								(data.ac1 << 4) | (data.ac2 << 5) |
-								(data.ac3 << 6);
+								(data.gp1 << 4) | (data.gp2 << 5) |
+								(data.gp3 << 6) | (data.gp4 << 7);
+	std::uint8_t gpios_out_value = data.ac1 | (data.ac2 << 1) |
+									(data.ac3 << 2);
 
 	if(has_rtc_)
 	{
@@ -298,6 +310,7 @@ void Device::update(endpoint const& ep, Resource::sensor_data const& data) noexc
 			temp_.add(data.time, data.temp);
 
 		gpios_.add_change(data.time, gpios_value);
+		gpios_out_.add_change(data.time, gpios_out_value);
 	}
 	else
 	{
@@ -306,21 +319,21 @@ void Device::update(endpoint const& ep, Resource::sensor_data const& data) noexc
 			temp_.add(data.temp);
 
 		gpios_.add_change(gpios_value);
+		gpios_out_.add_change(gpios_out_value);
 	}
 }
 
 bool Device::update_ac_load(unsigned index, bool value) noexcept
 {
 	if(index > 2) return false;
-	unsigned nindex = 4 + index;
-	if(gpios_.size() == 0)
+	if(gpios_out_.size() == 0)
 	{
-		std::uint8_t gpios_value = value << nindex;
-		gpios_.add(gpios_value);
+		std::uint8_t gpios_value = value << index;
+		gpios_out_.add(gpios_value);
 		return true;
 	}
-	std::uint8_t v = gpios_[gpios_.size() - 1].value;
-	gpios_.add_change((v & ~(1UL << nindex)) | (value << nindex));
+	std::uint8_t v = gpios_out_[gpios_out_.size() - 1].value;
+	gpios_out_.add_change((v & ~(1UL << index)) | (value << index));
 
 	return true;
 }

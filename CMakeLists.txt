@@ -304,7 +304,9 @@ set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					${DEVICE_DIR}/message/process.cpp
 					${DEVICE_DIR}/helper.cpp
 					${DEVICE_DIR}/types.cpp
-					${DEVICE_DIR}/list.cpp)
+					${DEVICE_DIR}/list.cpp
+#					${DEVICE_DIR}/tree.cpp
+					)
 					
 set(USER_DIR		${SRC_DIR}/user)
 set(USER_SRC		${USER_DIR}/user.cpp

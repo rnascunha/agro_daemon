@@ -6,7 +6,7 @@ namespace Device{
 
 Device_List::Device_List(){}
 
-std::map<mesh_addr_t, Device> const& Device_List::list() const noexcept
+std::map<mesh_addr_t const, Device> const& Device_List::list() const noexcept
 {
 	return list_;
 }
@@ -72,6 +72,17 @@ Device* Device_List::add(Device&& device) noexcept
 	}
 
 	return &list_.emplace(device.mac(), device).first->second;
+}
+
+Device* Device_List::add_or_get(mesh_addr_t const& mac) noexcept
+{
+	auto dev = list_.find(mac);
+	if(dev != list_.end())
+	{
+		return &dev->second;
+	}
+
+	return &list_.emplace(mac, Device{mac}).first->second;
 }
 
 }//Device

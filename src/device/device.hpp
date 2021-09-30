@@ -69,6 +69,7 @@ class Device{
 		std::uint32_t last_packet_time() const noexcept;
 		Value_List<float> const& temperature() const noexcept;
 		Value_List<std::uint8_t> const& gpios() const noexcept;
+		Value_List<std::uint8_t> const& gpios_out() const noexcept;
 
 		Value<value_time> const& rtc_time() const noexcept;
 		Value<int64_t> const& uptime() const noexcept;
@@ -79,6 +80,8 @@ class Device{
 		void jobs(std::uint8_t const* jobs, std::size_t size) noexcept;
 		std::vector<job> const& jobs() const noexcept;
 		std::vector<app> const& apps() const noexcept;
+
+		bool operator==(Device const& rhs) const noexcept;
 
 		/**
 		 * Updates
@@ -135,6 +138,7 @@ class Device{
 
 		Value_List<float> temp_;
 		Value_List<std::uint8_t> gpios_;
+		Value_List<std::uint8_t> gpios_out_;
 
 		Value<int64_t>		uptime_;
 		Value<value_time>	rtc_time_;

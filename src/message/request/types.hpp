@@ -5,10 +5,6 @@
 #include "../../agro.hpp"
 #include "../../websocket/types.hpp"
 
-//namespace Agro{
-//class instance;
-//};
-
 namespace Message{
 
 struct request_message

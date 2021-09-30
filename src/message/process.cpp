@@ -24,20 +24,17 @@ void process(std::string&& data,
 
 	if (d.Parse(data.data(), data.size()).HasParseError() || !d.IsObject())
 	{
-		std::cerr << "Error parsing receiving message...\n";
-		//Not valid message;
+		tt::error("Error parsing receiving message.");
 		return;
 	}
 
 	auto const* typec = Message::get_type_config(d["type"].GetString());
 	if(!typec)
 	{
-		instance.notify_all("Invalid type");
-		std::cerr << "Type message not found...\n";
+		tt::warning("Type message not found.");
 		return;
 	}
 
-	std::cout << "Type message: " << static_cast<int>(typec->mtype) << " " << typec->name << "\n";
 	switch(typec->mtype)
 	{
 		case Message::type::resource:

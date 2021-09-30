@@ -286,6 +286,9 @@ void process_request(rapidjson::Document const& doc,
 	//Checking if user is allowed
 	if(!is_user_allowed(req->method, user)) return;
 
+	/**
+	 * Checking if already have a request to the same device
+	 */
 	if(config->mtype != Message::requests::custom)
 	{
 		if(!instance.add_request_in_progress(dev->mac(), req->method, config->mtype, user.id()))
