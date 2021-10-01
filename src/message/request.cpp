@@ -44,9 +44,7 @@ static void request_cb(void const* trans,
 		 * checked
 		 */
 		tt::error("Option uri-host not found!");
-		CoAP::Debug::print_message(t->request());
 //		return;
-		//goto end;
 	}
 	std::error_code ec;
 	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
@@ -63,7 +61,6 @@ static void request_cb(void const* trans,
 		{
 			goto end;
 		}
-
 
 		ws->write(instance.make_report(Agro::Message::report_type::success,
 						host, "Request succeded", path, ws->user().id()));
@@ -148,7 +145,8 @@ static void send_request(
 		Message::request_message const& msg,
 		Agro::websocket_ptr ws,
 		Agro::instance& instance,
-		rapidjson::Document const& doc) noexcept
+		rapidjson::Document const& doc,
+		CoAP::Error& ec) noexcept
 {
 	engine::request req{ep};
 	req.header(msg.mtype, msg.method);
@@ -188,12 +186,7 @@ static void send_request(
 					std::ref(instance)),
 			reinterpret_cast<int*>(request_type));
 
-	CoAP::Error ec;
 	instance.coap_engine().send(req, ec);
-	if(ec)
-	{
-		std::cerr << "Send Request error[" << ec.value() << "/" << ec.message() << "]\n";
-	}
 }
 
 static bool is_user_allowed(CoAP::Message::code code, Agro::User::Logged& user) noexcept
@@ -299,13 +292,43 @@ void process_request(rapidjson::Document const& doc,
 		}
 	}
 
+	CoAP::Error ecc;
 	send_request(doc["device"].GetString(),
 			dev->get_endpoint(),
 			config->mtype,
 			*req,
 			ws,
 			instance,
-			doc);
+			doc,
+			ecc);
+
+	/**
+	 * If error sending...
+	 */
+	if(ecc)
+	{
+		tt::error("CoAP send error! [%d/%m]", ecc.value(), ecc.message());
+		if(config->mtype != Message::requests::custom)
+		{
+			/**
+			 * Removing request from in progress...
+			 */
+			instance.remove_request_in_progress(dev->mac(), req->method, config->mtype);
+		}
+		switch(static_cast<CoAP::errc>(ecc.value()))
+		{
+			case CoAP::errc::no_free_slots:
+				ws->write(instance.make_report(Agro::Message::report_type::warning,
+						dev->mac(), "Server is busy! Wait a moment to make a request", make_coap_path(req->options), user.id()));
+				break;
+			default:
+				std::stringstream msg{"Server error! ["};
+				msg << ecc.value() << " / "  << ecc.message() << "]";
+				ws->write(instance.make_report(Agro::Message::report_type::error,
+						dev->mac(), msg.str(), make_coap_path(req->options), user.id()));
+				break;
+		}
+	}
 }
 
 }//Message
