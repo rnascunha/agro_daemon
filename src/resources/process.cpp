@@ -28,6 +28,7 @@ bool process_status(Agro::Device::Device& device,
 
 bool process_route(Agro::Device::Device& device,
 					Agro::share_ptr data_share,
+					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
@@ -42,6 +43,8 @@ bool process_route(Agro::Device::Device& device,
 	device.update(ep, *rt,
 			static_cast<const uint8_t*>(payload) + sizeof(route),
 			payload_len - sizeof(route));
+
+	instance.tree().update(device);
 
 	data_share->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
@@ -116,6 +119,8 @@ bool process_full_config(Agro::Device::Device& device,
 	device.update(ep, *rt, net,
 			static_cast<const uint8_t*>(payload) + sizeof(route) + sizeof(status) + sizeof(config),
 			payload_len - sizeof(route) - sizeof(status) - sizeof(config));
+
+	instance.tree().update(device);
 
 	data_share->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_full_config_to_json(device)));

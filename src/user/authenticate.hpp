@@ -4,6 +4,7 @@
 #include <system_error>
 #include <cstdlib>
 
+#include "../instance/agro.hpp"
 #include "rapidjson/document.h"
 #include "../message/user_types.hpp"
 #include "../db/db.hpp"
@@ -13,7 +14,6 @@ namespace Agro{
 namespace User{
 class Logged;
 }
-
 
 template<std::size_t Iterations,
 		std::size_t KeyLength,

@@ -305,7 +305,7 @@ set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					${DEVICE_DIR}/helper.cpp
 					${DEVICE_DIR}/types.cpp
 					${DEVICE_DIR}/list.cpp
-#					${DEVICE_DIR}/tree.cpp
+					${DEVICE_DIR}/tree.cpp
 					)
 					
 set(USER_DIR		${SRC_DIR}/user)
@@ -328,11 +328,20 @@ set(HELPER_DIR		${SRC_DIR}/helper)
 set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
 					${HELPER_DIR}/time_helper.cpp
 					${HELPER_DIR}/coap_helper.cpp)	
+					
+set(INSTANCE_DIR	${SRC_DIR}/instance)
+set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
+					${INSTANCE_DIR}/check_root.cpp
+					${INSTANCE_DIR}/notify.cpp
+					${INSTANCE_DIR}/in_progress.cpp
+					${INSTANCE_DIR}/user.cpp
+					${INSTANCE_DIR}/device.cpp
+					${INSTANCE_DIR}/report.cpp)
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
 			${SRC_DIR}/error.cpp
 			${SRC_DIR}/arguments.cpp
-			${SRC_DIR}/agro.cpp
+			${INSTANCE_SRC}
 			${MESSAGE_SRC}
 			${DEVICE_SRC}
 			${RESOURCE_SRC}

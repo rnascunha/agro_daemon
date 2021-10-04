@@ -1,9 +1,9 @@
 #ifndef AGRO_MESH_MESSAGE_PROCESS_HPP__
 #define AGRO_MESH_MESSAGE_PROCESS_HPP__
 
+#include "../instance/agro.hpp"
 #include "../coap_engine.hpp"
 #include "../device/list.hpp"
-#include "../agro.hpp"
 #include "../user/user.hpp"
 #include "../websocket/types.hpp"
 #include <string>

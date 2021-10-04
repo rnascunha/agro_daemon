@@ -86,6 +86,9 @@ static void request_cb(void const* trans,
 
 		ws->write(instance.make_report(Agro::Message::report_type::error,
 								host, "Request failed", path, ws->user().id()));
+
+		std::cout << "Removing node from tree...\n";
+		instance.remove_node_from_tree(host);
 	}
 end:
 	instance.remove_request_in_progress(host, t->request().mcode, req);

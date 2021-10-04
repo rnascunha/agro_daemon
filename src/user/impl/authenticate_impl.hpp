@@ -1,7 +1,6 @@
 #ifndef AGRO_DAEMON_USER_AUTH_IMPL_HPP__
 #define AGRO_DAEMON_USER_AUTH_IMPL_HPP__
 
-#include "../../agro.hpp"
 #include "../authenticate.hpp"
 #include "../authenticate_params.h"
 #include "../../error.hpp"

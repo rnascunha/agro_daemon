@@ -23,7 +23,7 @@ class Device_List{
 		Device const* operator[](const char*) const noexcept;
 
 		Device* add(Device&&) noexcept;
-		Device* add_or_get(mesh_addr_t const&) noexcept;
+		Device& add_or_get(mesh_addr_t const&) noexcept;
 	private:
 		std::map<mesh_addr_t const, Device> list_;
 };

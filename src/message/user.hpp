@@ -5,7 +5,7 @@
 #include "types.hpp"
 #include "rapidjson/document.h"
 #include "../websocket/types.hpp"
-#include "../agro.hpp"
+#include "../instance/agro.hpp"
 
 namespace Message{
 

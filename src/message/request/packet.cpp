@@ -60,6 +60,7 @@ static void packet_response(
 			std::error_code ec;
 			Resource::process_route(*dev,
 					ws->get_share(),
+					instance,
 					ep,
 					response.payload, response.payload_len,
 					ec);
@@ -73,7 +74,7 @@ static void packet_response(
 #define REQUIRE_PACKET(name, sub) request_message const req_##name = { \
 	CoAP::Message::code::get, 									\
 	{ 															\
-		{CoAP::Message::Option::code::uri_path, #sub}, 	\
+		{CoAP::Message::Option::code::uri_path, #sub}, 			\
 		{CoAP::Message::Option::code::uri_path, #name}			\
 	} 															\
 }

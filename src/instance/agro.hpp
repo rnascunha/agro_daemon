@@ -3,16 +3,20 @@
 
 #include <memory>
 
-#include "db/db.hpp"
-#include "coap_engine.hpp"
-#include "device/list.hpp"
-#include "device/net.hpp"
-#include "notify/notify_request.hpp"
-#include "user/list.hpp"
-#include "user/policy.hpp"
+#include "../db/db.hpp"
+#include "../coap_engine.hpp"
 
-#include "message/report.hpp"
-#include "message/request/in_progress.hpp"
+#include "../device/list.hpp"
+#include "../device/net.hpp"
+#include "../device/tree.hpp"
+
+#include "../notify/notify_request.hpp"
+
+#include "../user/list.hpp"
+#include "../user/policy.hpp"
+
+#include "../message/report.hpp"
+#include "../message/request/in_progress.hpp"
 
 namespace Agro{
 
@@ -116,6 +120,7 @@ class instance{
 				CoAP::Message::code,
 				::Message::requests) noexcept;
 
+		bool remove_node_from_tree(mesh_addr_t const&) noexcept;
 		/**
 		 *
 		 */
@@ -136,13 +141,24 @@ class instance{
 		engine& coap_engine() noexcept;
 
 		User::User_List const& users() const noexcept;
+
+		Device::Tree& tree() noexcept;
+
+//		share_ptr share() noexcept;
 	private:
+		void initiate_check_roots() noexcept;
+		void check_network_roots() noexcept;
+		void check_root(Device::Tree::tree_endpoint&) noexcept;
+
 		boost::asio::io_context& ioc_;
 		DB					db_;
 		engine				coap_engine_;
 		notify_factory 		notify_;
+
 		Device::Device_List	device_list_;
 		Device::Net_List	net_list_;
+		Device::Tree		tree_{device_list_};
+
 		User::User_List		users_;
 
 		User::User root_{User::root_id,
@@ -155,6 +171,8 @@ class instance{
 		::Message::Request_in_Pogress_List requests_;
 
 		std::vector<engine::resource_node> vresource_;
+
+		boost::asio::steady_timer check_root_timer_{ioc_};
 #if USE_SSL == 1
 		boost::asio::ssl::context ctx_{boost::asio::ssl::context::tlsv12};
 #endif /* USE_SSL == 1 */

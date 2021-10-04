@@ -17,6 +17,7 @@ bool process_status(Agro::Device::Device&,
 
 bool process_route(Agro::Device::Device&,
 					Agro::share_ptr,
+					Agro::instance& instance,
 					engine::endpoint const&,
 					const void* payload, std::size_t payload_len,
 					std::error_code&) noexcept;
