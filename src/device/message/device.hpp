@@ -4,6 +4,7 @@
 #include "rapidjson/document.h"
 #include "../device.hpp"
 #include "../list.hpp"
+#include "../tree.hpp"
 #include "../../message/types.hpp"
 #include <string>
 
@@ -14,13 +15,15 @@ namespace Message{
 enum class device_commands{
 	list = 0,
 	data,
+	tree,
 	edit
 };
 
 constexpr const ::Message::config<device_commands> device_config[] = {
 	{device_commands::list, "list"},
 	{device_commands::data, "data"},
-	{device_commands::edit, "edit"}
+	{device_commands::tree, "tree"},
+	{device_commands::edit, "edit"},
 };
 
 inline constexpr ::Message::config<device_commands> const* get_config(device_commands t) noexcept
@@ -87,6 +90,8 @@ void device_list_to_json(rapidjson::Document& doc, Device_List const& list) noex
 std::string device_list_to_json(Device_List const& list) noexcept;
 
 std::string device_edited_to_json(Device const& dev) noexcept;
+
+std::string device_tree_to_json(Tree const& tree) noexcept;
 
 }//Message
 }//Device

@@ -33,6 +33,8 @@ static void make_device_data(rapidjson::Value& data, Device const& dev, Allocato
 template<typename Allocator>
 static void make_mandatory_data_info(rapidjson::Value&, Device const&, Allocator&) noexcept;
 static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept;
+template<typename Allocator>
+void add_node(rapidjson::Value& data, Tree::node const& node, Allocator& alloc) noexcept;
 
 void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept
 {
@@ -425,9 +427,85 @@ std::string device_edited_to_json(Device const& dev) noexcept
 	return ::Message::stringify(doc);
 }
 
+std::string device_tree_to_json(Tree const& tree) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::tree);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	auto const unconnected = tree.unconnected();
+	rapidjson::Value un;
+	un.SetArray();
+	for(auto const& u : unconnected)
+	{
+		auto const& str = u.to_string();
+		un.PushBack(rapidjson::Value(str.data(),
+				str.size(),
+				doc.GetAllocator()).Move(),
+				doc.GetAllocator());
+	}
+	data.AddMember("unconnected", un, doc.GetAllocator());
+
+	rapidjson::Value epsv;
+	epsv.SetArray();
+
+	auto const& eps = tree.get_endpoint();
+	for(auto const& [addr, ep] : eps)
+	{
+		rapidjson::Value e;
+		e.SetObject();
+		::Message::add_endpoint(e, ep.ep, doc.GetAllocator());
+		::Message::add_device(e, addr, doc.GetAllocator());
+		epsv.PushBack(e, doc.GetAllocator());
+	}
+	data.AddMember("endpoints", epsv, doc.GetAllocator());
+
+	rapidjson::Value tv;
+	tv.SetArray();
+	add_node(tv, tree.root(), doc.GetAllocator());
+	data.AddMember("tree", tv, doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
 /**
  *
  */
+template<typename Allocator>
+void add_node(rapidjson::Value& data, Tree::node const& node, Allocator& alloc) noexcept
+{
+	rapidjson::Value nv;
+	nv.SetObject();
+
+	::Message::add_device(nv, node.addr, alloc);
+	std::string pt = node.parent ? node.parent->addr.to_string() : "null";
+	nv.AddMember("parent",
+			rapidjson::Value(pt.data(), pt.size(), alloc).Move(), alloc);
+	nv.AddMember("layer", node.layer, alloc);
+
+	rapidjson::Value chv;
+	chv.SetArray();
+	for(Tree::node const* ch = node.children; ch; ch = ch->next)
+	{
+		auto const str = ch->addr.to_string();
+		chv.PushBack(rapidjson::Value(str.data(), str.size(), alloc).Move(), alloc);
+	}
+	nv.AddMember("children", chv, alloc);
+	data.PushBack(nv, alloc);
+
+	for(Tree::node const* ch = node.children; ch; ch = ch->next)
+	{
+		add_node(data, *ch, alloc);
+	}
+}
+
 template<typename Allocator>
 static void make_config_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
 {
@@ -638,7 +716,6 @@ static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept
 
 	return true;
 }
-
 
 }//Message
 }//Device

@@ -9,7 +9,6 @@
 #include "../websocket/listener.hpp"
 
 #include "../resources/init.hpp"
-#include "../resources/process.hpp"
 
 #include "../user/password.hpp"
 
@@ -60,8 +59,9 @@ instance::instance(
 		tt::error("Error reading devices from database!");
 		return;
 	}
+	tree_.read_device_list();
 
-	auto share_ = std::make_shared<Agro::share>(*this);
+	share_ = std::make_shared<Agro::share>(*this);
 
 	Resource::init(coap_engine_, *this, share_, vresource_);
 
@@ -107,7 +107,26 @@ instance::instance(
 
 bool instance::remove_node_from_tree(mesh_addr_t const& addr) noexcept
 {
-	return tree_.remove_node(addr);
+	bool change = tree_.remove_node(addr);
+	if(change)
+	{
+		std::cout << "Tree changed\n";
+		share_->write_all_policy(Authorization::rule::view_device,
+				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
+	}
+	return change;
+}
+
+bool instance::update_tree(Device::Device const& device) noexcept
+{
+	bool change = tree_.update(device);
+	if(change)
+	{
+		std::cout << "Tree changed\n";
+		share_->write_all_policy(Authorization::rule::view_device,
+				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
+	}
+	return change;
 }
 
 Device::Device_List const& instance::device_list() const noexcept
@@ -138,6 +157,11 @@ User::User_List const& instance::users() const noexcept
 Device::Tree& instance::tree() noexcept
 {
 	return tree_;
+}
+
+share_ptr instance::share() noexcept
+{
+	return share_;
 }
 
 }//Agro

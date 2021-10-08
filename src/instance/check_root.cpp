@@ -1,10 +1,18 @@
 #include "agro.hpp"
 #include "tt/tt.hpp"
 #include "coap-te-debug.hpp"
+#include "../resources/process.hpp"
+#include "../user/policy.hpp"
 
 static void request_route_cb(void const* trans,
 		CoAP::Message::message const* response,
 		void* instance) noexcept;
+
+static constexpr const CoAP::Transmission::configure config = {
+		/* .ack_timeout_seconds 			= */ 1.5,	//ACK_TIMEOUT
+		/* .ack_random_factor 				= */ 1.5,	//ACK_RANDOM_FACTOR
+		/* .max_restransmission 			= */ 1,	//MAX_RETRANSMIT
+};
 
 namespace Agro{
 
@@ -12,7 +20,7 @@ void instance::initiate_check_roots() noexcept
 {
 	check_root_timer_.expires_after(std::chrono::seconds(5));
 	check_root_timer_.async_wait([this](const boost::system::error_code&){
-		tt::debug("Checking roots!");
+//		tt::debug("Checking roots!");
 		check_network_roots();
 		initiate_check_roots();
 	});
@@ -38,7 +46,7 @@ void instance::check_root(Device::Tree::tree_endpoint& ep) noexcept
 	req.callback(request_route_cb, this);
 
 	CoAP::Error ec;
-	coap_engine_.send(req, ec);
+	coap_engine_.send(req, config, ec);
 	if(ec)
 	{
 		char addr_str[18], ep_str[18];
@@ -79,13 +87,14 @@ static void request_route_cb(void const* trans,
 		 * This is a impossible possibility! Something is wrong and must be
 		 * checked
 		 */
-		tt::error("Option uri-host not found!");
+		tt::error("['check_root'] Option uri-host not found!");
 //		return;
 	}
 
 	std::error_code ec;
 	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
 
+	bool change = false;
 	if(response)
 	{
 		tt::debug("Response 'check root' received!");
@@ -94,16 +103,16 @@ static void request_route_cb(void const* trans,
 		if(!dev)
 		{
 			tt::error("['check_root'] Device not found!");
-			return;
+			goto end;
 		}
 
-//		std::error_code ec;
-//		::Resource::process_route(*dev,
-//					instance->share(),
-//					*instance,
-//					t->endpoint(),
-//					response->payload, response->payload_len,
-//					ec);
+		std::error_code ec;
+		::Resource::process_route(*dev,
+					instance->share(),
+					*instance,
+					t->endpoint(),
+					response->payload, response->payload_len,
+					ec, false);
 	}
 	else
 	{
@@ -113,6 +122,11 @@ static void request_route_cb(void const* trans,
 		tt::debug("Response 'check root' NOT received");
 
 		tt::debug("Removing node from tree...");
-		instance->remove_node_from_tree(host);
+		change = instance->remove_node_from_tree(host);
 	}
+end:
+	instance->tree().print_all();
+	instance->tree().uncheck_endpoint(host);
+	std::cout << "Tree" << (change ? "" : " NOT") << " changed\n";
 }
+

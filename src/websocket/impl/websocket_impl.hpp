@@ -8,6 +8,8 @@
 #include <utility>
 #include <string_view>
 
+//#include "../../instance/agro.hpp"
+
 #include "../../device/message/device.hpp"
 #include "../../user/message/auth_message.hpp"
 
@@ -147,9 +149,15 @@ read_handler(std::string data) noexcept
 			 */
 			std::vector<Agro::Message::report> reports;
 			share_->instance().read_all_reports(reports, user_.id(), 20);
-
+			//Sending
 			this->write(std::make_shared<std::string>(Agro::Message::report_message(reports)));
 
+			/**
+			 * Sending device tree
+			 */
+			this->write_all_policy(Agro::Authorization::rule::view_device,
+							std::make_shared<std::string>(
+									Agro::Device::Message::device_tree_to_json(share_->instance().tree())));
 //			this->write(Message::ota_image_list(ota_path()));
 //			this->write(Message::app_list(app_path()));
 		}

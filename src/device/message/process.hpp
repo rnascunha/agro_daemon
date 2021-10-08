@@ -2,6 +2,7 @@
 #define AGRO_DAEMON_DEVICE_MESSAGE_PROCESS_HPP__
 
 #include "rapidjson/document.h"
+#include "../../instance/agro.hpp"
 #include "../../websocket/types.hpp"
 
 namespace Agro{

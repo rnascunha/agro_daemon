@@ -1,6 +1,7 @@
 #include "process.hpp"
 #include "types.hpp"
 #include "../error.hpp"
+#include "../instance/agro.hpp"
 #include "../device/message/device.hpp"
 
 namespace Resource{
@@ -31,7 +32,8 @@ bool process_route(Agro::Device::Device& device,
 					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
-					std::error_code& ec) noexcept
+					std::error_code& ec,
+					bool force_send /* = true */) noexcept
 {
 	if(payload_len < sizeof(route))
 	{
@@ -44,10 +46,11 @@ bool process_route(Agro::Device::Device& device,
 			static_cast<const uint8_t*>(payload) + sizeof(route),
 			payload_len - sizeof(route));
 
-	instance.tree().update(device);
-
-	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+	if(instance.update_tree(device) || force_send)
+	{
+		data_share->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
+	}
 
 	return true;
 }
@@ -120,10 +123,10 @@ bool process_full_config(Agro::Device::Device& device,
 			static_cast<const uint8_t*>(payload) + sizeof(route) + sizeof(status) + sizeof(config),
 			payload_len - sizeof(route) - sizeof(status) - sizeof(config));
 
-	instance.tree().update(device);
-
 	data_share->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_full_config_to_json(device)));
+
+	instance.update_tree(device);
 
 	return true;
 }

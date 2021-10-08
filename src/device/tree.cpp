@@ -1,7 +1,6 @@
 #include "tree.hpp"
-#include <iostream>
-#include "../coap_engine.hpp"
-#include "../websocket/types.hpp"
+
+#include <iostream> //for the print functions
 
 namespace Agro{
 namespace Device{
@@ -25,6 +24,7 @@ bool Tree::node::remove_child(mesh_addr_t const& caddr) noexcept
 		children->parent = nullptr;
 		node* next = children->next;
 		children->next = nullptr;
+		children->children = nullptr;
 		children = next;
 		return true;
 	}
@@ -36,6 +36,7 @@ bool Tree::node::remove_child(mesh_addr_t const& caddr) noexcept
 		{
 			before->next = c->next;
 			c->parent = nullptr;
+			c->children = nullptr;
 			c->next = nullptr;
 			return true;
 		}
@@ -64,15 +65,18 @@ Tree::tree_endpoint::tree_endpoint(mesh_addr_t const& addr_,
 /**
  *
  */
-Tree::Tree(Device_List const& list)
+Tree::Tree(Device_List& list)
+	: dev_list_{list}{}
+
+void Tree::read_device_list() noexcept
 {
-	for(auto const& l : list.list())
+	for(auto const& l : dev_list_.list())
 	{
 		get_node(l.second.mac());
 	}
 }
 
-void Tree::update(Device const& device) noexcept
+bool Tree::update(Device const& device) noexcept
 {
 	node& dev = get_node(device.mac());
 	dev.layer = device.layer();
@@ -80,30 +84,33 @@ void Tree::update(Device const& device) noexcept
 	node& parent = get_node(dev.layer == 1 ? device.parent() : mac_ap_to_addr(device.parent()));
 	parent.layer = device.layer() - 1;
 
-	add_child(parent, dev);
+	bool change = false;
+
+	update_endpoints(device);
+	change = add_child(parent, dev) || change;
 
 	if(parent.layer == 0)
 	{
-		add_child(root_, parent);
+		change = add_child(root_, parent) || change;
 	}
 
-	add_remove_descendent(dev, device.children_table());
+	if(parent.layer == 1)
+	{
+		change = add_endpoint(parent.addr, device.get_endpoint()) || change;
+	}
 
-	std::cout << "Size: " << nodes_.size() << "\n";
-	print(root_, -1);
-
+	change = add_remove_descendent(dev, device.children_table()) || change;
 	//Endpoints
 	if(device.layer() == 1)
 	{
-		add_endpoint(device.mac(), device.get_endpoint());
+		change = add_endpoint(device.mac(), device.get_endpoint()) || change;
 	}
 	else
 	{
-		remove_endpoint(device.mac());
+		change = remove_endpoint(device.mac()) || change;
 	}
 
-	std::cout << "Endpoints:\n";
-	print_endpoints();
+	return change;
 }
 
 std::map<mesh_addr_t const, Tree::tree_endpoint> const&
@@ -133,22 +140,23 @@ bool Tree::remove_node(node& device, mesh_addr_t const& addr) noexcept
 			remove_endpoint(addr);
 			return true;
 		}
-		remove_node(*c, addr);
+		if(remove_node(*c, addr))
+			return true;
 	}
-
 	return false;
 }
 
-void Tree::add_remove_descendent(node& device,
+bool Tree::add_remove_descendent(node& device,
 				std::vector<mesh_addr_t> const& children) noexcept
 {
-	remove_descendent(device, children);
-//	add_descendent(device, children);
+	bool change = remove_descendent(device, children);
+	return add_descendent(device, children) || change;
 }
 
-void Tree::remove_descendent(node& device,
+bool Tree::remove_descendent(node& device,
 				std::vector<mesh_addr_t> const& children) noexcept
 {
+	bool change = false;
 	for(node* c = device.children; c; c = c->next)
 	{
 		bool is_child = false;
@@ -160,26 +168,31 @@ void Tree::remove_descendent(node& device,
 				break;
 			}
 		}
-		remove_descendent(*c, children);
+		change = remove_descendent(*c, children) || change;
 		if(!is_child)
 		{
-			std::cout << "Removing " << c->addr.to_string() << "\n";
 			device.remove_child(c->addr);
+			change = true;
 		}
 	}
+	return change;
 }
 
-void Tree::add_descendent(node& device,
+bool Tree::add_descendent(node& device,
 				std::vector<mesh_addr_t> const& children) noexcept
 {
+	bool change = false;
 	for(auto const& c : children)
 	{
-		node& ch = get_node(c);
 		if(!device.is_descendent(c))
 		{
+			node& ch = get_node(c);
 			add_child(device, ch);
+			change = true;
 		}
 	}
+
+	return change;
 }
 
 Tree::node& Tree::get_node(mesh_addr_t const& addr) noexcept
@@ -193,14 +206,18 @@ Tree::node& Tree::get_node(mesh_addr_t const& addr) noexcept
 	return n->second;
 }
 
-void Tree::add_child(node& parent, node& child) noexcept
+bool Tree::add_child(node& parent, node& child) noexcept
 {
+	bool change = false;
 	child.parent = &parent;
 	node* children = parent.children;
 
+	child.layer = parent.layer + 1;
 	if(!children)
 	{
 		parent.children = &child;
+		child.next = nullptr;
+		change = true;
 	}
 	else
 	{
@@ -214,25 +231,87 @@ void Tree::add_child(node& parent, node& child) noexcept
 			{
 				c->next = &child;
 				child.next = nullptr;
+				change = true;
 				break;
 			}
 		}
 	}
+	return change;
 }
 
-void Tree::add_endpoint(mesh_addr_t const& addr, endpoint const& ep) noexcept
+std::vector<mesh_addr_t> Tree::unconnected() const noexcept
+{
+	std::vector<mesh_addr_t> un;
+
+	for(auto const& [addr, node] : nodes_)
+	{
+		if(!root_.is_descendent(addr))
+		{
+			un.push_back(addr);
+		}
+	}
+
+	return un;
+}
+
+Tree::node const& Tree::root() const noexcept
+{
+	return root_;
+}
+
+bool Tree::add_endpoint(mesh_addr_t const& addr, endpoint const& ep) noexcept
 {
 	auto t = endpoints_.find(addr);
 	if(t == endpoints_.end())
 	{
 		endpoints_.emplace(addr, tree_endpoint{addr, ep});
-		return;
+		return true;
 	}
+
+	return false;
 }
 
-void Tree::remove_endpoint(mesh_addr_t const& addr) noexcept
+bool Tree::remove_endpoint(mesh_addr_t const& addr) noexcept
 {
-	endpoints_.erase(addr);
+	return endpoints_.erase(addr);
+}
+
+bool Tree::uncheck_endpoint(mesh_addr_t const& addr) noexcept
+{
+	auto t = endpoints_.find(addr);
+	if(t == endpoints_.end())
+	{
+		return false;
+	}
+
+	t->second.checking = false;
+	return true;
+}
+
+void Tree::update_endpoints(Device const& device) const noexcept
+{
+	if(device.layer() >= 2)
+	{
+		update_device_endpoint(device.parent(), device.get_endpoint());
+	}
+	update_device_endpoint(device.children_table(), device.get_endpoint());
+}
+
+void Tree::update_device_endpoint(mesh_addr_t const& addr, endpoint const& ep) const noexcept
+{
+	auto* dev = dev_list_[addr];
+	if(!dev) return;
+
+	dev->update_endpoint(ep);
+}
+
+void Tree::update_device_endpoint(std::vector<mesh_addr_t> const& list,
+		endpoint const& ep) const noexcept
+{
+	for(auto const& a : list)
+	{
+		update_device_endpoint(a, ep);
+	}
 }
 
 void Tree::print_endpoints() const noexcept
@@ -243,6 +322,19 @@ void Tree::print_endpoints() const noexcept
 		std::cout << addr.to_string() << ": "
 				<< ep.ep.address(str, INET_ADDRSTRLEN) << "\n";
 	}
+}
+
+void Tree::print() const noexcept
+{
+	print(root_, -1);
+}
+
+void Tree::print_all() const noexcept
+{
+	std::cout << "Tree:\n";
+	print();
+	std::cout << "Endpoints:\n";
+	print_endpoints();
 }
 
 mesh_addr_t Tree::mac_ap_to_addr(mesh_addr_t const& addr) noexcept

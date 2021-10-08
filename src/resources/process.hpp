@@ -20,7 +20,8 @@ bool process_route(Agro::Device::Device&,
 					Agro::instance& instance,
 					engine::endpoint const&,
 					const void* payload, std::size_t payload_len,
-					std::error_code&) noexcept;
+					std::error_code&,
+					bool force_send = true) noexcept;
 
 bool process_board(Agro::Device::Device&,
 					Agro::share_ptr,

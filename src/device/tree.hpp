@@ -13,7 +13,9 @@ void check_root(mesh_addr_t const&) noexcept;
 
 class Tree{
 	public:
-		Tree(Device_List const&);
+		Tree(Device_List&);
+
+		void read_device_list() noexcept;
 
 		struct node{
 			node() = default;
@@ -40,33 +42,45 @@ class Tree{
 			bool		checking = false;
 		};
 
-		void update(Device const&) noexcept;
+		bool update(Device const&) noexcept;
 		bool remove_node(mesh_addr_t const&) noexcept;
+
+		std::vector<mesh_addr_t> unconnected() const noexcept;
+		node const& root() const noexcept;
 
 		std::map<mesh_addr_t const, tree_endpoint> const&
 		get_endpoint() const noexcept;
 		std::map<mesh_addr_t const, tree_endpoint>&
 		get_endpoint() noexcept;
+		bool uncheck_endpoint(mesh_addr_t const&) noexcept;
 
 		void print_endpoints() const noexcept;
+		void print() const noexcept;
+
+		void print_all() const noexcept;
 
 		static mesh_addr_t mac_ap_to_addr(mesh_addr_t const&) noexcept;
 		static void print(node const&, int layer = -1) noexcept;
 	private:
 		node& get_node(mesh_addr_t const&) noexcept;
-		void add_child(node& parent, node& child) noexcept;
-		void add_remove_descendent(node&,
+		bool add_child(node& parent, node& child) noexcept;
+		bool add_remove_descendent(node&,
 				std::vector<mesh_addr_t> const& children) noexcept;
-		void remove_descendent(node&,
+		bool remove_descendent(node&,
 				std::vector<mesh_addr_t> const& children) noexcept;
-		void add_descendent(node&,
+		bool add_descendent(node&,
 				std::vector<mesh_addr_t> const& children) noexcept;
 
 		bool remove_node(node& device, mesh_addr_t const&) noexcept;
 
-		void add_endpoint(mesh_addr_t const&, endpoint const&) noexcept;
-		void remove_endpoint(mesh_addr_t const&) noexcept;
+		bool add_endpoint(mesh_addr_t const&, endpoint const&) noexcept;
+		bool remove_endpoint(mesh_addr_t const&) noexcept;
 
+		void update_endpoints(Device const&) const noexcept;
+		void update_device_endpoint(mesh_addr_t const&, endpoint const&) const noexcept;
+		void update_device_endpoint(std::vector<mesh_addr_t> const&, endpoint const&) const noexcept;
+
+		Device_List&		dev_list_;
 		std::map<mesh_addr_t const, node>
 							nodes_;
 		std::map<mesh_addr_t const, tree_endpoint>

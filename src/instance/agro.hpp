@@ -5,6 +5,7 @@
 
 #include "../db/db.hpp"
 #include "../coap_engine.hpp"
+#include "../websocket/types.hpp"
 
 #include "../device/list.hpp"
 #include "../device/net.hpp"
@@ -15,6 +16,7 @@
 #include "../user/list.hpp"
 #include "../user/policy.hpp"
 
+#include "../message/user_types.hpp"
 #include "../message/report.hpp"
 #include "../message/request/in_progress.hpp"
 
@@ -120,6 +122,10 @@ class instance{
 				CoAP::Message::code,
 				::Message::requests) noexcept;
 
+		/**
+		 * Tree
+		 */
+		bool update_tree(Device::Device const&) noexcept;
 		bool remove_node_from_tree(mesh_addr_t const&) noexcept;
 		/**
 		 *
@@ -144,7 +150,16 @@ class instance{
 
 		Device::Tree& tree() noexcept;
 
-//		share_ptr share() noexcept;
+		bool authenticate(User::Logged&,
+				rapidjson::Document const&,
+				::Message::user_commands&,
+				std::error_code&) noexcept;
+
+		bool create_session_id(User::Logged& user,
+				rapidjson::Document const& doc,
+				std::error_code& ec) noexcept;
+
+		share_ptr share() noexcept;
 	private:
 		void initiate_check_roots() noexcept;
 		void check_network_roots() noexcept;
@@ -154,6 +169,8 @@ class instance{
 		DB					db_;
 		engine				coap_engine_;
 		notify_factory 		notify_;
+
+		share_ptr			share_;
 
 		Device::Device_List	device_list_;
 		Device::Net_List	net_list_;

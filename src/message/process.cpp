@@ -6,7 +6,7 @@
 #include "rapidjson/document.h"
 
 #include "types.hpp"
-#include "ota.hpp"
+//#include "ota.hpp"
 #include "user.hpp"
 #include "../device/message/process.hpp"
 #include "app.hpp"
@@ -47,7 +47,7 @@ void process(std::string&& data,
 			Agro::Device::Message::process(d, ws, instance, user);
 			break;
 		case Message::type::image:
-			process_image(d, ws);
+//			process_image(d, ws);
 			break;
 		case Message::type::app:
 			process_app(d, ws);

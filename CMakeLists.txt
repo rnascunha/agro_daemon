@@ -336,7 +336,8 @@ set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
 					${INSTANCE_DIR}/in_progress.cpp
 					${INSTANCE_DIR}/user.cpp
 					${INSTANCE_DIR}/device.cpp
-					${INSTANCE_DIR}/report.cpp)
+					${INSTANCE_DIR}/report.cpp
+					${INSTANCE_DIR}/authenticate.cpp)
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
 			${SRC_DIR}/error.cpp

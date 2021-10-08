@@ -104,9 +104,9 @@ class Device{
 		void update_rtc_time(value_time) noexcept;
 		void add_app(std::string const&, std::size_t) noexcept;
 		void delete_app(std::string const&) noexcept;
-	private:
-		void update_endpoint(endpoint const& ep) noexcept;
 
+		void update_endpoint(endpoint const& ep) noexcept;
+	private:
 		device_id	id_ = -1;
 
 		mesh_addr_t	mac_;
