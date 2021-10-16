@@ -2,6 +2,7 @@
 #include "../helper/time_helper.hpp"
 #include "../user/session_id.hpp"
 #include "../user/authenticate_params.h"
+#include "tt/tt.hpp"
 
 static bool check_authentice_package(
 		rapidjson::Value const& payload,
@@ -40,12 +41,14 @@ bool instance::authenticate(User::Logged& user,
 	rapidjson::Value const& payload = doc["data"].GetObject();
 
 	std::string const username = payload["user"].GetString();
-	user.user(get_user(username));
-	if(!user.user())
+
+	auto* user_ptr = get_user(username);
+	if(!user_ptr)
 	{
 		ec = make_error_code(Error::user_not_found);
 		return false;
 	}
+	user.user(user_ptr);
 
 	switch(comm)
 	{

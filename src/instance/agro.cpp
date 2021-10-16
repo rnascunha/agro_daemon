@@ -110,7 +110,7 @@ bool instance::remove_node_from_tree(mesh_addr_t const& addr) noexcept
 	bool change = tree_.remove_node(addr);
 	if(change)
 	{
-		std::cout << "Tree changed\n";
+//		std::cout << "Tree changed\n";
 		share_->write_all_policy(Authorization::rule::view_device,
 				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
 	}
@@ -122,7 +122,7 @@ bool instance::update_tree(Device::Device const& device) noexcept
 	bool change = tree_.update(device);
 	if(change)
 	{
-		std::cout << "Tree changed\n";
+//		std::cout << "Tree changed\n";
 		share_->write_all_policy(Authorization::rule::view_device,
 				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
 	}

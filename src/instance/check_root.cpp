@@ -94,10 +94,9 @@ static void request_route_cb(void const* trans,
 	std::error_code ec;
 	::mesh_addr_t host{static_cast<const char*>(op.value), op.length, ec};
 
-	bool change = false;
 	if(response)
 	{
-		tt::debug("Response 'check root' received!");
+//		tt::debug("Response 'check root' received!");
 //		CoAP::Debug::print_message_string(*response);
 		auto* dev = instance->device_list()[host];
 		if(!dev)
@@ -119,14 +118,14 @@ static void request_route_cb(void const* trans,
 		/**
 		 * Function timeout or transaction was cancelled
 		 */
-		tt::debug("Response 'check root' NOT received");
+//		tt::debug("Response 'check root' NOT received");
 
-		tt::debug("Removing node from tree...");
-		change = instance->remove_node_from_tree(host);
+//		tt::debug("Removing node from tree...");
+		instance->remove_node_from_tree(host);
 	}
 end:
-	instance->tree().print_all();
+//	instance->tree().print_all();
 	instance->tree().uncheck_endpoint(host);
-	std::cout << "Tree" << (change ? "" : " NOT") << " changed\n";
+//	std::cout << "Tree" << (change ? "" : " NOT") << " changed\n";
 }
 

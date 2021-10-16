@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on sáb. set. 25 13:42:58 2021
+-- File generated with SQLiteStudio v3.3.3 on ter. out. 12 20:26:52 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -84,6 +84,19 @@ CREATE TABLE push_notify (
     p256dh        TEXT,
     auth          TEXT,
     user_agent    TEXT
+);
+
+
+-- Table: report
+CREATE TABLE report (
+    reportid  INTEGER PRIMARY KEY,
+    userid    INTEGER REFERENCES user (userid),
+    command   INTEGER,
+    reference TEXT,
+    message   TEXT,
+    argument  TEXT,
+    type      INTEGER NOT NULL,
+    time      BIGINT  NOT NULL
 );
 
 

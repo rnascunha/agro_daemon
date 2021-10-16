@@ -65,7 +65,7 @@ static const sensor_type sensors[] = {
 		{"GPIOs", "gpios", "signal level", ""}
 };
 
-void usage(const char* program) noexcept
+static void usage(const char* program) noexcept
 {
 	std::cout << "\t" << program << " <database_name>\n";
 }
@@ -97,15 +97,17 @@ int main(int argc, char** argv)
 	std::ifstream ifs{SQL_FILE};
 	if(!ifs)
 	{
+		std::filesystem::remove(argv[1]);
 		std::cerr << "Error opening scheme file\n";
 		return 1;
 	}
-	char buffer[4096];
-	std::size_t size = ifs.readsome(buffer, 4096);
+	char buffer[8192];
+	std::size_t size = ifs.readsome(buffer, 8192);
 	buffer[size] = '\0';
 	int rc = db.exec(buffer);
 	if(rc != SQLITE_OK)
 	{
+		std::filesystem::remove(argv[1]);
 		std::cerr << "Error initiating database! [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
 		return 1;
 	}
@@ -113,6 +115,7 @@ int main(int argc, char** argv)
 	pusha::key ec_key = pusha::key::generate(ec);
 	if(ec)
 	{
+		std::filesystem::remove(argv[1]);
 		std::cerr << "Error generating notify key! [" << ec.message() << "\n";
 		return 1;
 	}
@@ -160,6 +163,7 @@ int main(int argc, char** argv)
 
 	if(!Agro::User::create_password(root_password, salt, password))
 	{
+		std::filesystem::remove(argv[1]);
 		std::cerr << "Error generation 'root' password!\n";
 		return 1;
 	}
@@ -173,14 +177,15 @@ int main(int argc, char** argv)
 			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH});
 	if(rc != SQLITE_OK)
 	{
+		std::filesystem::remove(argv[1]);
 		std::cerr << "Error preparing 'DB' instance data [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
-//		std::cerr << db.error() << "\n";
 		return 1;
 	}
 
 	rc = res.step();
 	if(rc != SQLITE_DONE)
 	{
+		std::filesystem::remove(argv[1]);
 		std::cerr << "Error recording data to 'DB'. [" << rc << "]\n";
 		return 1;
 	}

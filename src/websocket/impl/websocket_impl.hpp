@@ -107,7 +107,6 @@ Websocket<UseSSL>::
 on_open() noexcept
 {
 	this->text(true);
-//	this->join(this);
 	share_->join(this);
 }
 

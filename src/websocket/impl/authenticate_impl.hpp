@@ -1,8 +1,6 @@
 #ifndef AGRO_DAEMON_WEBSOCKET_AUTH_HPP__
 #define AGRO_DAEMON_WEBSOCKET_AUTH_HPP__
 
-//#include "../../user/authenticate.hpp"
-//#include "../../user/authenticate_params.h"
 #include "../../message/user_types.hpp"
 #include "tt/tt.hpp"
 
@@ -27,6 +25,7 @@ check_authenticate(std::string const& data) noexcept
 
 	std::error_code ec;
 	rapidjson::Document doc;
+
 	if(base_type::stream_.got_binary()
 		|| doc.Parse(data.data(), data.size()).HasParseError()
 		|| !doc.IsObject())
@@ -37,11 +36,6 @@ check_authenticate(std::string const& data) noexcept
 	}
 
 	Message::user_commands comm;
-//	if(!Agro::authenticate<
-//			USER_AUTH_INTERATION_NUMBER,
-//			USER_AUTH_KEY_LENGTH,
-//			USER_AUTH_SALT_LENGTH,
-//			USER_SESSION_TIME_SECONDS>(user_, doc, share_->instance(), comm, ec))
 	if(!share_->instance().authenticate(user_, doc, comm, ec))
 	{
 		error_auth(ec, "auth fail");
@@ -51,7 +45,6 @@ check_authenticate(std::string const& data) noexcept
 	if(comm == Message::user_commands::autheticate
 		&& user_.user()->id() != Agro::User::root_id)
 	{
-//		Agro::create_session_id<USER_SESSION_ID_SIZE>(user_, doc, share_->instance(), ec);
 		share_->instance().create_session_id(user_, doc, ec);
 	}
 
