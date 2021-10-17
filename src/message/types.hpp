@@ -18,7 +18,6 @@ struct config{
 enum class type{
 	resource = 0,/**< resource */
 	response,    /**< response */
-	request,     /**< request */
 	device,      /**< device */
 	image,       /**< image */
 	app,		/**< app */
@@ -30,7 +29,6 @@ enum class type{
 constexpr const config<type> tconfig[] = {
 	{type::resource, "resource"},
 	{type::response, "response"},
-	{type::request, "request"},
 	{type::device, "device"},
 	{type::image, "image"},
 	{type::app, "app"},

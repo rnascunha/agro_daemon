@@ -1,9 +1,10 @@
 #include "types.hpp"
-#include <iostream>
 #include "../../websocket/types.hpp"
 #include "../../device/message/device.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static void process_uptime(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
@@ -18,7 +19,7 @@ static void process_uptime(Agro::Device::Device_List& device_list,
 static void update_ota_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -45,15 +46,17 @@ static request_message const req_reset = {
 };
 
 extern constexpr const request_config uptime = {
-	requests::uptime,
+	type::uptime,
 	"uptime",
 	&req_uptime,
 	update_ota_response
 };
 extern constexpr const request_config reset = {
-	requests::reset,
+	type::reset,
 	"reset",
 	&req_reset
 };
 
-}//Message
+}//Request
+}//Device
+}//Agro

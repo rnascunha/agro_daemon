@@ -1,11 +1,13 @@
 #include "types.hpp"
-#include <iostream>
 #include "../../websocket/types.hpp"
 #include "../../app/app.hpp"
 #include "../../error.hpp"
-#include "../../device/message/device.hpp"
+#include "../message/device.hpp"
+#include "../../message/info.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static constexpr const unsigned app_max_name_size = 12;
 
@@ -34,20 +36,20 @@ static void process_get_app(Agro::Device::Device_List& device_list,
 		data8 += sizeof(app);
 	}
 
-	ws->write_all(Agro::Device::Message::device_apps_to_json(*dev));
+	ws->write_all(Message::device_apps_to_json(*dev));
 }
 
 static void process_send_app(CoAP::Message::message const& response,
 		mesh_addr_t const& host,
 		Agro::websocket_ptr ws) noexcept
 {
-	ws->write_all(make_info(info::info, host, "Send app initiated"));
+	ws->write_all(::Message::make_info(::Message::info::info, host, "Send app initiated"));
 }
 
 static void get_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -62,7 +64,7 @@ static void get_app_response(
 				<< "]: "
 				<< p << "\n";
 		ws->write_all(
-						make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 				);
 		return;
 	}
@@ -74,7 +76,7 @@ static void get_app_response(
 static void send_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -89,7 +91,7 @@ static void send_app_response(
 				<< "]: "
 				<< p << "\n";
 		ws->write_all(
-								make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 						);
 		return;
 	}
@@ -99,7 +101,7 @@ static void send_app_response(
 static void exec_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -114,7 +116,7 @@ static void exec_app_response(
 				<< "]: "
 				<< p << "\n";
 		ws->write_all(
-								make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 						);
 		return;
 	}
@@ -129,13 +131,13 @@ static void exec_app_response(
 		<< *static_cast<const int*>(response.payload)
 		<< "]";
 
-	ws->write_all(make_info(info::success, host, ss.str().c_str()));
+	ws->write_all(::Message::make_info(::Message::info::success, host, ss.str().c_str()));
 }
 
 static void delete_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -150,7 +152,7 @@ static void delete_app_response(
 				<< "]: "
 				<< p << "\n";
 		ws->write_all(
-								make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 						);
 		return;
 	}
@@ -270,26 +272,28 @@ static request_message const req_delete_app = {
 };
 
 extern constexpr const request_config get_app = {
-		requests::get_app,
+		type::get_app,
 		"get_app",
 		&req_get_app,
 		get_app_response};
 extern constexpr const request_config send_app = {
-		requests::send_app,
+		type::send_app,
 		"send_app",
 		&req_send_app,
 		send_app_response};
 
 extern constexpr const request_config execute_app = {
-		requests::run_app,
+		type::run_app,
 		"execute_app",
 		&req_execute_app,
 		exec_app_response};
 
 extern constexpr const request_config delete_app = {
-		requests::delete_app,
+		type::delete_app,
 		"delete_app",
 		&req_delete_app,
 		delete_app_response};
 
-}//Message
+}//Request
+}//Device
+}//Agro

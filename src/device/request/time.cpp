@@ -1,9 +1,11 @@
 #include "types.hpp"
-#include <iostream>
 #include "../../websocket/types.hpp"
-#include "../../device/message/device.hpp"
+#include "../message/device.hpp"
+#include "../../message/info.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static void process_rtc_time(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
@@ -13,13 +15,13 @@ static void process_rtc_time(Agro::Device::Device_List& device_list,
 	auto* dev = device_list[host];
 	dev->update_rtc_time(time);
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
-			std::make_shared<std::string>(Agro::Device::Message::device_rtc_time_to_json(*dev)));
+			std::make_shared<std::string>(Message::device_rtc_time_to_json(*dev)));
 }
 
 static void get_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -31,7 +33,7 @@ static void get_rtc_response(
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Get RTC error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 		);
 		return;
 	}
@@ -41,7 +43,7 @@ static void get_rtc_response(
 static void update_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -53,7 +55,7 @@ static void update_rtc_response(
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "RTC update error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 		);
 		return;
 	}
@@ -68,13 +70,13 @@ static void process_fuse(Agro::Device::Device_List& device_list,
 	auto* dev = device_list[host];
 	dev->fuse(time);
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
-			std::make_shared<std::string>(Agro::Device::Message::device_fuse_to_json(*dev)));
+			std::make_shared<std::string>(Message::device_fuse_to_json(*dev)));
 }
 
 static void get_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -86,7 +88,7 @@ static void get_fuse_response(
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Get FUSE error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 		);
 		return;
 	}
@@ -96,7 +98,7 @@ static void get_fuse_response(
 static void update_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -108,7 +110,7 @@ static void update_fuse_response(
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Update FUSE error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 		);
 		return;
 	}
@@ -178,28 +180,30 @@ static request_message const req_update_fuse = {
 };
 
 extern constexpr const request_config get_rtc = {
-	requests::get_rtc,
+	type::get_rtc,
 	"get_rtc",
 	&req_get_rtc,
 	get_rtc_response
 };
 extern constexpr const request_config update_rtc = {
-	requests::update_rtc,
+	type::update_rtc,
 	"update_rtc",
 	&req_update_rtc,
 	update_rtc_response
 };
 extern constexpr const request_config get_fuse = {
-	requests::get_fuse,
+	type::get_fuse,
 	"get_fuse",
 	&req_get_fuse,
 	get_fuse_response
 };
 extern constexpr const request_config update_fuse = {
-	requests::update_fuse,
+	type::update_fuse,
 	"update_fuse",
 	&req_update_fuse,
 	update_fuse_response
 };
 
-}//Message
+}//Request
+}//Device
+}//Agro

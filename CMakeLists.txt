@@ -273,25 +273,12 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
-					${MESSAGE_DIR}/request.cpp
 					${MESSAGE_DIR}/process.cpp
 					${MESSAGE_DIR}/ota.cpp
 					${MESSAGE_DIR}/app.cpp
 					${MESSAGE_DIR}/user.cpp
 					${MESSAGE_DIR}/info.cpp
 					${MESSAGE_DIR}/report.cpp)
-
-set(REQUEST_DIR		${MESSAGE_DIR}/request)					
-set(REQUEST_SRC		${REQUEST_DIR}/ac_load.cpp
-					${REQUEST_DIR}/custom.cpp
-					${REQUEST_DIR}/job.cpp
-					${REQUEST_DIR}/packet.cpp
-					${REQUEST_DIR}/system.cpp
-					${REQUEST_DIR}/ota.cpp
-					${REQUEST_DIR}/app.cpp
-					${REQUEST_DIR}/time.cpp
-					${REQUEST_DIR}/in_progress.cpp
-					)
 
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
 set(NOTIFY_SRC		${NOTIFY_DIR}/notify_request.cpp
@@ -306,6 +293,19 @@ set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
 					${DEVICE_DIR}/types.cpp
 					${DEVICE_DIR}/list.cpp
 					${DEVICE_DIR}/tree.cpp
+					)
+
+set(REQUEST_DIR		${DEVICE_DIR}/request)					
+set(REQUEST_SRC		${REQUEST_DIR}/request.cpp
+					${REQUEST_DIR}/ac_load.cpp
+					${REQUEST_DIR}/custom.cpp
+					${REQUEST_DIR}/job.cpp
+					${REQUEST_DIR}/packet.cpp
+					${REQUEST_DIR}/system.cpp
+					${REQUEST_DIR}/ota.cpp
+					${REQUEST_DIR}/app.cpp
+					${REQUEST_DIR}/time.cpp
+					${REQUEST_DIR}/in_progress.cpp
 					)
 					
 set(USER_DIR		${SRC_DIR}/user)

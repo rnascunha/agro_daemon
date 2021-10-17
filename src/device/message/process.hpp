@@ -7,6 +7,16 @@
 
 namespace Agro{
 namespace Device{
+
+namespace Request{
+
+void process_request(rapidjson::Document const& doc,
+				Agro::websocket_ptr ws,
+				Agro::instance& instance,
+				Agro::User::Logged& user) noexcept;
+
+}//Request
+
 namespace Message{
 
 void process(rapidjson::Document const&,
@@ -15,6 +25,7 @@ void process(rapidjson::Document const&,
 		Agro::User::Logged&) noexcept;
 
 }//Message
+
 }//Device
 }//Agro
 

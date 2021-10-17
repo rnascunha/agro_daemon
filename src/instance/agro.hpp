@@ -2,6 +2,7 @@
 #define AGRO_DAEMON_AGRO_HPP__
 
 #include <memory>
+#include <vector>
 
 #include "../db/db.hpp"
 #include "../coap_engine.hpp"
@@ -18,7 +19,7 @@
 
 #include "../message/user_types.hpp"
 #include "../message/report.hpp"
-#include "../message/request/in_progress.hpp"
+#include "../device/request/in_progress.hpp"
 
 namespace Agro{
 
@@ -113,14 +114,14 @@ class instance{
 		 */
 		bool has_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				::Message::requests) const noexcept;
+				Device::Request::type) const noexcept;
 		bool add_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				::Message::requests,
+				Device::Request::type,
 				User::user_id) noexcept;
 		bool remove_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				::Message::requests) noexcept;
+				Device::Request::type) noexcept;
 
 		/**
 		 * Tree
@@ -185,7 +186,7 @@ class instance{
 							User::Info::status::active,
 							"" /* email */}};
 
-		::Message::Request_in_Pogress_List requests_;
+		Device::Request::Request_in_Pogress_List requests_;
 
 		std::vector<engine::resource_node> vresource_;
 

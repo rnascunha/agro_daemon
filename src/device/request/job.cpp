@@ -1,9 +1,11 @@
 #include "types.hpp"
-#include <iostream>
+#include "../../message/info.hpp"
 #include "../../websocket/types.hpp"
-#include "../../device/message/device.hpp"
+#include "../message/device.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static void process_jobs(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
@@ -13,13 +15,13 @@ static void process_jobs(Agro::Device::Device_List& device_list,
 	auto* dev = device_list[host];
 	dev->jobs(data, size);
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
-			std::make_shared<std::string>(Agro::Device::Message::device_jobs_to_json(*dev)));
+			std::make_shared<std::string>(Message::device_jobs_to_json(*dev)));
 }
 
 static void send_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -31,7 +33,7 @@ static void send_job_response(
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Update JOB error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::error, host, p.c_str())
+				::Message::make_info(::Message::info::error, host, p.c_str())
 		);
 		return;
 	}
@@ -42,7 +44,7 @@ static void send_job_response(
 static void get_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -54,7 +56,7 @@ static void get_job_response(
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Get JOB error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::error, host, p.c_str())
+				::Message::make_info(::Message::info::error, host, p.c_str())
 		);
 		return;
 	}
@@ -65,7 +67,7 @@ static void get_job_response(
 static void delete_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const&,
 		CoAP::Transmission::status_t,
@@ -171,22 +173,24 @@ static request_message const req_del_job = {
 };
 
 extern constexpr const request_config send_job = {
-	requests::send_job,
+	type::send_job,
 	"send_job",
 	&req_send_job,
 	send_job_response
 };
 extern constexpr const request_config get_job = {
-	requests::get_job,
+	type::get_job,
 	"get_job",
 	&req_get_job,
 	get_job_response
 };
 extern constexpr const request_config delete_job = {
-	requests::delete_job,
+	type::delete_job,
 	"del_job",
 	&req_del_job,
 	delete_job_response
 };
 
-}//Message
+}//Request
+}//Device
+}//Agro

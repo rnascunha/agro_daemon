@@ -5,7 +5,9 @@
 #include "../../instance/agro.hpp"
 #include "../../websocket/types.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 struct request_message
 {
@@ -16,12 +18,12 @@ struct request_message
 };
 
 struct request_config{
-	requests	mtype;
+	type	mtype;
 	const char* name;
 	request_message const* message;
 	void(*response)(engine::endpoint const&,
 			mesh_addr_t const&,
-			requests,
+			type,
 			CoAP::Message::message const&,
 			CoAP::Message::message const&,
 			CoAP::Transmission::status_t,
@@ -87,7 +89,7 @@ const request_config rconfig[] = {
 	delete_app
 };
 
-inline constexpr request_config const* get_requests_config(requests t) noexcept
+inline constexpr request_config const* get_requests_config(type t) noexcept
 {
 	for(std::size_t i = 0; i < sizeof(rconfig) / sizeof(rconfig[0]); i++)
 	{
@@ -105,4 +107,7 @@ inline constexpr request_config const* get_requests_config(const char* t) noexce
 	return nullptr;
 }
 
-}//Namespace
+}//Request
+}//Device
+}//Agro
+

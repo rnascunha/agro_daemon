@@ -1,9 +1,11 @@
-#ifndef AGRO_DAEMON_MESSAGE_REQUEST_LIST_HPP__
-#define AGRO_DAEMON_MESSAGE_REQUEST_LIST_HPP__
+#ifndef AGRO_DAEMON_DEVICE_REQUEST_LIST_HPP__
+#define AGRO_DAEMON_DEVICE_REQUEST_LIST_HPP__
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
-enum class requests{
+enum class type{
 	custom,
 	ac_load1_on,
 	ac_load1_off,
@@ -33,6 +35,8 @@ enum class requests{
 	delete_app
 };
 
-}//Message
+}//Request
+}//Device
+}//Agro
 
-#endif /* AGRO_DAEMON_MESSAGE_REQUEST_LIST_HPP__ */
+#endif /* AGRO_DAEMON_DEVICE_REQUEST_LIST_HPP__ */

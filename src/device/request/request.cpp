@@ -1,17 +1,18 @@
 #include <iostream>
 
-#include "process.hpp"
+#include "../../message/types.hpp"
 #include "types.hpp"
-#include "request/types.hpp"
-#include "report.hpp"
+#include "../../message/report.hpp"
 
 #include "coap-te-debug.hpp"
-#include "make.hpp"
-#include "../websocket/types.hpp"
-#include "../resources/process.hpp"
-#include "../helper/coap_helper.hpp"
+#include "../../message/make.hpp"
+#include "../../websocket/types.hpp"
+#include "../../resources/process.hpp"
+#include "../../helper/coap_helper.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static CoAP::Message::code string_to_method(const char* method_str)
 {
@@ -34,7 +35,7 @@ static void request_cb(void const* trans,
 		Agro::instance& instance) noexcept
 {
 	auto const* t = static_cast<engine::transaction_t const*>(trans);
-	auto req = static_cast<Message::requests>(reinterpret_cast<std::uintptr_t>(request));
+	auto req = static_cast<type>(reinterpret_cast<std::uintptr_t>(request));
 
 	CoAP::Message::Option::option op;
 	if(!CoAP::Message::Option::get_option(t->request(), op, CoAP::Message::Option::code::uri_host))
@@ -56,7 +57,7 @@ static void request_cb(void const* trans,
 		std::cout << "Response received!\n\n";
 		CoAP::Debug::print_message_string(*response);
 		engine::endpoint const ep = t->endpoint();
-		Message::request_config const* config = Message::get_requests_config(req);
+		request_config const* config = get_requests_config(req);
 		if(!config)
 		{
 			goto end;
@@ -95,7 +96,7 @@ end:
 }
 
 static void process_custom_request(rapidjson::Document const& d,
-							Message::request_message& msg,
+							request_message& msg,
 							std::error_code& ec) noexcept
 {
 	if(!d.HasMember("method") || !d["method"].IsString())
@@ -144,8 +145,8 @@ static void process_custom_request(rapidjson::Document const& d,
 static void send_request(
 		const char* mac,
 		engine::endpoint const& ep,
-		Message::requests request_type,
-		Message::request_message const& msg,
+		type request_type,
+		request_message const& msg,
 		Agro::websocket_ptr ws,
 		Agro::instance& instance,
 		rapidjson::Document const& doc,
@@ -237,47 +238,53 @@ void process_request(rapidjson::Document const& doc,
 				Agro::instance& instance,
 				Agro::User::Logged& user) noexcept
 {
-	if(!doc.HasMember("request") || !doc["request"].IsString())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		std::cerr << "Not valid request\n";
+		tt::warning("Request missing field 'data'.");
 		return;
 	}
 
-	Message::request_config const* config = Message::get_requests_config(doc["request"].GetString());
-	std::cout << "Request search: " << doc["request"].GetString() << "\n";
+	rapidjson::Value const& data = doc["data"].GetObject();
+
+	if(!data.HasMember("request") || !data["request"].IsString())
+	{
+		tt::warning("Request missing field 'request'.");
+		return;
+	}
+
+	request_config const* config = get_requests_config(data["request"].GetString());
 	if(!config)
 	{
-		std::cerr << "Request config not found\n";
+		tt::warning("Invalid request [%s].", data["request"].GetString());
 		return;
 	}
 
-	if(!doc.HasMember("device") || !doc["device"].IsString())
+	if(!data.HasMember("device") || !data["device"].IsString())
 	{
-		std::cerr << "Request device not found\n";
+		tt::warning("Request missing field 'device'.");
 		return;
 	}
 
-	Agro::Device::Device const* dev = instance.device_list()[doc["device"].GetString()];
+	Agro::Device::Device const* dev = instance.device_list()[data["device"].GetString()];
 	if(!dev)
 	{
-		std::cerr << "Device not found\n";
+		tt::warning("Request device not found [%s]", data["device"].GetString());
 		return;
 	}
 
-	Message::request_message const* req = config->message;
-	Message::request_message custom_req;
-	if(config->mtype == Message::requests::custom)
+	request_message const* req = config->message;
+	request_message custom_req;
+	if(config->mtype == type::custom)
 	{
 		std::error_code ec;
 		process_custom_request(doc, custom_req, ec);
 		if(ec)
 		{
-			std::cerr << "Error processing custom request\n";
+			tt::error("Error processing custom request [%d/%s]", ec.value(), ec.message().c_str());
 			return;
 		}
 		req = &custom_req;
 	}
-	std::cout << "Req: " << static_cast<int>(config->mtype) << " " << config->name << "\n";
 
 	//Checking if user is allowed
 	if(!is_user_allowed(req->method, user)) return;
@@ -285,7 +292,7 @@ void process_request(rapidjson::Document const& doc,
 	/**
 	 * Checking if already have a request to the same device
 	 */
-	if(config->mtype != Message::requests::custom)
+	if(config->mtype != type::custom)
 	{
 		if(!instance.add_request_in_progress(dev->mac(), req->method, config->mtype, user.id()))
 		{
@@ -296,7 +303,7 @@ void process_request(rapidjson::Document const& doc,
 	}
 
 	CoAP::Error ecc;
-	send_request(doc["device"].GetString(),
+	send_request(data["device"].GetString(),
 			dev->get_endpoint(),
 			config->mtype,
 			*req,
@@ -311,7 +318,7 @@ void process_request(rapidjson::Document const& doc,
 	if(ecc)
 	{
 		tt::error("CoAP send error! [%d/%m]", ecc.value(), ecc.message());
-		if(config->mtype != Message::requests::custom)
+		if(config->mtype != type::custom)
 		{
 			/**
 			 * Removing request from in progress...
@@ -334,4 +341,7 @@ void process_request(rapidjson::Document const& doc,
 	}
 }
 
-}//Message
+}//Request
+}//Device
+}//Agro
+

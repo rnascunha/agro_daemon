@@ -2,7 +2,9 @@
 #include "../../websocket/types.hpp"
 #include "../../device/message/device.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static void process_ac_load(Agro::Device::Device_List& device_list,
 		Agro::websocket_ptr ws,
@@ -19,7 +21,7 @@ static void process_ac_load(Agro::Device::Device_List& device_list,
 static void ac_load_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests req,
+		type req,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -28,20 +30,20 @@ static void ac_load_response(
 {
 	switch(req)
 	{
-		case requests::ac_load1_on:
-		case requests::ac_load1_off:
+		case type::ac_load1_on:
+		case type::ac_load1_off:
 			process_ac_load(instance.device_list(),
 					ws, host, 0,
 					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
 		break;
-		case requests::ac_load2_on:
-		case requests::ac_load2_off:
+		case type::ac_load2_on:
+		case type::ac_load2_off:
 			process_ac_load(instance.device_list(),
 					ws, host, 1,
 					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
 		break;
-		case requests::ac_load3_on:
-		case requests::ac_load3_off:
+		case type::ac_load3_on:
+		case type::ac_load3_off:
 			process_ac_load(instance.device_list(),
 					ws, host, 2,
 					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
@@ -68,40 +70,42 @@ AC_LOAD(ac3_on, 3, "1");
 AC_LOAD(ac3_off, 3, "0");
 
 extern constexpr const request_config ac1_on = {
-	requests::ac_load1_on,
+	type::ac_load1_on,
 	"ac1_on",
 	&req_ac1_on,
 	ac_load_response
 };
 extern constexpr const request_config ac1_off = {
-	requests::ac_load1_off,
+	type::ac_load1_off,
 	"ac1_off",
 	&req_ac1_off,
 	ac_load_response
 };
 extern constexpr const request_config ac2_on = {
-	requests::ac_load2_on,
+	type::ac_load2_on,
 	"ac2_on",
 	&req_ac2_on,
 	ac_load_response
 };
 extern constexpr const request_config ac2_off = {
-	requests::ac_load2_off,
+	type::ac_load2_off,
 	"ac2_off",
 	&req_ac2_off,
 	ac_load_response
 };
 extern constexpr const request_config ac3_on = {
-	requests::ac_load3_on,
+	type::ac_load3_on,
 	"ac3_on",
 	&req_ac3_on,
 	ac_load_response
 };
 extern constexpr const request_config ac3_off = {
-	requests::ac_load3_off,
+	type::ac_load3_off,
 	"ac3_off",
 	&req_ac3_off,
 	ac_load_response
 };
 
-}//Message
+}//Request
+}//Device
+}//Agro

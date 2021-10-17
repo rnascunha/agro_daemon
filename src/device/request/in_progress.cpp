@@ -1,24 +1,26 @@
 #include "in_progress.hpp"
 #include <algorithm>
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 request_in_progress::request_in_progress(mesh_addr_t const& address,
 			CoAP::Message::code code,
-			requests req,
+			type req,
 			Agro::User::user_id uid)
 	: addr(address), method(code), request(req), id(uid){}
 
 bool request_in_progress::is_equal(mesh_addr_t const& address,
 		CoAP::Message::code code,
-		requests req) const noexcept
+		type req) const noexcept
 {
 	return addr == address && method == code && request == req;
 }
 
 bool Request_in_Pogress_List::has(mesh_addr_t const& address,
 		CoAP::Message::code method,
-		requests req) const noexcept
+		type req) const noexcept
 {
 	for(auto const& r : list_)
 	{
@@ -30,7 +32,7 @@ bool Request_in_Pogress_List::has(mesh_addr_t const& address,
 
 bool Request_in_Pogress_List::add(mesh_addr_t const& address,
 		CoAP::Message::code method,
-		requests req,
+		type req,
 		Agro::User::user_id uid) noexcept
 {
 	if(has(address, method, req))
@@ -45,7 +47,7 @@ bool Request_in_Pogress_List::add(mesh_addr_t const& address,
 
 bool Request_in_Pogress_List::remove(mesh_addr_t const& address,
 		CoAP::Message::code method,
-		requests req) noexcept
+		type req) noexcept
 {
 	auto p = std::remove_if(list_.begin(), list_.end(),
 			[&address, &method, &req](request_in_progress const& rp){
@@ -62,4 +64,6 @@ bool Request_in_Pogress_List::remove(mesh_addr_t const& address,
 	return true;
 }
 
-}//Message
+}//Request
+}//Device
+}//Agro

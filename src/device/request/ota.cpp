@@ -1,9 +1,11 @@
 #include "types.hpp"
-#include <iostream>
+#include "../../message/info.hpp"
 #include "../../websocket/types.hpp"
 #include "../../device/message/device.hpp"
 
-namespace Message{
+namespace Agro{
+namespace Device{
+namespace Request{
 
 static void process_get_ota(Agro::Device::Device_List& device_list,
 		mesh_addr_t const& host,
@@ -16,7 +18,7 @@ static void process_get_ota(Agro::Device::Device_List& device_list,
 		std::cerr << "Device " << host.to_string() << " not found\n";
 		return;
 	}
-	ws->write_all(Agro::Device::Message::device_ota_to_json(*dev, version));
+	ws->write_all(Message::device_ota_to_json(*dev, version));
 }
 
 static void process_update_ota(CoAP::Message::message const& response,
@@ -28,17 +30,17 @@ static void process_update_ota(CoAP::Message::message const& response,
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Update OTA error[" << response.payload_len << "]: " << p << "\n";
 		ws->write_all(
-				make_info(info::warning, host, p.c_str())
+				::Message::make_info(::Message::info::warning, host, p.c_str())
 		);
 		return;
 	}
-	ws->write_all(make_info(info::info, host, "OTA update initiated"));
+	ws->write_all(::Message::make_info(::Message::info::info, host, "OTA update initiated"));
 }
 
 static void get_ota_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -54,7 +56,7 @@ static void get_ota_response(
 static void update_ota_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		requests,
+		type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -97,14 +99,16 @@ static request_message const req_update_ota = {
 };
 
 extern constexpr const request_config get_ota = {
-		requests::get_ota,
+		type::get_ota,
 		"get_ota_version",
 		&req_get_ota,
 		get_ota_response};
 extern constexpr const request_config update_ota = {
-		requests::update_ota,
+		type::update_ota,
 		"update_ota",
 		&req_update_ota,
 		update_ota_response};
 
-}//Message
+}//Request
+}//Device
+}//Agro

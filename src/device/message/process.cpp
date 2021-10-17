@@ -82,11 +82,13 @@ void process(rapidjson::Document const& doc,
 		case device_commands::edit:
 			edit_device(doc, ws, instance, user);
 			break;
+		case device_commands::request:
+			Request::process_request(doc, ws, instance, user);
+			break;
 		default:
 			tt::warning("No callback registered to '%s'", config->name);
 			break;
 	}
-
 }
 
 }//Message

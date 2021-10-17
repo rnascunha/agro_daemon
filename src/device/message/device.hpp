@@ -16,7 +16,8 @@ enum class device_commands{
 	list = 0,
 	data,
 	tree,
-	edit
+	edit,
+	request
 };
 
 constexpr const ::Message::config<device_commands> device_config[] = {
@@ -24,6 +25,7 @@ constexpr const ::Message::config<device_commands> device_config[] = {
 	{device_commands::data, "data"},
 	{device_commands::tree, "tree"},
 	{device_commands::edit, "edit"},
+	{device_commands::request, "request"}
 };
 
 inline constexpr ::Message::config<device_commands> const* get_config(device_commands t) noexcept
