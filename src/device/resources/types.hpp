@@ -1,8 +1,10 @@
-#ifndef AGRO_DAEMON_NET_MESSAGES_TYPES_HPP__
-#define AGRO_DAEMON_NET_MESSAGES_TYPES_HPP__
+#ifndef AGRO_DAEMON_DEVICE_RESOURCES_TYPES_HPP__
+#define AGRO_DAEMON_DEVICE_RESOURCES_TYPES_HPP__
 
 #include <cstdint>
 
+namespace Agro{
+namespace Device{
 namespace Resource{
 
 struct mesh_addr_t{
@@ -56,5 +58,7 @@ struct __attribute__((packed)) sensor_data{
 };
 
 }//Resource
+}//Device
+}//Agro
 
-#endif /* AGRO_DAEMON_NET_MESSAGES_TYPES_HPP__ */
+#endif /* AGRO_DAEMON_DEVICE_RESOURCES_TYPES_HPP__ */

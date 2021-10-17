@@ -8,7 +8,7 @@
 #include "../websocket/types.hpp"
 #include "../websocket/listener.hpp"
 
-#include "../resources/init.hpp"
+#include "../device/resources/init.hpp"
 
 #include "../user/password.hpp"
 
@@ -63,7 +63,7 @@ instance::instance(
 
 	share_ = std::make_shared<Agro::share>(*this);
 
-	Resource::init(coap_engine_, *this, share_, vresource_);
+	Device::Resource::init(coap_engine_, *this, vresource_);
 
 	boost::system::error_code ecb;
 #if USE_SSL == 0

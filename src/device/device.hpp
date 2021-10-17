@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "types.hpp"
-#include "../resources/types.hpp"
+#include "resources/types.hpp"
 #include "../error.hpp"
 #include "../coap_engine.hpp"
 

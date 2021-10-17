@@ -1,13 +1,15 @@
 #include "process.hpp"
 #include "types.hpp"
-#include "../error.hpp"
-#include "../instance/agro.hpp"
-#include "../device/message/device.hpp"
+#include "../../error.hpp"
+#include "../../instance/agro.hpp"
+#include "../message/device.hpp"
 
+namespace Agro{
+namespace Device{
 namespace Resource{
 
 bool process_status(Agro::Device::Device& device,
-					Agro::share_ptr data_share,
+					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
@@ -21,14 +23,13 @@ bool process_status(Agro::Device::Device& device,
 
 	device.update(ep, *rt);
 
-	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_status_to_json(device)));
 
 	return true;
 }
 
 bool process_route(Agro::Device::Device& device,
-					Agro::share_ptr data_share,
 					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
@@ -48,7 +49,7 @@ bool process_route(Agro::Device::Device& device,
 
 	if(instance.update_tree(device) || force_send)
 	{
-		data_share->write_all_policy(Agro::Authorization::rule::view_device,
+		instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
 	}
 
@@ -56,7 +57,7 @@ bool process_route(Agro::Device::Device& device,
 }
 
 bool process_board(Agro::Device::Device& device,
-					Agro::share_ptr data_share,
+					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
@@ -72,14 +73,13 @@ bool process_board(Agro::Device::Device& device,
 				static_cast<const char*>(payload) + sizeof(board_config),
 				payload_len - sizeof(board_config));
 
-	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_board_to_json(device)));
 
 	return true;
 }
 
 bool process_config(Agro::Device::Device& device,
-					Agro::share_ptr data_share,
 					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
@@ -96,14 +96,13 @@ bool process_config(Agro::Device::Device& device,
 	Agro::Device::Net* net = instance.get_or_add_net(net_addr);
 	device.update(ep, *rt, net);
 
-	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_config_to_json(device)));
 
 	return true;
 }
 
 bool process_full_config(Agro::Device::Device& device,
-					Agro::share_ptr data_share,
 					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
@@ -123,7 +122,7 @@ bool process_full_config(Agro::Device::Device& device,
 			static_cast<const uint8_t*>(payload) + sizeof(route) + sizeof(status) + sizeof(config),
 			payload_len - sizeof(route) - sizeof(status) - sizeof(config));
 
-	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_full_config_to_json(device)));
 
 	instance.update_tree(device);
@@ -132,7 +131,7 @@ bool process_full_config(Agro::Device::Device& device,
 }
 
 bool process_sensor_data(Agro::Device::Device& device,
-					Agro::share_ptr data_share,
+					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
@@ -146,10 +145,12 @@ bool process_sensor_data(Agro::Device::Device& device,
 
 	device.update(ep, *rt);
 
-	data_share->write_all_policy(Agro::Authorization::rule::view_device,
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_sensor_data_to_json(device)));
 
 	return true;
 }
 
 }//Resource
+}//Device
+}//Agro

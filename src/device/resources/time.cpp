@@ -1,22 +1,17 @@
-#include "../coap_engine.hpp"
-#include "../device/types.hpp"
+#include "../../coap_engine.hpp"
+#include "../types.hpp"
 
+namespace Agro{
+namespace Device{
 namespace Resource{
 
 void get_time_handler(engine::message const& request,
-								engine::response& response, void*) noexcept
+						engine::response& response, void*) noexcept
 {
-	printf("Resource get time handler\n");
-
 	CoAP::Message::Option::option op;
 	if(!CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host))
 	{
-		printf("TIME RESOURCE error getting host...\n");
 		return;
-	}
-	else
-	{
-		printf("Received: %.*s\n", op.length, static_cast<const char*>(op.value));
 	}
 
 	CoAP::Message::content_format format{CoAP::Message::content_format::application_octet_stream};
@@ -34,3 +29,5 @@ void get_time_handler(engine::message const& request,
 }
 
 }//Resource
+}//Device
+}//Agro

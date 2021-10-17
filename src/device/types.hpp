@@ -3,9 +3,10 @@
 
 #include <cstdint>
 #include <vector>
-#include "../resources/types.hpp"
-#include "../error.hpp"
 #include <system_error>
+
+#include "resources/types.hpp"
+#include "../error.hpp"
 
 struct mesh_addr_t{
 	static constexpr const unsigned str_size = 18;
@@ -27,7 +28,7 @@ struct mesh_addr_t{
 	bool operator<(mesh_addr_t const& rhs) const noexcept;
 
 	mesh_addr_t& operator=(mesh_addr_t const&) noexcept;
-	mesh_addr_t& operator=(Resource::mesh_addr_t const&) noexcept;
+	mesh_addr_t& operator=(Agro::Device::Resource::mesh_addr_t const&) noexcept;
 
 	char* to_string(char*, unsigned = 18) const noexcept;
 	std::string to_string() const noexcept;
@@ -77,14 +78,6 @@ class Value_List{
 	private:
 		std::vector<value> list_;
 };
-
-//template<typename Number,
-//		unsigned Max>
-//class Sensor_List{
-//	public:
-//	private:
-//
-//};
 
 struct job{
 	static constexpr const std::size_t packet_size = 7;

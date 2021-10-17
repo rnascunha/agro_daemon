@@ -257,20 +257,6 @@ include_directories(third/pusha/include third/pusha/include_cpp)
 set(OTA_DIR			${SRC_DIR}/ota)
 set(APP_DIR			${SRC_DIR}/app)
 
-set(RESOURCE_DIR	${SRC_DIR}/resources)
-set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
-					${RESOURCE_DIR}/status.cpp
-					${RESOURCE_DIR}/config.cpp
-					${RESOURCE_DIR}/full_config.cpp
-					${RESOURCE_DIR}/board_config.cpp
-					${RESOURCE_DIR}/sensor_data.cpp
-					${RESOURCE_DIR}/time.cpp
-					${RESOURCE_DIR}/ota.cpp
-					${RESOURCE_DIR}/app.cpp
-					${RESOURCE_DIR}/info.cpp
-					${RESOURCE_DIR}/init.cpp
-					${RESOURCE_DIR}/process.cpp)
-
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 					${MESSAGE_DIR}/process.cpp
@@ -307,6 +293,20 @@ set(REQUEST_SRC		${REQUEST_DIR}/request.cpp
 					${REQUEST_DIR}/time.cpp
 					${REQUEST_DIR}/in_progress.cpp
 					)
+
+set(RESOURCE_DIR	${DEVICE_DIR}/resources)
+set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
+					${RESOURCE_DIR}/status.cpp
+					${RESOURCE_DIR}/config.cpp
+					${RESOURCE_DIR}/full_config.cpp
+					${RESOURCE_DIR}/board_config.cpp
+					${RESOURCE_DIR}/sensor_data.cpp
+					${RESOURCE_DIR}/time.cpp
+					${RESOURCE_DIR}/ota.cpp
+					${RESOURCE_DIR}/app.cpp
+					${RESOURCE_DIR}/info.cpp
+					${RESOURCE_DIR}/init.cpp
+					${RESOURCE_DIR}/process.cpp)					
 					
 set(USER_DIR		${SRC_DIR}/user)
 set(USER_SRC		${USER_DIR}/user.cpp

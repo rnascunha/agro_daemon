@@ -1,32 +1,31 @@
-#include "../coap_engine.hpp"
-#include "../device/list.hpp"
 #include <vector>
 #include <filesystem>
 #include <fstream>
-#include "../app/app.hpp"
-#include <iostream>
 
-#include "coap-te-debug.hpp"
+#include "../../coap_engine.hpp"
+#include "../list.hpp"
+#include "../../ota/ota.hpp"
 
 #define DEFAULT_BLOCK_SIZE		512
 
+namespace Agro{
+namespace Device{
 namespace Resource{
 
-void get_app_handler(engine::message const& request,
-								engine::response& response, void*) noexcept
+void get_ota_handler(engine::message const& request,
+					engine::response& response, void*) noexcept
 {
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
 
 	using namespace CoAP::Message;
 
-	std::filesystem::path p{app_path()};
+	std::filesystem::path p{ota_path()};
 	p += "/";
 	p += std::string{static_cast<const char*>(request.payload), request.payload_len};
 
 	if(!std::filesystem::exists(p) || !std::filesystem::is_regular_file(p))
 	{
-		std::cout << "File not found: " << p << "\n";
 		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(code::internal_server_error)
@@ -95,7 +94,6 @@ void get_app_handler(engine::message const& request,
 	std::ifstream ifs{p, std::ios::binary};
 	if(!ifs)
 	{
-		std::cout << "File not found: " << p << "\n";
 		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(code::internal_server_error)
@@ -124,3 +122,5 @@ void get_app_handler(engine::message const& request,
 }
 
 }//Resource
+}//Device
+}//Agro

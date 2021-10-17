@@ -1,14 +1,15 @@
-#include "../coap_engine.hpp"
-#include "../instance/agro.hpp"
-#include "../websocket/types.hpp"
+#include "../../coap_engine.hpp"
+#include "../../instance/agro.hpp"
+#include "../../websocket/types.hpp"
 #include "process.hpp"
 
+namespace Agro{
+namespace Device{
 namespace Resource{
 
 void put_route_handler(engine::message const& request,
 								engine::response& response, void*,
-								Agro::instance& instance,
-								Agro::share_ptr data_share) noexcept
+								Agro::instance& instance) noexcept
 {
 	CoAP::Message::Option::option op;
 	Agro::Device::Device* dev;
@@ -21,7 +22,6 @@ void put_route_handler(engine::message const& request,
 
 	std::error_code ec;
 	if(!process_route(*dev,
-						data_share,
 						instance,
 						response.endpoint(),
 						request.payload, request.payload_len,
@@ -49,3 +49,5 @@ void put_route_handler(engine::message const& request,
 }
 
 }//Resource
+}//Device
+}//Agro

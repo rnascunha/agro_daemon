@@ -56,35 +56,6 @@ inline constexpr config<type> const* get_type_config(const char* t) noexcept
 }
 
 /**
- * Commands
- */
-enum class commands{
-	update_name = 0/**< update_name */
-};
-
-constexpr const config<commands> cconfig[] = {
-		{commands::update_name, "update_name"},
-};
-
-inline constexpr config<commands> const* get_commands_config(commands t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(cconfig) / sizeof(cconfig[0]); i++)
-	{
-		if(t == cconfig[i].mtype) return &cconfig[i];
-	}
-	return nullptr;
-}
-
-inline constexpr config<commands> const* get_commands_config(const char* t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(cconfig) / sizeof(cconfig[0]); i++)
-	{
-		if(std::strcmp(t, cconfig[i].name) == 0) return &cconfig[i];
-	}
-	return nullptr;
-}
-
-/**
  * Image
  */
 enum class image_commands{

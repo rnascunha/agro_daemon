@@ -1,15 +1,15 @@
-#include "../coap_engine.hpp"
-#include "../instance/agro.hpp"
-#include "../websocket/types.hpp"
+#include "../../coap_engine.hpp"
+#include "../../instance/agro.hpp"
+#include "../../websocket/types.hpp"
 #include "process.hpp"
-#include <cstdio>
 
+namespace Agro{
+namespace Device{
 namespace Resource{
 
-void put_sensor_data_handler(engine::message const& request,
+void put_status_handler(engine::message const& request,
 								engine::response& response, void*,
-								Agro::instance& instance,
-								Agro::share_ptr data_share) noexcept
+								Agro::instance& instance) noexcept
 {
 	CoAP::Message::Option::option op;
 	Agro::Device::Device* dev;
@@ -21,13 +21,13 @@ void put_sensor_data_handler(engine::message const& request,
 	}
 
 	std::error_code ec;
-	if(!process_sensor_data(*dev,
-					data_share,
+	if(!process_status(*dev,
+					instance,
 					response.endpoint(),
 					request.payload, request.payload_len,
 					ec))
 	{
-		tt::debug("Sensor request error!");
+		tt::debug("Status request error!");
 		CoAP::Message::Option::node uri_host{op};
 		response
 			.code(CoAP::Message::code::bad_request)
@@ -37,7 +37,6 @@ void put_sensor_data_handler(engine::message const& request,
 		return;
 	}
 
-	tt::debug("Sensor request OK!");
 	instance.update_db_device(*dev);
 
 	if(request.mtype == CoAP::Message::type::confirmable)
@@ -51,3 +50,5 @@ void put_sensor_data_handler(engine::message const& request,
 }
 
 }//Resource
+}//Device
+}//Agro

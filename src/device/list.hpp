@@ -4,7 +4,7 @@
 #include <map>
 
 #include "types.hpp"
-#include "../resources/types.hpp"
+#include "resources/types.hpp"
 #include "device.hpp"
 
 namespace Agro{

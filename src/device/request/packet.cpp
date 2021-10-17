@@ -1,6 +1,6 @@
 #include "types.hpp"
 #include "../../websocket/types.hpp"
-#include "../../resources/process.hpp"
+#include "../resources/process.hpp"
 
 namespace Agro{
 namespace Device{
@@ -14,15 +14,15 @@ static void packet_response(
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
 		Agro::instance& instance,
-		Agro::websocket_ptr ws) noexcept
+		Agro::websocket_ptr) noexcept
 {
 	Agro::Device::Device* dev = instance.device_list()[host];
 	switch(req)
 	{
 		case type::sensor: {
 			std::error_code ec;
-			::Resource::process_sensor_data(*dev,
-					ws->get_share(),
+			Resource::process_sensor_data(*dev,
+					instance,
 					ep,
 					response.payload, response.payload_len,
 					ec);
@@ -30,8 +30,8 @@ static void packet_response(
 			break;
 		case type::board: {
 			std::error_code ec;
-			::Resource::process_board(*dev,
-					ws->get_share(),
+			Resource::process_board(*dev,
+					instance,
 					ep,
 					response.payload, response.payload_len,
 					ec);
@@ -39,8 +39,7 @@ static void packet_response(
 		break;
 		case type::config: {
 			std::error_code ec;
-			::Resource::process_config(*dev,
-					ws->get_share(),
+			Resource::process_config(*dev,
 					instance,
 					ep,
 					response.payload, response.payload_len,
@@ -49,8 +48,7 @@ static void packet_response(
 		break;
 		case type::full_config: {
 			std::error_code ec;
-			::Resource::process_full_config(*dev,
-					ws->get_share(),
+			Resource::process_full_config(*dev,
 					instance,
 					ep,
 					response.payload, response.payload_len,
@@ -59,8 +57,7 @@ static void packet_response(
 		break;
 		case type::route: {
 			std::error_code ec;
-			::Resource::process_route(*dev,
-					ws->get_share(),
+			Resource::process_route(*dev,
 					instance,
 					ep,
 					response.payload, response.payload_len,

@@ -1,14 +1,12 @@
-#include <iostream>
-
 #include "../../message/types.hpp"
 #include "types.hpp"
 #include "../../message/report.hpp"
 
-#include "coap-te-debug.hpp"
 #include "../../message/make.hpp"
 #include "../../websocket/types.hpp"
-#include "../../resources/process.hpp"
 #include "../../helper/coap_helper.hpp"
+
+#include "coap-te-debug.hpp"
 
 namespace Agro{
 namespace Device{
@@ -54,7 +52,6 @@ static void request_cb(void const* trans,
 
 	if(response)
 	{
-		std::cout << "Response received!\n\n";
 		CoAP::Debug::print_message_string(*response);
 		engine::endpoint const ep = t->endpoint();
 		request_config const* config = get_requests_config(req);
@@ -83,12 +80,9 @@ static void request_cb(void const* trans,
 		/**
 		 * Function timeout or transaction was cancelled
 		 */
-		std::cout << "Response NOT received\n";
-
 		ws->write(instance.make_report(Agro::Message::report_type::error,
 								host, "Request failed", path, ws->user().id()));
 
-		std::cout << "Removing node from tree...\n";
 		instance.remove_node_from_tree(host);
 	}
 end:

@@ -1,3 +1,6 @@
+#ifndef AGRO_DAEMON_DEVICE_REQUEST_TYPES_HPP__
+#define AGRO_DAEMON_DEVICE_REQUEST_TYPES_HPP__
+
 #include <vector>
 
 #include "request_list.hpp"
@@ -111,3 +114,4 @@ inline constexpr request_config const* get_requests_config(const char* t) noexce
 }//Device
 }//Agro
 
+#endif /* AGRO_DAEMON_DEVICE_REQUEST_TYPES_HPP__ */

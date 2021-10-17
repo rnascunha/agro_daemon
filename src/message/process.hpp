@@ -10,10 +10,6 @@
 
 namespace Message{
 
-void process_request(rapidjson::Document const&,
-				Agro::websocket_ptr,
-				Agro::instance&,
-				Agro::User::Logged&) noexcept;
 void process(std::string&& str,
 		Agro::websocket_ptr,
 		Agro::instance&,

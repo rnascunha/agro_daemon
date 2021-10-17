@@ -1,7 +1,7 @@
 #include "agro.hpp"
 #include "tt/tt.hpp"
 #include "coap-te-debug.hpp"
-#include "../resources/process.hpp"
+#include "../device/resources/process.hpp"
 #include "../user/policy.hpp"
 
 static void request_route_cb(void const* trans,
@@ -106,8 +106,7 @@ static void request_route_cb(void const* trans,
 		}
 
 		std::error_code ec;
-		::Resource::process_route(*dev,
-					instance->share(),
+		Agro::Device::Resource::process_route(*dev,
 					*instance,
 					t->endpoint(),
 					response->payload, response->payload_len,
