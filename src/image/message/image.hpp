@@ -14,13 +14,15 @@ namespace Message {
 enum class image_commands{
 	erase = 0,
 	list,
-	edit
+	edit,
+	download,
 };
 
 constexpr const ::Message::config<image_commands> img_config[] = {
 	{image_commands::erase, "delete"},
 	{image_commands::list, "list"},
-	{image_commands::edit, "edit"}
+	{image_commands::edit, "edit"},
+	{image_commands::download, "download"}
 };
 
 inline constexpr ::Message::config<image_commands> const* get_config(image_commands t) noexcept

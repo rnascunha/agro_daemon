@@ -11,6 +11,12 @@
 #include "../coap_engine.hpp"
 #include "../user/user.hpp"
 
+enum class binary_type{
+	json = 0,
+	image = 1,
+	app = 2
+};
+
 template<bool UseSSL>
 class Websocket final :
 		public My_Async::Websocket::Session_Base<Websocket<UseSSL>, UseSSL, std::string>
@@ -48,6 +54,9 @@ class Websocket final :
 				std::shared_ptr<std::string const> data) noexcept;
 		void write_policy(Agro::Authorization::rule rule,
 				std::shared_ptr<std::string const> data) noexcept;
+		void write_file(binary_type type,
+				std::string const&,
+				std::filesystem::path const&) noexcept;
 
 		Agro::User::Logged const& user() const noexcept;
 

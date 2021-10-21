@@ -12,13 +12,15 @@ namespace Message {
 enum class app_commands{
 	erase = 0,
 	list,
-	edit
+	edit,
+	download,
 };
 
 constexpr const ::Message::config<app_commands> app_config[] = {
 	{app_commands::erase, "delete"},
 	{app_commands::list, "list"},
-	{app_commands::edit, "edit"}
+	{app_commands::edit, "edit"},
+	{app_commands::download, "download"}
 };
 
 inline constexpr ::Message::config<app_commands> const* get_config(app_commands t) noexcept

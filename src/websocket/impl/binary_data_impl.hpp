@@ -14,12 +14,6 @@
 static constexpr const std::size_t image_name_max_size = 31;
 static constexpr const std::size_t app_name_max_size = 12;
 
-enum class binary_type{
-	json = 0,
-	image = 1,
-	app = 2
-};
-
 template<bool UseSSL>
 void Websocket<UseSSL>::get_app_file(
 		const char* first_block, std::size_t block_size) noexcept

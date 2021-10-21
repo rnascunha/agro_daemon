@@ -60,8 +60,31 @@ static void edit_image(rapidjson::Document const& doc,
 	instance.send_all_image_list();
 }
 
+static void download_image(rapidjson::Document const& doc,
+		websocket_ptr ws,
+		instance& instance) noexcept
+{
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
+	{
+		tt::warning("Image request 'data' field missing or wrong type.");
+		return;
+	}
+
+	rapidjson::Value const& data = doc["data"].GetObject();
+
+	if(!data.HasMember("name") || !data["name"].IsString())
+	{
+		tt::warning("Image download 'name' field missing or wrong type.");
+		return;
+	}
+
+	ws->write_file(binary_type::image,
+			data["name"].GetString(),
+			instance.image_path().make_path(data["name"].GetString()));
+}
+
 void process_image(rapidjson::Document const& doc,
-		websocket_ptr,
+		websocket_ptr ws,
 		instance& instance) noexcept
 {
 	if(!doc.HasMember("command") || !doc["command"].IsString())
@@ -87,6 +110,9 @@ void process_image(rapidjson::Document const& doc,
 			break;
 		case image_commands::edit:
 			edit_image(doc, instance);
+			break;
+		case image_commands::download:
+			download_image(doc, ws, instance);
 			break;
 		default:
 			break;
