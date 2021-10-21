@@ -1,5 +1,5 @@
-#ifndef AGRO_DAEMON_APP_HPP__
-#define AGRO_DAEMON_APP_HPP__
+#ifndef AGRO_DAEMON_IMAGE_HPP__
+#define AGRO_DAEMON_IMAGE_HPP__
 
 #include <vector>
 #include <string>
@@ -7,13 +7,14 @@
 
 #include "../user/user.hpp"
 
+#include "esp_types.hpp"
 #include "../helper/sha256.hpp"
 
 namespace Agro{
 
-class App_Path{
+class Image_Path{
 	public:
-		App_Path(std::filesystem::path const&);
+		Image_Path(std::filesystem::path const&);
 
 		std::filesystem::path const& path() const noexcept;
 
@@ -25,21 +26,18 @@ class App_Path{
 		std::filesystem::path path_;
 };
 
-struct App{
+struct Image{
 	int id;
 	std::string name;
 	User::user_id uploader;
 	std::string description;
 	unsigned int time;
-	sha256_hash	hash;
 };
 
-bool calculate_app_hash(App_Path const& app_path,
-		std::string const& path,
-		sha256_hash hash) noexcept;
-bool calculate_app_hash(std::filesystem::path const& path,
-		sha256_hash hash) noexcept;
+bool get_image_hash(std::filesystem::path const& path, sha256_hash hash) noexcept;
+bool get_image_description(std::filesystem::path const& path, esp_app_desc_t& image_description) noexcept;
+bool check_image(std::filesystem::path const& path) noexcept;
 
 }//Agro
 
-#endif /* AGRO_DAEMON_APP_HPP__ */
+#endif /* AGRO_DAEMON_IMAGE_HPP__ */

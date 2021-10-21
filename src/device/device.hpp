@@ -107,6 +107,8 @@ class Device{
 
 		void update_endpoint(endpoint const& ep) noexcept;
 	private:
+		void process_packet(endpoint const&) noexcept;
+
 		device_id	id_ = -1;
 
 		mesh_addr_t	mac_;

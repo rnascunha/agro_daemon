@@ -27,9 +27,10 @@ enum class rule{
 	upload_image = 1 << 8,
 	install_image = 1 << 9,
 	all_image = view_image | upload_image | install_image,
-	upload_app = 1 << 10,
-	install_app = 1 << 11,
-	all_app = upload_app | install_app,
+	view_app = 1 << 10,
+	upload_app = 1 << 11,
+	install_app = 1 << 12,
+	all_app = view_app | upload_app | install_app,
 	all = std::numeric_limits<int>::max()
 };
 

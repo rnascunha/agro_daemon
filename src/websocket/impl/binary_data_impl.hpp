@@ -1,24 +1,17 @@
 #ifndef AGRO_DAEMON_WESOCKET_BINARY_DATA_HPP__
 #define AGRO_DAEMON_WESOCKET_BINARY_DATA_HPP__
 
-#include "../websocket.hpp"
-//#include "../../notify/notify.hpp"
-//#include "../../message/device.hpp"
-//#include "../../message/ota.hpp"
-//#include "../../message/app.hpp"
-#include "../../message/info.hpp"
-#include "../../ota/ota.hpp"
-#include "../../app/app.hpp"
 #include <fstream>
 
-namespace Message{
+#include "../websocket.hpp"
 
-std::string ota_image_list(std::filesystem::path const&) noexcept;
-std::string app_list(std::filesystem::path const& path) noexcept;
+#include "../../message/info.hpp"
+#include "../../message/report.hpp"
 
-}//Message
+#include "../../image/image.hpp"
+#include "../../app/app.hpp"
 
-static constexpr const std::size_t image_name_max_size = 30;
+static constexpr const std::size_t image_name_max_size = 31;
 static constexpr const std::size_t app_name_max_size = 12;
 
 enum class binary_type{
@@ -27,25 +20,22 @@ enum class binary_type{
 	app = 2
 };
 
-//static void notify_new_update(const char* type, std::string const& name)
-//{
-//	std::stringstream ss;
-//	ss << "New " << type << " added [" << name << "]";
-//	notify(ss.str());
-//}
-
 template<bool UseSSL>
 void Websocket<UseSSL>::get_app_file(
-		const char* first_block, std::size_t block_size,
-		std::filesystem::path const& app_path) noexcept
+		const char* first_block, std::size_t block_size) noexcept
 {
 	std::size_t name_size = (std::uint8_t)first_block[0];
 	if(name_size > app_name_max_size)
 	{
-		std::stringstream ss;
-		ss << "size=" << name_size << "/max=" << app_name_max_size;
-		write_all(Message::make_info(Message::info::warning,
-				Message::info_category::app, "Invalid app name size", ss.str().c_str()));
+		tt::warning("Upload app with invalid name size [%zu]", name_size);
+				std::stringstream ss;
+				ss << "size=" << name_size << "/max=" << (image_name_max_size - 1);
+				this->write(share_->instance().make_report(
+						Agro::Message::report_commands::app,
+						Agro::Message::report_type::warning,
+						"app upload", "Invalid name size", ss.str(), user_.id()
+					)
+				);
 		/**
 		 * Clear buffer
 		 */
@@ -59,14 +49,17 @@ void Websocket<UseSSL>::get_app_file(
 	}
 
 	std::string name(&first_block[1], name_size);
-	std::string path = app_path;
-			path += "/";
-			path += name;
+	std::string path{share_->instance().app_path().make_path(name)};
 
 	if(std::filesystem::exists(path))
 	{
-		write_all(Message::make_info(Message::info::warning,
-				Message::info_category::app, "App already uploaded", name.c_str()));
+		this->write(share_->instance().make_report(
+						Agro::Message::report_commands::app,
+						Agro::Message::report_type::warning,
+						"app upload", "App exist", name, user_.id()
+			)
+		);
+
 		/**
 		 * Clear buffer
 		 */
@@ -91,22 +84,42 @@ void Websocket<UseSSL>::get_app_file(
 	while(!base_type::stream_.is_message_done());
 	t.close();
 
-//	notify_new_update("app", name);
-	write_all(Message::app_list(app_path));
+	if(!share_->instance().add_app(name, user_.id()))
+	{
+		this->write(share_->instance().make_report(
+					Agro::Message::report_commands::app,
+					Agro::Message::report_type::error,
+					"app upload", "Error inserting app to database", name, user_.id()
+		));
+		std::filesystem::remove(path);
+		return;
+	}
+	tt::status("App '%s' uploaded successfully!", name.c_str());
+
+	std::stringstream ss;
+	ss << "New app uploaded [" << name << "]";
+	share_->instance().notify_all_policy(Agro::Authorization::rule::view_app, ss.str());
+
+	share_->instance().send_all_app_list();
 }
 
 template<bool UseSSL>
 void Websocket<UseSSL>::get_image_file(
-		const char* first_block, std::size_t block_size,
-		std::filesystem::path const& images_path) noexcept
+		const char* first_block, std::size_t block_size) noexcept
 {
 	std::size_t name_size = (std::uint8_t)first_block[0];
 	if(name_size >= image_name_max_size)
 	{
+		tt::warning("Upload image with invalid name size [%zu]", name_size);
 		std::stringstream ss;
 		ss << "size=" << name_size << "/max=" << (image_name_max_size - 1);
-		write_all(Message::make_info(Message::info::warning,
-				Message::info_category::image, "Invalid image name size", ss.str().c_str()));
+		this->write(share_->instance().make_report(
+				Agro::Message::report_commands::image,
+				Agro::Message::report_type::warning,
+				"image upload", "Invalid name size", ss.str(), user_.id()
+			)
+		);
+
 		/**
 		 * Clear buffer
 		 */
@@ -120,14 +133,16 @@ void Websocket<UseSSL>::get_image_file(
 	}
 
 	std::string name(&first_block[1], name_size);
-	std::string path = images_path;
-			path += "/";
-			path += name;
+	std::string path{share_->instance().image_path().make_path(name)};
 
 	if(std::filesystem::exists(path))
 	{
-		write_all(Message::make_info(Message::info::warning,
-				Message::info_category::image, "Image already uploaded", name.c_str()));
+		this->write(share_->instance().make_report(
+						Agro::Message::report_commands::image,
+						Agro::Message::report_type::warning,
+						"image upload", "Image exist", name, user_.id()
+			)
+		);
 		/**
 		 * Clear buffer
 		 */
@@ -152,40 +167,56 @@ void Websocket<UseSSL>::get_image_file(
 	while(!base_type::stream_.is_message_done());
 	t.close();
 
-	if(!check_image(path))
+	if(!Agro::check_image(path))
 	{
-		write_all(Message::make_info(Message::info::error,
-				Message::info_category::image, "Uploaded Image hash not match",
-				name.c_str()));
+		tt::error("Error uploading image '%s'! Hash not match!", name.c_str());
+		this->write(share_->instance().make_report(
+						Agro::Message::report_commands::image,
+						Agro::Message::report_type::error,
+						"image upload", "Image hash not match", name, user_.id()
+			)
+		);
 		std::filesystem::remove(path);
-	}
-	else
-	{
-//		notify_new_update("image", name);
+		return;
 	}
 
-	write_all(Message::ota_image_list(images_path));
+	if(!share_->instance().add_image(name, user_.id()))
+	{
+		this->write(share_->instance().make_report(
+					Agro::Message::report_commands::image,
+					Agro::Message::report_type::error,
+					"image upload", "Error inserting image to database", name, user_.id()
+		));
+		std::filesystem::remove(path);
+		return;
+	}
+	tt::status("Image '%s' uploaded successfully!", name.c_str());
+
+	std::stringstream ss;
+	ss << "New image uploaded [" << name << "]";
+	share_->instance().notify_all_policy(Agro::Authorization::rule::view_image, ss.str());
+
+	share_->instance().send_all_image_list();
 }
 
 template<bool UseSSL>
 void Websocket<UseSSL>::get_file(const char* first_block, std::size_t block_size) noexcept
 {
-	std::cout << "File received::[" << static_cast<int>(first_block[0]) << "]\n";
 	switch(static_cast<binary_type>(first_block[0]))
 	{
 		case binary_type::json:
-			std::cerr << "JSON image not defined\n";
+			tt::debug("JSON binary not defined");
 			break;
 		case binary_type::image:
-			std::cout << "File is a image\n";
-			get_image_file(first_block + 1, block_size - 1, ota_path());
+			tt::debug("Binary data is a image.");
+			get_image_file(first_block + 1, block_size - 1);
 			break;
 		case binary_type::app:
-			std::cout << "File is a app\n";
-			get_app_file(first_block + 1, block_size - 1, app_path());
+			tt::debug("Binary data is a app.");
+			get_app_file(first_block + 1, block_size - 1);
 			break;
 		default:
-			std::cerr << "Image type not defined [" << static_cast<int>(first_block[0]) << "]\n";
+			tt::warning("Image type not defined [%d]", static_cast<int>(first_block[0]));
 			break;
 	}
 }

@@ -165,6 +165,7 @@ static std::size_t name_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
 		std::size_t size,
+		instance&,
 		std::error_code&) noexcept
 {
 	std::size_t s = 0;
@@ -181,6 +182,7 @@ static std::size_t exec_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
 		std::size_t size,
+		instance&,
 		std::error_code& ec) noexcept
 {
 	std::size_t s = 0;
@@ -218,6 +220,7 @@ static std::size_t send_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
 		std::size_t size,
+		instance& instance,
 		std::error_code& ec) noexcept
 {
 	std::size_t s = 0;
@@ -226,7 +229,7 @@ static std::size_t send_app_payload(
 		const char* c = doc["payload"].GetString();
 		s = std::strlen(c);
 		sha256_hash hash;
-		if(!calculate_app_hash({c, s}, hash))
+		if(!calculate_app_hash(instance.app_path(), {c, s}, hash))
 		{
 			ec = make_error_code(Error::app_not_found);
 			return 0;

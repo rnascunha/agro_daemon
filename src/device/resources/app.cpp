@@ -2,11 +2,10 @@
 #include <filesystem>
 #include <fstream>
 
+#include "../../instance/agro.hpp"
 #include "../../coap_engine.hpp"
 #include "../list.hpp"
 #include "../../app/app.hpp"
-
-#include "coap-te-debug.hpp"
 
 #define DEFAULT_BLOCK_SIZE		512
 
@@ -15,16 +14,17 @@ namespace Device{
 namespace Resource{
 
 void get_app_handler(engine::message const& request,
-					engine::response& response, void*) noexcept
+					engine::response& response, void*,
+					instance& instance) noexcept
 {
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
 
 	using namespace CoAP::Message;
 
-	std::filesystem::path p{app_path()};
-	p += "/";
-	p += std::string{static_cast<const char*>(request.payload), request.payload_len};
+	std::filesystem::path p{
+		instance.app_path().make_path(
+				std::string{static_cast<const char*>(request.payload), request.payload_len})};
 
 	if(!std::filesystem::exists(p) || !std::filesystem::is_regular_file(p))
 	{

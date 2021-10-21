@@ -1,4 +1,5 @@
 #include "device.hpp"
+#include "../helper/time_helper.hpp"
 
 namespace Agro{
 namespace Device{
@@ -218,13 +219,14 @@ bool Device::operator==(Device const& rhs) const noexcept
 
 void Device::update(endpoint const& ep, Resource::status const& sts) noexcept
 {
-	update_endpoint(ep);
+	process_packet(ep);
+
 	rssi_.add(sts.rssi);
 }
 
 void Device::update(endpoint const& ep, Resource::config const& cfg, Net* net) noexcept
 {
-	update_endpoint(ep);
+	process_packet(ep);
 
 	ch_config_ = cfg.channel_config;
 	ch_conn_ = cfg.channel_conn;
@@ -236,7 +238,7 @@ void Device::update(endpoint const& ep, Resource::config const& cfg, Net* net) n
 void Device::update(endpoint const& ep, Resource::route const& route,
 		const uint8_t* children, std::size_t children_size) noexcept
 {
-	update_endpoint(ep);
+	process_packet(ep);
 
 	layer_ = static_cast<int>(ntohs(route.layer));
 	parent_ = route.parent;
@@ -252,6 +254,8 @@ void Device::update(endpoint const& ep, Resource::route const& route,
 void Device::update(endpoint const& ep, Resource::full_config const& cfg, Net* net,
 		const uint8_t* children, std::size_t children_size) noexcept
 {
+	process_packet(ep);
+
 	rssi_.add(cfg.fstatus.rssi);
 
 	ch_config_ = cfg.fconfig.channel_config;
@@ -271,9 +275,11 @@ void Device::update(endpoint const& ep, Resource::full_config const& cfg, Net* n
 	}
 }
 
-void Device::update(endpoint const&, Resource::board_config const& cfg,
+void Device::update(endpoint const& ep, Resource::board_config const& cfg,
 		const char* version, std::size_t version_len) noexcept
 {
+	process_packet(ep);
+
 	has_rtc_ = cfg.has_rtc;
 	has_sensor_temp_ = cfg.has_temp_sensor;
 
@@ -293,9 +299,8 @@ void Device::update(endpoint const&, Resource::board_config const& cfg,
 
 void Device::update(endpoint const& ep, Resource::sensor_data const& data) noexcept
 {
-	update_endpoint(ep);
+	process_packet(ep);
 
-	last_packet_time_ = data.time;
 	std::uint8_t gpios_value = data.wl1 | (data.wl2 << 1) |
 								(data.wl3 << 2) | (data.wl4 << 3) |
 								(data.gp1 << 4) | (data.gp2 << 5) |
@@ -367,6 +372,12 @@ void Device::add_app(std::string const& name, std::size_t size) noexcept
 void Device::delete_app(std::string const& name) noexcept
 {
 	apps_.erase(std::remove_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; }), apps_.end());
+}
+
+void Device::process_packet(endpoint const& ep) noexcept
+{
+	update_endpoint(ep);
+	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
 }
 
 }//Device

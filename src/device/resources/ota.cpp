@@ -2,9 +2,10 @@
 #include <filesystem>
 #include <fstream>
 
+#include "../../instance/agro.hpp"
 #include "../../coap_engine.hpp"
 #include "../list.hpp"
-#include "../../ota/ota.hpp"
+#include "../../image/image.hpp"
 
 #define DEFAULT_BLOCK_SIZE		512
 
@@ -13,16 +14,17 @@ namespace Device{
 namespace Resource{
 
 void get_ota_handler(engine::message const& request,
-					engine::response& response, void*) noexcept
+					engine::response& response, void*,
+					Agro::instance& instance) noexcept
 {
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
 
 	using namespace CoAP::Message;
 
-	std::filesystem::path p{ota_path()};
-	p += "/";
-	p += std::string{static_cast<const char*>(request.payload), request.payload_len};
+	std::filesystem::path p{
+		instance.image_path().make_path(
+				std::string{static_cast<const char*>(request.payload), request.payload_len})};
 
 	if(!std::filesystem::exists(p) || !std::filesystem::is_regular_file(p))
 	{

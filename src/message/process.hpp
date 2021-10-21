@@ -8,13 +8,23 @@
 #include "../websocket/types.hpp"
 #include <string>
 
+namespace Agro{
 namespace Message{
 
 void process(std::string&& str,
-		Agro::websocket_ptr,
-		Agro::instance&,
-		Agro::User::Logged&) noexcept;
+		websocket_ptr,
+		instance&,
+		User::Logged&) noexcept;
+
+void process_report(rapidjson::Document const&,
+		websocket_ptr ws,
+		instance& instance,
+		User::Logged& user) noexcept;
+
+void process_image(rapidjson::Document const&, websocket_ptr, instance&) noexcept;
+void process_app(rapidjson::Document const&, Agro::websocket_ptr, instance&) noexcept;
 
 }//Message
+}//Agro
 
 #endif /* AGRO_MESH_MESSAGE_PROCESS_HPP__ */

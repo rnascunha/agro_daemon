@@ -55,68 +55,6 @@ inline constexpr config<type> const* get_type_config(const char* t) noexcept
 	return nullptr;
 }
 
-/**
- * Image
- */
-enum class image_commands{
-	erase = 0,
-	list
-};
-
-constexpr const config<image_commands> img_config[] = {
-	{image_commands::erase, "delete"},
-	{image_commands::list, "list"},
-};
-
-inline constexpr config<image_commands> const* get_config(image_commands t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(img_config) / sizeof(img_config[0]); i++)
-	{
-		if(t == img_config[i].mtype) return &img_config[i];
-	}
-	return nullptr;
-}
-
-inline constexpr config<image_commands> const* get_config(const char* t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(img_config) / sizeof(img_config[0]); i++)
-	{
-		if(std::strcmp(t, img_config[i].name) == 0) return &img_config[i];
-	}
-	return nullptr;
-}
-
-/**
- * App
- */
-enum class app_commands{
-	erase = 0,
-	list
-};
-
-constexpr const config<app_commands> app_config[] = {
-	{app_commands::erase, "delete"},
-	{app_commands::list, "list"},
-};
-
-inline constexpr config<app_commands> const* get_config(app_commands t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(app_config) / sizeof(app_config[0]); i++)
-	{
-		if(t == app_config[i].mtype) return &app_config[i];
-	}
-	return nullptr;
-}
-
-inline constexpr config<app_commands> const* get_app_config(const char* t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(app_config) / sizeof(app_config[0]); i++)
-	{
-		if(std::strcmp(t, app_config[i].name) == 0) return &app_config[i];
-	}
-	return nullptr;
-}
-
 }//Message
 
 #endif /* AGRO_DAEMON_MESSAGE_TYPES_HPP__ */

@@ -1,52 +1,66 @@
 #include <system_error>
 #include <filesystem>
 #include <cstring>
-#include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
 
-#include "ota.hpp"
-#include "types.hpp"
+#include "tt/tt.hpp"
+
+#include "image.hpp"
 #include "../helper/sha256.hpp"
 
-static const std::filesystem::path images_dir{"images"};
 #define HASH_LEN 32
 
-void init_ota() noexcept
+namespace Agro{
+
+Image_Path::Image_Path(std::filesystem::path const& path)
+	: path_(path)
 {
-	if(std::filesystem::exists(images_dir) &&
-		std::filesystem::is_directory(images_dir))
+	if(std::filesystem::exists(path_) &&
+		std::filesystem::is_directory(path_))
 	{
-		std::cout << "Images directory already exists\n";
+		tt::debug("Images directory already exists");
 		return;
 	}
 
 	std::error_code ec;
-	std::filesystem::create_directory(images_dir, ec);
+	std::filesystem::create_directory(path_, ec);
 	if(ec)
 	{
-		std::cerr << "Error creating images directory: "
-				<< ec.value() << "/" << ec.message() << "\n";
+		tt::error("Error creating images directory [%d/%s]",
+				ec.value(), ec.message().c_str());
+		return;
 	}
 
-	std::cout << "Created images directory\n";
+	tt::status("Created images '%s' directory", path_.c_str());
 }
 
-void delete_image(std::vector<std::string> const& list) noexcept
+std::filesystem::path const& Image_Path::path() const noexcept
+{
+	return path_;
+}
+
+void Image_Path::erase(std::string const& image) const noexcept
+{
+	std::filesystem::remove(make_path(image));
+}
+
+void Image_Path::erase(std::vector<std::string> const& list) const noexcept
 {
 	for(auto const& s : list)
 	{
-		std::string p{images_dir};
-		p += "/";
-		p += s;
-		std::filesystem::remove(p);
+		erase(s);
 	}
 }
 
-std::filesystem::path const& ota_path() noexcept
+std::filesystem::path Image_Path::make_path(std::string const& image) const noexcept
 {
-	return images_dir;
+	std::stringstream ss;
+
+	ss << path_.string() << "/" << image;
+
+	return ss.str();
 }
 
 bool get_image_description(std::filesystem::path const& path, esp_app_desc_t& image_description) noexcept
@@ -98,3 +112,4 @@ bool check_image(std::filesystem::path const& path) noexcept
 	return std::memcmp(hash1, hash2, SHA256_DIGEST_LENGTH) == 0;
 }
 
+}//Agro

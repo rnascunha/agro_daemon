@@ -63,11 +63,8 @@ class Websocket final :
 		void fail(boost::system::error_code ec, char const* what) noexcept override;
 
 		void get_file(const char* first_block, std::size_t block_size) noexcept;
-		void get_image_file(const char* first_block, std::size_t block_size,
-				std::filesystem::path const& images_path) noexcept;
-		void get_app_file(
-				const char* first_block, std::size_t block_size,
-				std::filesystem::path const& app_path) noexcept;
+		void get_image_file(const char* first_block, std::size_t block_size) noexcept;
+		void get_app_file(const char* first_block, std::size_t block_size) noexcept;
 
 		void error_auth(std::error_code const& ec, const char* what = nullptr) noexcept;
 		bool check_authenticate(std::string const& data) noexcept;

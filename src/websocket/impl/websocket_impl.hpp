@@ -8,16 +8,16 @@
 #include <utility>
 #include <string_view>
 
-//#include "../../instance/agro.hpp"
+#include "tt/tt.hpp"
 
 #include "../../device/message/device.hpp"
 #include "../../user/message/auth_message.hpp"
 
 #include "../../notify/message.hpp"
-#include "tt/tt.hpp"
 
 #include "../../message/report.hpp"
 
+namespace Agro{
 namespace Message{
 
 #if USE_SSL == 0
@@ -32,7 +32,8 @@ void process(std::string&& str,
 		Agro::User::Logged&) noexcept;
 #endif /* USE_SSL == 0 */
 
-}
+}//Message
+}//Agro
 
 template<bool UseSSL>
 Websocket<UseSSL>::~Websocket()
@@ -154,11 +155,17 @@ read_handler(std::string data) noexcept
 			/**
 			 * Sending device tree
 			 */
-			this->write_all_policy(Agro::Authorization::rule::view_device,
+			write_policy(Agro::Authorization::rule::view_device,
 							std::make_shared<std::string>(
 									Agro::Device::Message::device_tree_to_json(share_->instance().tree())));
-//			this->write(Message::ota_image_list(ota_path()));
-//			this->write(Message::app_list(app_path()));
+			/**
+			 * Sending images
+			 */
+			share_->instance().send_all_image_list();
+			/**
+			 * Sending apps
+			 */
+			share_->instance().send_all_app_list();
 		}
 		return;
 	}
@@ -174,7 +181,7 @@ read_handler(std::string data) noexcept
 	else
 	{
 		tt::debug("Received[%zu]: %.*s", data.size(), data.size(), data.data());
-		Message::process(std::move(data),
+		Agro::Message::process(std::move(data),
 				this->shared_from_this(),
 				share_->instance(),
 				user_);

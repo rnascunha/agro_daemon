@@ -169,39 +169,6 @@ bool DB::read_policies(Authorization::Policies& policies) noexcept
 	return true;
 }
 
-//bool DB::read_permission_list(Authorization::Permission_List& list) noexcept
-//{
-//	sqlite3::statement res;
-//	if(db_.prepare("SELECT permissionid,type,action,effect,ref_type,ref_id FROM permission", res) != SQLITE_OK)
-//	{
-//		return false;
-//	}
-//
-//	while(res.step() == SQLITE_ROW)
-//	{
-//		if(res.interger(4) == static_cast<int>(Authorization::ref_type::single))
-//		{
-//			list.add(
-//					std::make_shared<Authorization::Permission_Single>(
-//						res.interger(0),
-//						static_cast<Authorization::type>(res.interger(1)),
-//						static_cast<Authorization::action>(res.interger(2)),
-//						res.interger(5),
-//						static_cast<Authorization::effect>(res.interger(3))));
-//		}
-//		else if(res.interger(4) == static_cast<int>(Authorization::ref_type::group))
-//		{
-////			list.add(
-////				std::make_shared<Authorization::Permission_Group>(
-////					res.interger(0),
-////					static_cast<Authorization::type>(res.interger(1)),
-////					static_cast<Authorization::effect>(res.interger(3)),
-////					static_cast<Authorization::action>(res.interger(2))));
-//		}
-//	}
-//	return true;
-//}
-
 User::Info DB::get_user(User::user_id id) noexcept
 {
 	sqlite3::statement res;

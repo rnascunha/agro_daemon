@@ -117,7 +117,11 @@ static void update_fuse_response(
 	process_fuse(instance.device_list(), host, *static_cast<const int32_t*>(request.payload), ws);
 }
 
-static std::size_t rtc_update_payload(rapidjson::Document const&, void* buf, std::size_t size, std::error_code&)
+static std::size_t rtc_update_payload(rapidjson::Document const&,
+		void* buf,
+		std::size_t size,
+		instance&,
+		std::error_code&)
 {
 	std::uint32_t time = get_time();
 	std::memcpy(buf, &time, sizeof(std::uint32_t));
@@ -125,7 +129,12 @@ static std::size_t rtc_update_payload(rapidjson::Document const&, void* buf, std
 	return sizeof(std::uint32_t);
 }
 
-static std::size_t update_fuse_payload(rapidjson::Document const& doc, void* buf, std::size_t size, std::error_code& ec)
+static std::size_t update_fuse_payload(
+		rapidjson::Document const& doc,
+		void* buf,
+		std::size_t size,
+		instance&,
+		std::error_code& ec)
 {
 	if(doc.HasMember("payload") && doc["payload"].IsInt())
 	{

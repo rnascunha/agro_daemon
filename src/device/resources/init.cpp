@@ -56,10 +56,14 @@ void init(engine& coap_engine,
 			get_time_handler);
 	vresource.emplace_back("ota",
 			"title='OTA image'",
-			get_ota_handler);
+			std::bind(get_ota_handler,
+					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+					std::ref(instance)));
 	vresource.emplace_back("app",
 			"title='Apps'",
-			get_app_handler);
+			std::bind(get_app_handler,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+				std::ref(instance)));
 	vresource.emplace_back("info",
 			"title='Device info'",
 			nullptr,

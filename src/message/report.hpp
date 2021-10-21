@@ -5,12 +5,17 @@
 #include "types.hpp"
 #include "../device/types.hpp"
 
+#include "rapidjson/document.h"
+//#include "../websocket/types.hpp"
+
 namespace Agro{
 namespace Message{
 
 enum class report_commands{
 	list = 0,
-	device
+	device,
+	image,
+	app
 };
 
 enum class report_type{
@@ -40,6 +45,8 @@ struct report{
 constexpr const ::Message::config<report_commands> report_config[] = {
 	{report_commands::list, "list"},
 	{report_commands::device, "device"},
+	{report_commands::image, "image"},
+	{report_commands::app, "app"},
 };
 
 inline constexpr ::Message::config<report_commands> const* get_config(report_commands t) noexcept
@@ -59,6 +66,12 @@ inline constexpr ::Message::config<report_commands> const* get_report_config(con
 	}
 	return nullptr;
 }
+
+std::string report_message(report_commands command,
+		report_type type,
+		std::string const& reference,
+		std::string const& message,
+		std::string const& arg /* = "" */) noexcept;
 
 std::string report_message(report_type,
 		mesh_addr_t const&,

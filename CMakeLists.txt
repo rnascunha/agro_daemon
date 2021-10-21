@@ -254,14 +254,19 @@ include_directories(third/pusha/include third/pusha/include_cpp)
 ###########################
 # Adding files 
 ###########################
-set(OTA_DIR			${SRC_DIR}/ota)
+set(IMAGE_DIR		${SRC_DIR}/image)
+set(IMAGE_SRC		${IMAGE_DIR}/image.cpp
+					${IMAGE_DIR}/message/image.cpp
+					${IMAGE_DIR}/message/process.cpp)
+
 set(APP_DIR			${SRC_DIR}/app)
+set(APP_SRC			${APP_DIR}/app.cpp
+					${APP_DIR}/message/app.cpp
+					${APP_DIR}/message/process.cpp)
 
 set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 					${MESSAGE_DIR}/process.cpp
-					${MESSAGE_DIR}/ota.cpp
-					${MESSAGE_DIR}/app.cpp
 					${MESSAGE_DIR}/user.cpp
 					${MESSAGE_DIR}/info.cpp
 					${MESSAGE_DIR}/report.cpp)
@@ -322,6 +327,8 @@ set(DB_SRC			${DB_DIR}/sqlite3.cpp
 					${DB_DIR}/db.cpp
 					${DB_DIR}/user.cpp
 					${DB_DIR}/device.cpp
+					${DB_DIR}/image.cpp
+					${DB_DIR}/app.cpp
 					${DB_DIR}/report.cpp)
 					
 set(HELPER_DIR		${SRC_DIR}/helper)
@@ -337,6 +344,8 @@ set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
 					${INSTANCE_DIR}/user.cpp
 					${INSTANCE_DIR}/device.cpp
 					${INSTANCE_DIR}/report.cpp
+					${INSTANCE_DIR}/image.cpp
+					${INSTANCE_DIR}/app.cpp
 					${INSTANCE_DIR}/authenticate.cpp)
 
 set(MAIN_SRC ${SRC_DIR}/main.cpp 
@@ -347,8 +356,8 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${DEVICE_SRC}
 			${RESOURCE_SRC}
 			${REQUEST_SRC}
-			${OTA_DIR}/ota.cpp
-			${APP_DIR}/app.cpp
+			${IMAGE_SRC}
+			${APP_SRC}
 			${NOTIFY_SRC}
 			${DB_SRC}
 			${USER_SRC}

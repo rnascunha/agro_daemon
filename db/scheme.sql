@@ -1,10 +1,21 @@
 --
--- File generated with SQLiteStudio v3.3.3 on ter. out. 12 20:26:52 2021
+-- File generated with SQLiteStudio v3.3.3 on qui. out. 21 16:10:15 2021
 --
 -- Text encoding used: UTF-8
 --
 PRAGMA foreign_keys = off;
 BEGIN TRANSACTION;
+
+-- Table: app
+CREATE TABLE app (
+    appid       INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    UNIQUE,
+    uploader_id INTEGER REFERENCES user (userid),
+    description TEXT,
+    date_upload BIGINT,
+    hash        BLOB
+);
+
 
 -- Table: children_table
 CREATE TABLE children_table (
@@ -34,6 +45,17 @@ CREATE TABLE device (
     has_temp_sensor BOOLEAN DEFAULT (false),
     layer           INTEGER,
     parent_mac      TEXT
+);
+
+
+-- Table: image
+CREATE TABLE image (
+    imageid     INTEGER PRIMARY KEY AUTOINCREMENT,
+    name        TEXT    UNIQUE
+                        NOT NULL,
+    uploader_id INTEGER REFERENCES user (userid),
+    description TEXT,
+    date_upload BIGINT
 );
 
 

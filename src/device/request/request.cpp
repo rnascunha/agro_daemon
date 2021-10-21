@@ -126,7 +126,7 @@ static void process_custom_request(rapidjson::Document const& d,
 
 	if(d.HasMember("payload") && !d["payload"].IsNull())
 	{
-		msg.payload = [](rapidjson::Document const& d, void* buf, std::size_t size, std::error_code&){
+		msg.payload = [](rapidjson::Document const& d, void* buf, std::size_t size, instance&, std::error_code&){
 			const char* payload = d["payload"].GetString();
 			std::size_t s = std::strlen(payload);
 
@@ -168,7 +168,7 @@ static void send_request(
 	if(msg.payload)
 	{
 		std::error_code ec;
-		size = msg.payload(doc, buffer, engine::packet_size, ec);
+		size = msg.payload(doc, buffer, engine::packet_size, instance, ec);
 		if(ec) return;
 		if(size > 0)
 		{

@@ -17,7 +17,9 @@ struct request_message
 	CoAP::Message::code		method;
 	std::vector<CoAP::Message::Option::option> options;
 	CoAP::Message::type		mtype = CoAP::Message::type::confirmable;
-	std::function<std::size_t(rapidjson::Document const&, void*, std::size_t, std::error_code&)> payload = nullptr;
+	std::function<std::size_t(rapidjson::Document const&,
+							void*, std::size_t, instance&,
+							std::error_code&)> payload = nullptr;
 };
 
 struct request_config{
@@ -30,8 +32,8 @@ struct request_config{
 			CoAP::Message::message const&,
 			CoAP::Message::message const&,
 			CoAP::Transmission::status_t,
-			Agro::instance&,
-			Agro::websocket_ptr) noexcept = nullptr;
+			instance&,
+			websocket_ptr) noexcept = nullptr;
 };
 
 extern const request_config custom;

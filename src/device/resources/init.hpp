@@ -36,9 +36,11 @@ void put_sensor_data_handler(engine::message const& request,
 void get_time_handler(engine::message const& request,
 								engine::response& response, void*) noexcept;
 void get_ota_handler(engine::message const& request,
-								engine::response& response, void*) noexcept;
+								engine::response& response, void*,
+								Agro::instance&) noexcept;
 void get_app_handler(engine::message const& request,
-								engine::response& response, void*) noexcept;
+								engine::response& response, void*,
+								Agro::instance&) noexcept;
 void put_info_handler(engine::message const& request,
 								engine::response& response, void*,
 								Agro::instance&) noexcept;

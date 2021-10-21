@@ -77,7 +77,12 @@ static void delete_job_response(
 	process_jobs(instance.device_list(), host, static_cast<std::uint8_t const*>(nullptr), 0, ws);
 }
 
-static std::size_t send_job_payload(rapidjson::Document const& doc, void* buf, std::size_t, std::error_code& ec)
+static std::size_t send_job_payload(
+		rapidjson::Document const& doc,
+		void* buf,
+		std::size_t,
+		instance&,
+		std::error_code& ec)
 {
 	if(doc.HasMember("payload") && doc["payload"].IsArray())
 	{

@@ -28,7 +28,8 @@ instance::instance(
 		std::string const& ssl_cert,
 #endif /**/
 		std::error_code& ec)
-	: ioc_{ioc},
+	: image_{images_path}, app_{apps_path},
+	  ioc_{ioc},
 	  db_{db_file.c_str(), ec},
 	  coap_engine_{udp_conn{}, CoAP::Message::message_id{CoAP::random_generator()}},
 	  notify_{ioc, !ec ? get_notify_key(notify_priv_key, db_) : pusha::key{}, subscriber}
@@ -110,7 +111,6 @@ bool instance::remove_node_from_tree(mesh_addr_t const& addr) noexcept
 	bool change = tree_.remove_node(addr);
 	if(change)
 	{
-//		std::cout << "Tree changed\n";
 		share_->write_all_policy(Authorization::rule::view_device,
 				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
 	}
@@ -122,7 +122,6 @@ bool instance::update_tree(Device::Device const& device) noexcept
 	bool change = tree_.update(device);
 	if(change)
 	{
-//		std::cout << "Tree changed\n";
 		share_->write_all_policy(Authorization::rule::view_device,
 				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
 	}

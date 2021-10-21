@@ -70,6 +70,7 @@ static std::size_t update_ota_payload(
 		rapidjson::Document const& doc,
 		void* buf,
 		std::size_t size,
+		instance&,
 		std::error_code&)
 {
 	std::size_t s = 0;

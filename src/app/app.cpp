@@ -1,51 +1,63 @@
 #include "app.hpp"
-#include <iostream>
 
-static const std::filesystem::path apps_dir{"apps"};
+#include "tt/tt.hpp"
 
-void init_app() noexcept
+namespace Agro{
+
+App_Path::App_Path(std::filesystem::path const& path)
+	: path_(path)
 {
-	if(std::filesystem::exists(apps_dir) &&
-		std::filesystem::is_directory(apps_dir))
+	if(std::filesystem::exists(path_) &&
+		std::filesystem::is_directory(path_))
 	{
-		std::cout << "Apps directory already exists\n";
+		tt::debug("App directory already exists");
 		return;
 	}
 
 	std::error_code ec;
-	std::filesystem::create_directory(apps_dir, ec);
+	std::filesystem::create_directory(path_, ec);
 	if(ec)
 	{
-		std::cerr << "Error creating apps directory: "
-				<< ec.value() << "/" << ec.message() << "\n";
+		tt::error("Error creating apps directory [%d/%s]",
+				ec.value(), ec.message().c_str());
+		return;
 	}
 
-	std::cout << "Created apps directory\n";
+	tt::status("Created apps '%s' directory", path_.c_str());
 }
 
-void delete_app(std::vector<std::string> const& list) noexcept
+std::filesystem::path const& App_Path::path() const noexcept
+{
+	return path_;
+}
+
+void App_Path::erase(std::string const& image) const noexcept
+{
+	std::filesystem::remove(make_path(image));
+}
+
+void App_Path::erase(std::vector<std::string> const& list) const noexcept
 {
 	for(auto const& s : list)
 	{
-		std::string p{apps_dir};
-		p += "/";
-		p += s;
-		std::filesystem::remove(p);
+		erase(s);
 	}
 }
 
-std::filesystem::path const& app_path() noexcept
+std::filesystem::path App_Path::make_path(std::string const& image) const noexcept
 {
-	return apps_dir;
+	std::stringstream ss;
+
+	ss << path_.string() << "/" << image;
+
+	return ss.str();
 }
 
-bool calculate_app_hash(std::string const& path, sha256_hash hash) noexcept
+bool calculate_app_hash(App_Path const& app_path,
+		std::string const& path,
+		sha256_hash hash) noexcept
 {
-	std::string p{apps_dir};
-		p += "/";
-		p += path;
-
-	return calculate_app_hash(std::filesystem::path{std::move(p)}, hash);
+	return calculate_app_hash(app_path.make_path(path), hash);
 }
 
 bool calculate_app_hash(std::filesystem::path const& path, sha256_hash hash) noexcept
@@ -58,3 +70,5 @@ bool calculate_app_hash(std::filesystem::path const& path, sha256_hash hash) noe
 
 	return true;
 }
+
+}//Agro

@@ -6,12 +6,17 @@
 #include <string>
 #include <vector>
 
+#include "../helper/sha256.hpp"
+
 #include "../user/list.hpp"
 #include "../user/policy.hpp"
 #include "../user/password.hpp"
 
 #include "../device/list.hpp"
 #include "../device/net.hpp"
+
+#include "../image/image.hpp"
+#include "../app/app.hpp"
 
 #include "../message/report.hpp"
 
@@ -110,7 +115,32 @@ class DB{
 		int update_device_route(Device::Device const&) noexcept;
 
 		/**
-		 *
+		 * Image interface
+		 */
+		int add_image(std::string const& image_name,
+					User::user_id /* uploader */,
+					std::string const& description = "") noexcept;
+		int read_image(std::string const& image_name,
+					Image&) noexcept;
+		int update_image(std::string const& image_name,
+				std::string const& description) noexcept;
+		int delete_image(std::string const& image_name) noexcept;
+
+		/**
+		 * App
+		 */
+		int add_app(std::string const& image_app,
+					User::user_id /* uploader */,
+					sha256_hash const&,
+					std::string const& description = "") noexcept;
+		int read_app(std::string const& image_app,
+					App&) noexcept;
+		int update_app(std::string const& image_app,
+				std::string const& description) noexcept;
+		int delete_app(std::string const& image_app) noexcept;
+
+		/**
+		 * report interface
 		 */
 		int read_all_reports(std::vector<Message::report>&, User::user_id, int limit = 0) noexcept;
 

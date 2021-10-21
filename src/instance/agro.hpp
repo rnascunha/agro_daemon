@@ -17,9 +17,15 @@
 #include "../user/list.hpp"
 #include "../user/policy.hpp"
 
+#include "../image/image.hpp"
+#include "../app/app.hpp"
+
 #include "../message/user_types.hpp"
 #include "../message/report.hpp"
 #include "../device/request/in_progress.hpp"
+
+static constexpr const char* images_path = "images";
+static constexpr const char* apps_path = "apps";
 
 namespace Agro{
 
@@ -124,12 +130,38 @@ class instance{
 				Device::Request::type) noexcept;
 
 		/**
+		 * Image
+		 */
+		Image_Path const& image_path() const noexcept;
+		bool add_image(std::string const& image_name,
+				User::user_id /* uploader */,
+				std::string const& description = "") noexcept;
+		void delete_image(std::vector<std::string> const&) noexcept;
+		bool read_image(std::string const&, Image&) noexcept;
+		bool update_image(std::string const& image_name,
+						std::string const& description) noexcept;
+		void send_all_image_list() noexcept;
+
+		/**
+		 * App
+		 */
+		App_Path const& app_path() const noexcept;
+		bool add_app(std::string const& app_name,
+				User::user_id /* uploader */,
+				std::string const& description = "") noexcept;
+		void delete_app(std::vector<std::string> const&) noexcept;
+		bool read_app(std::string const&, App&) noexcept;
+		bool update_app(std::string const& app_name,
+						std::string const& description) noexcept;
+		void send_all_app_list() noexcept;
+
+		/**
 		 * Tree
 		 */
 		bool update_tree(Device::Device const&) noexcept;
 		bool remove_node_from_tree(mesh_addr_t const&) noexcept;
 		/**
-		 *
+		 * Report
 		 */
 		bool read_all_reports(std::vector<Message::report>&, User::user_id, int limit = 0) noexcept;
 		std::shared_ptr<std::string> make_report(Message::report_type,
@@ -137,7 +169,13 @@ class instance{
 				std::string const& /* message */,
 				std::string const& /* arg */,
 				User::user_id) noexcept;
-
+		std::shared_ptr<std::string> make_report(
+				Message::report_commands command,
+				Message::report_type type,
+				std::string const& ref,
+				std::string const& message,
+				std::string const& arg,
+				User::user_id id) noexcept;
 		/**
 		 *
 		 */
@@ -164,7 +202,10 @@ class instance{
 	private:
 		void initiate_check_roots() noexcept;
 		void check_network_roots() noexcept;
-		void check_root(Device::Tree::tree_endpoint&) noexcept;
+		bool check_root(mesh_addr_t const& addr) noexcept;
+
+		Image_Path			image_;
+		App_Path			app_;
 
 		boost::asio::io_context& ioc_;
 		DB					db_;
