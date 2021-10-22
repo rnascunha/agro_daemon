@@ -70,6 +70,7 @@ class Websocket final :
 		void on_open() noexcept override;
 		void read_handler(std::string data) noexcept override;
 		void fail(boost::system::error_code ec, char const* what) noexcept override;
+		void on_write(boost::system::error_code ec, std::size_t) noexcept override;
 
 		void get_file(const char* first_block, std::size_t block_size) noexcept;
 		void get_image_file(const char* first_block, std::size_t block_size) noexcept;

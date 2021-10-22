@@ -120,6 +120,15 @@ write_file(binary_type type,
 }
 
 template<bool UseSSL>
+void
+Websocket<UseSSL>::
+on_write(boost::system::error_code ec, std::size_t bytes_transfered) noexcept
+{
+	base_type::on_write(ec, bytes_transfered);
+	this->text(true);
+}
+
+template<bool UseSSL>
 Agro::User::Logged const&
 Websocket<UseSSL>::
 user() const noexcept
