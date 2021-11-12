@@ -5,6 +5,7 @@
 #include "types.hpp"
 #include "user.hpp"
 #include "../device/message/process.hpp"
+#include "../sensor/message/process.hpp"
 
 #include "../websocket/types.hpp"
 
@@ -50,6 +51,9 @@ void process(std::string&& data,
 			break;
 		case ::Message::type::report:
 			process_report(d, ws, instance, user);
+			break;
+		case ::Message::type::sensor:
+			Sensor::Message::process(d, ws, instance, user);
 			break;
 		case ::Message::type::info:
 			break;

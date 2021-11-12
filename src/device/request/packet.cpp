@@ -19,15 +19,16 @@ static void packet_response(
 	Agro::Device::Device* dev = instance.device_list()[host];
 	switch(req)
 	{
-		case type::sensor: {
+		break;
+		case type::sensors: {
 			std::error_code ec;
-			Resource::process_sensor_data(*dev,
+			Resource::process_sensors_data(*dev,
 					instance,
 					ep,
 					response.payload, response.payload_len,
 					ec);
 		}
-			break;
+		break;
 		case type::board: {
 			std::error_code ec;
 			Resource::process_board(*dev,
@@ -77,16 +78,16 @@ static void packet_response(
 	} 															\
 }
 
-REQUIRE_PACKET(sensor,packet);
+REQUIRE_PACKET(sensors,packet);
 REQUIRE_PACKET(board,packet);
 REQUIRE_PACKET(route,net);
 REQUIRE_PACKET(config,net);
 REQUIRE_PACKET(full_config,net);
 
-extern constexpr const request_config packet_sensor = {
-	type::sensor,
-	"sensor",
-	&req_sensor,
+extern constexpr const request_config packet_sensors = {
+	type::sensors,
+	"sensors",
+	&req_sensors,
 	packet_response
 };
 extern constexpr const request_config packet_board = {

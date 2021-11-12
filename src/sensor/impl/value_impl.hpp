@@ -1,7 +1,10 @@
-#ifndef AGRO_MESH_DEVICE_TYPES_IMPL_HPP__
-#define AGRO_MESH_DEVICE_TYPES_IMPL_HPP__
+#ifndef AGRO_DAEMON_SENSOR_VALUE_HPP_IMPL__
+#define AGRO_DAEMON_SENSOR_VALUE_HPP_IMPL__
 
-#include "../types.hpp"
+#include "../value.hpp"
+
+namespace Agro{
+namespace Sensor{
 
 template<typename Number>
 Value<Number>::Value(value_time t, Number n)
@@ -119,5 +122,7 @@ typename Value_List<Number, Max>::value const& Value_List<Number, Max>::operator
 	return list_[index];
 }
 
-#endif /* AGRO_MESH_DEVICE_TYPES_IMPL_HPP__ */
+}//Sensor
+}//Agro
 
+#endif /* AGRO_DAEMON_SENSOR_VALUE_HPP_IMPL__ */

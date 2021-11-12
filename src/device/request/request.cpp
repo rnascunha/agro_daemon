@@ -93,45 +93,56 @@ static void process_custom_request(rapidjson::Document const& d,
 							request_message& msg,
 							std::error_code& ec) noexcept
 {
-	if(!d.HasMember("method") || !d["method"].IsString())
+	if(!d.HasMember("data") || !d["data"].IsObject())
 	{
 		ec = make_error_code(Error::missing_field);
 		return;
 	}
 
-	msg.method = string_to_method(d["method"].GetString());
+	rapidjson::Value const& data = d["data"].GetObject();
+	if(!data.HasMember("method") || !data["method"].IsString())
+	{
+		ec = make_error_code(Error::missing_field);
+		return;
+	}
+
+	msg.method = string_to_method(data["method"].GetString());
 	if(msg.method == CoAP::Message::code::bad_request)
 	{
 		ec = make_error_code(Error::invalid_value);
 		return;
 	}
 
-	if(d.HasMember("resource") && d["resource"].IsArray())
+	if(data.HasMember("resource") && data["resource"].IsArray())
 	{
-		rapidjson::Value const& resource = d["resource"];
+		rapidjson::Value const& resource = data["resource"];
 		for (auto& v : resource.GetArray())
 		{
 			msg.options.emplace_back(CoAP::Message::Option::code::uri_path, v.GetString());
 		}
 	}
 
-	if(d.HasMember("query") && d["query"].IsArray())
+	if(data.HasMember("query") && data["query"].IsArray())
 	{
-		rapidjson::Value const& query = d["query"];
+		rapidjson::Value const& query = data["query"];
 		for (auto& v: query.GetArray())
 		{
 			msg.options.emplace_back(CoAP::Message::Option::code::uri_query, v.GetString());
 		}
 	}
 
-	if(d.HasMember("payload") && !d["payload"].IsNull())
+	if(data.HasMember("payload") && data["payload"].IsArray())
 	{
-		msg.payload = [](rapidjson::Document const& d, void* buf, std::size_t size, instance&, std::error_code&){
-			const char* payload = d["payload"].GetString();
-			std::size_t s = std::strlen(payload);
+		msg.payload = [&data](rapidjson::Document const&, void* buf, std::size_t size, instance&, std::error_code&){
+			rapidjson::Value const& payload = data["payload"];
+			std::size_t i = 0;
 
-			std::memcpy(buf, payload, s);
-			return s;
+			std::uint8_t* buftemp = static_cast<std::uint8_t*>(buf);
+			for (auto& v: payload.GetArray())
+			{
+				buftemp[i++] = v.GetUint();
+			}
+			return i;
 		};
 	}
 }
@@ -167,9 +178,14 @@ static void send_request(
 	std::size_t size = 0;
 	if(msg.payload)
 	{
-		std::error_code ec;
-		size = msg.payload(doc, buffer, engine::packet_size, instance, ec);
-		if(ec) return;
+		std::error_code ecc;
+		size = msg.payload(doc, buffer, engine::packet_size, instance, ecc);
+		if(ecc)
+		{
+			tt::warning("Error setting request payload [%d/%s]", ecc.value(), ecc.message().c_str());
+			ec = CoAP::errc::invalid_data;
+			return;
+		}
 		if(size > 0)
 		{
 			req.payload(buffer, size);
@@ -286,7 +302,8 @@ void process_request(rapidjson::Document const& doc,
 	/**
 	 * Checking if already have a request to the same device
 	 */
-	if(config->mtype != type::custom)
+	if(config->mtype != type::custom &&
+		config->message->mtype != CoAP::Message::type::nonconfirmable)
 	{
 		if(!instance.add_request_in_progress(dev->mac(), req->method, config->mtype, user.id()))
 		{
@@ -326,8 +343,8 @@ void process_request(rapidjson::Document const& doc,
 						dev->mac(), "Server is busy! Wait a moment to make a request", make_coap_path(req->options), user.id()));
 				break;
 			default:
-				std::stringstream msg{"Server error! ["};
-				msg << ecc.value() << " / "  << ecc.message() << "]";
+				std::stringstream msg;
+				msg << "Server error! [" << ecc.value() << " / "  << ecc.message() << "]";
 				ws->write(instance.make_report(Agro::Message::report_type::error,
 						dev->mac(), msg.str(), make_coap_path(req->options), user.id()));
 				break;

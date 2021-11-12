@@ -14,6 +14,7 @@
 
 #include "../device/list.hpp"
 #include "../device/net.hpp"
+#include "../sensor/sensor_type_list.hpp"
 
 #include "../image/image.hpp"
 #include "../app/app.hpp"
@@ -113,6 +114,19 @@ class DB{
 
 		int update_device(Device::Device const&) noexcept;
 		int update_device_route(Device::Device const&) noexcept;
+
+		/**
+		 * Sensors interface
+		 */
+		int read_sensor_types(Sensor::Sensor_Type_List&) noexcept;
+		int add_sensor_type(Sensor::sensor_description const&) noexcept;
+		int update_sensor_type(Sensor::sensor_description const&) noexcept;
+		int remove_sensor_type(std::string const&) noexcept;
+
+		int read_sensor_values(Device::Device&) noexcept;
+		void read_all_sensor_values(Device::Device_List&) noexcept;
+		std::size_t update_sensor_value(Device::Device const&, const void*, std::size_t) noexcept;
+		int update_sensor_value(Device::Device const& dev, Sensor::sensor_type const& data) noexcept;
 
 		/**
 		 * Image interface

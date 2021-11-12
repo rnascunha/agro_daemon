@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on qui. out. 21 16:10:15 2021
+-- File generated with SQLiteStudio v3.3.3 on sex. nov. 12 16:54:25 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -125,10 +125,25 @@ CREATE TABLE report (
 -- Table: sensor_type
 CREATE TABLE sensor_type (
     sensor_typeid INTEGER PRIMARY KEY AUTOINCREMENT,
-    name          TEXT,
-    type          TEXT,
-    unit_name     TEXT,
-    unit          TEXT
+    name          TEXT    UNIQUE,
+    long_name     TEXT,
+    type          INTEGER NOT NULL,
+    description   TEXT,
+    unit          TEXT,
+    unit_name     TEXT
+);
+
+
+-- Table: sensor_value
+CREATE TABLE sensor_value (
+    id            INTEGER  PRIMARY KEY AUTOINCREMENT,
+    deviceid      INTEGER  REFERENCES device (deviceid) 
+                           NOT NULL,
+    sensor_typeid INTEGER  REFERENCES sensor_type (sensor_typeid),
+    time          INTEGER  NOT NULL,
+    value         BLOB (4) NOT NULL,
+    idx           INTEGER  NOT NULL
+                           DEFAULT (0) 
 );
 
 

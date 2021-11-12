@@ -104,6 +104,14 @@ instance::instance(
 	}
 
 	initiate_check_roots();
+
+	if(!db_.read_sensor_types(sensor_list_))
+	{
+		ec = make_error_code(Error::statement_error);
+		tt::error("Error reading sensor types values!");
+		return;
+	}
+	db_.read_all_sensor_values(device_list_);
 }
 
 bool instance::remove_node_from_tree(mesh_addr_t const& addr) noexcept
@@ -156,6 +164,11 @@ User::User_List const& instance::users() const noexcept
 Device::Tree& instance::tree() noexcept
 {
 	return tree_;
+}
+
+Sensor::Sensor_Type_List const& instance::sensor_list() const noexcept
+{
+	return sensor_list_;
 }
 
 share_ptr instance::share() noexcept

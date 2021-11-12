@@ -25,6 +25,8 @@ enum class report_type{
 	info = 3
 };
 
+static const constexpr int report_all_user = -1;
+
 struct report{
 	report(report_commands,
 			report_type,

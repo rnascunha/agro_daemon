@@ -15,6 +15,8 @@
 
 #include "../src/user/policy.hpp"
 
+#include "../src/sensor/sensor_type_list.hpp"
+
 #define SQL_FILE		"scheme.sql"
 
 struct group{
@@ -59,10 +61,12 @@ static const group groups[] = {
 		{6, "op_delete", "Can view/delete operations on devices", rule::all_device | rule::delete_resource},
 };
 
-static const sensor_type sensors[] = {
-		{"Received Signal Strength Indicator", "RSSI", "decibel miliwatt", "dBm"},
-		{"Temperature", "temperature", "celsius", "C"},
-		{"GPIOs", "gpios", "signal level", ""}
+static const Agro::Sensor::sensor_description sensors[] = {
+		{1, "rssi", "RSSI", Agro::Sensor::sensor_unit_type::integer, "dBm", "decibel miliwatt", "Received Signal Strength Indicator"},
+		{2, "temperature", "Temperature", Agro::Sensor::sensor_unit_type::tfloat, "C", "celsius", "Temperatura sensor in celsius"},
+		{3, "input", "Input", Agro::Sensor::sensor_unit_type::tunsigned, "digital", "digital level", "Input digital level"},
+		{4, "output", "Output", Agro::Sensor::sensor_unit_type::tunsigned, "digital", "digital level", "Output digital level"},
+		{5, "gpios", "GPIO's", Agro::Sensor::sensor_unit_type::tunsigned, "digital array", "digital array level", "Array of bits (input/outputs)"},
 };
 
 static void usage(const char* program) noexcept
@@ -138,15 +142,16 @@ int main(int argc, char** argv)
 	std::cout << "Description[]: " << std::flush;
 	std::getline(std::cin, description);
 
-	do{
-		std::cout << "Subscriber: " << std::flush;
+//	do{
+		std::cout << "Subscriber [mailto:email@company.com]: " << std::flush;
 		std::getline(std::cin, subscribe);
 		if(subscribe.empty())
 		{
-			std::cerr << "'Subscribe' can't be empty.\n";
+			subscribe = "email@company.com";
+//			std::cerr << "'Subscribe' can't be empty.\n";
 		}
-		else break;
-	}while(true);
+//		else break;
+//	}while(true);
 
 	do{
 		std::cout << "Root password: " << std::flush;
@@ -250,8 +255,12 @@ int main(int argc, char** argv)
 	 */
 	for(auto const& sensor : sensors)
 	{
-		rc = db.prepare_bind("INSERT INTO sensor_type(name, type, unit_name, unit) VALUES(?,?,?,?)",
-				res, sensor.name, sensor.type, sensor.unit_name, sensor.unit);
+		rc = db.prepare_bind("INSERT INTO sensor_type(name, long_name, type, unit, unit_name, description) VALUES(?,?,?,?,?,?)",
+				res,
+				sensor.name, sensor.long_name,
+				static_cast<int>(sensor.type),
+				sensor.unit, sensor.unit_name,
+				sensor.description);
 		if(rc != SQLITE_OK)
 		{
 			std::cerr << "Error preparing to insert sensor type [" << rc << "]\n";

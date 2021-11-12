@@ -12,6 +12,8 @@
 #include "../device/net.hpp"
 #include "../device/tree.hpp"
 
+#include "../sensor/sensor_type_list.hpp"
+
 #include "../notify/notify_request.hpp"
 
 #include "../user/list.hpp"
@@ -130,6 +132,16 @@ class instance{
 				Device::Request::type) noexcept;
 
 		/**
+		 * Sensor
+		 */
+		bool remove_sensor_type(std::string const&) noexcept;
+		bool add_sensor_type(Sensor::sensor_description const&) noexcept;
+		bool update_sensor_type(Sensor::sensor_description const&) noexcept;
+
+		std::size_t update_sensor_value(const Device::Device&, const void*, std::size_t) noexcept;
+		bool update_sensor_value(const Device::Device&, Sensor::sensor_type const&) noexcept;
+
+		/**
 		 * Image
 		 */
 		Image_Path const& image_path() const noexcept;
@@ -189,6 +201,8 @@ class instance{
 
 		Device::Tree& tree() noexcept;
 
+		Sensor::Sensor_Type_List const& sensor_list() const noexcept;
+
 		bool authenticate(User::Logged&,
 				rapidjson::Document const&,
 				::Message::user_commands&,
@@ -217,6 +231,8 @@ class instance{
 		Device::Device_List	device_list_;
 		Device::Net_List	net_list_;
 		Device::Tree		tree_{device_list_};
+
+		Sensor::Sensor_Type_List	sensor_list_;
 
 		User::User_List		users_;
 

@@ -18,6 +18,8 @@ class Image_Path{
 
 		std::filesystem::path const& path() const noexcept;
 
+		bool has(std::string const&) const noexcept;
+
 		void erase(std::string const&) const noexcept;
 		void erase(std::vector<std::string> const&) const noexcept;
 

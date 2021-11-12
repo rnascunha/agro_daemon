@@ -1,40 +1,55 @@
 #include "types.hpp"
-#include "../../message/info.hpp"
+#include "../../message/report.hpp"
+#include "../message/device.hpp"
 #include "../../websocket/types.hpp"
-#include "../../device/message/device.hpp"
 
 namespace Agro{
 namespace Device{
 namespace Request{
 
-static void process_get_ota(Agro::Device::Device_List& device_list,
+static void process_get_ota(instance& instance,
 		mesh_addr_t const& host,
 		std::string&& version,
 		Agro::websocket_ptr ws) noexcept
 {
-	auto const dev = device_list[host];
+	auto const dev = instance.device_list()[host];
 	if(!dev)
 	{
-		std::cerr << "Device " << host.to_string() << " not found\n";
+		tt::error("OTA GET response error! Device '%s' not found", host.to_string().c_str());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+			host, "Device not found", "GET OTA", ws->user().id()));
 		return;
 	}
-	ws->write_all(Message::device_ota_to_json(*dev, version));
+	ws->write_all_policy(Authorization::rule::view_device,
+			std::make_shared<std::string>(Message::device_ota_to_json(*dev, version)));
 }
 
-static void process_update_ota(CoAP::Message::message const& response,
+static void process_update_ota(CoAP::Message::message const& request,
+		CoAP::Message::message const& response,
 		mesh_addr_t const& host,
+		instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Update OTA error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-		);
+		tt::error("Device '%s' OTA update error [%.*s]",
+				host.to_string().c_str(),
+				request.payload_len,
+				static_cast<const char*>(request.payload));
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+				host,"Update OTA error",
+				std::string{static_cast<const char*>(request.payload), request.payload_len},
+				ws->user().id()));
 		return;
 	}
-	ws->write_all(::Message::make_info(::Message::info::info, host, "OTA update initiated"));
+	tt::status("Device '%s' OTA update initiated [%.*s]",
+			host.to_string().c_str(),
+			request.payload_len,
+			static_cast<const char*>(request.payload));
+	ws->write(instance.make_report(Agro::Message::report_type::success,
+			host,"Update OTA initiated",
+			std::string{static_cast<const char*>(request.payload), request.payload_len},
+			ws->user().id()));
 }
 
 static void get_ota_response(
@@ -47,7 +62,7 @@ static void get_ota_response(
 		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
-	process_get_ota(instance.device_list(),
+	process_get_ota(instance,
 			host,
 			{static_cast<const char*>(response.payload), response.payload_len},
 			ws);
@@ -57,30 +72,44 @@ static void update_ota_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
 		type,
-		CoAP::Message::message const&,
+		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Agro::instance&,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
-	process_update_ota(response, host, ws);
+	process_update_ota(request, response, host, instance, ws);
 }
 
 static std::size_t update_ota_payload(
 		rapidjson::Document const& doc,
 		void* buf,
 		std::size_t size,
-		instance&,
-		std::error_code&)
+		instance& instance,
+		std::error_code& ec)
 {
-	std::size_t s = 0;
-	if(doc.HasMember("payload") && doc["payload"].IsString())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		const char* c = doc["payload"].GetString();
-		s = std::strlen(c);
-		std::memcpy(buf, c, s);
+		ec = make_error_code(Error::missing_field);
+		return 0;
 	}
-	return s;
+
+	rapidjson::Value const& data = doc["data"].GetObject();
+	if(!data.HasMember("image") || !data["image"].IsString())
+	{
+		ec = make_error_code(Error::missing_field);
+		return 0;
+	}
+
+	std::string image_file = data["image"].GetString();
+	if(!instance.image_path().has(image_file))
+	{
+		ec = make_error_code(Error::image_not_found);
+		return 0;
+	}
+
+	std::memcpy(buf, image_file.data(), image_file.size());
+	return image_file.size();
 }
 
 static request_message const req_get_ota = {

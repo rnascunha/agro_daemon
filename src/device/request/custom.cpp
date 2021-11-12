@@ -16,9 +16,7 @@ static void custom_response(
 		Agro::instance&,
 		Agro::websocket_ptr ws) noexcept
 {
-	rapidjson::Document doc;
-	::Message::make_response(doc, request, response, ep, status);
-	ws->write_all(::Message::stringify(doc));
+	ws->write(Message::device_custom_response(request, response, ep, status));
 }
 
 extern constexpr const request_config custom = {

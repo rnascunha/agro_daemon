@@ -39,13 +39,15 @@ struct request_config{
 extern const request_config custom;
 extern const request_config uptime;
 extern const request_config reset;
+extern const request_config reset_reason;
+extern const request_config waive_root;
 extern const request_config ac1_on;
 extern const request_config ac1_off;
 extern const request_config ac2_on;
 extern const request_config ac2_off;
 extern const request_config ac3_on;
 extern const request_config ac3_off;
-extern const request_config packet_sensor;
+extern const request_config packet_sensors;
 extern const request_config packet_board;
 extern const request_config packet_config;
 extern const request_config packet_route;
@@ -68,13 +70,15 @@ const request_config rconfig[] = {
 	custom,
 	uptime,
 	reset,
+	reset_reason,
+	waive_root,
 	ac1_on,
 	ac1_off,
 	ac2_on,
 	ac2_off,
 	ac3_on,
 	ac3_off,
-	packet_sensor,
+	packet_sensors,
 	packet_board,
 	packet_config,
 	packet_route,

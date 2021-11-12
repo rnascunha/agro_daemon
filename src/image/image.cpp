@@ -41,6 +41,13 @@ std::filesystem::path const& Image_Path::path() const noexcept
 	return path_;
 }
 
+bool Image_Path::has(std::string const& image_file) const noexcept
+{
+	std::filesystem::path pi = make_path(image_file);
+
+	return std::filesystem::exists(pi) && std::filesystem::is_regular_file(pi);
+}
+
 void Image_Path::erase(std::string const& image) const noexcept
 {
 	std::filesystem::remove(make_path(image));

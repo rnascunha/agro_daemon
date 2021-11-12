@@ -30,11 +30,14 @@ static void get_rtc_response(
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Get RTC error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-		);
+		tt::error("[%s] Get RTC error [%.*s]",
+				host.to_string().c_str(),
+				response.payload_len, static_cast<const char*>(response.payload));
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+				host,"Get RTC error",
+				std::string{static_cast<const char*>(response.payload), response.payload_len},
+				ws->user().id()));
+
 		return;
 	}
 	process_rtc_time(instance.device_list(), host, *static_cast<const value_time*>(response.payload), ws);
@@ -52,11 +55,14 @@ static void update_rtc_response(
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "RTC update error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-		);
+		tt::error("[%s] Update RTC error [%.*s]",
+				host.to_string().c_str(),
+				response.payload_len, static_cast<const char*>(response.payload));
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+				host,"Update RTC error",
+				std::string{static_cast<const char*>(response.payload), response.payload_len},
+				ws->user().id()));
+
 		return;
 	}
 	process_rtc_time(instance.device_list(), host, *static_cast<const value_time*>(request.payload), ws);
@@ -85,11 +91,13 @@ static void get_fuse_response(
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Get FUSE error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-		);
+		tt::error("[%s] Get fuse error [%.*s]",
+				host.to_string().c_str(),
+				response.payload_len, static_cast<const char*>(response.payload));
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+				host,"Get fuse error",
+				std::string{static_cast<const char*>(response.payload), response.payload_len},
+				ws->user().id()));
 		return;
 	}
 	process_fuse(instance.device_list(), host, *static_cast<const int32_t*>(response.payload), ws);
@@ -107,11 +115,13 @@ static void update_fuse_response(
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Update FUSE error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-		);
+		tt::error("[%s] Update fuse error [%.*s]",
+				host.to_string().c_str(),
+				response.payload_len, static_cast<const char*>(response.payload));
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+				host,"Update fuse error",
+				std::string{static_cast<const char*>(response.payload), response.payload_len},
+				ws->user().id()));
 		return;
 	}
 	process_fuse(instance.device_list(), host, *static_cast<const int32_t*>(request.payload), ws);
@@ -136,9 +146,16 @@ static std::size_t update_fuse_payload(
 		instance&,
 		std::error_code& ec)
 {
-	if(doc.HasMember("payload") && doc["payload"].IsInt())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		std::int32_t c = doc["payload"].GetInt();
+		ec = make_error_code(Error::missing_field);
+		return 0;
+	}
+	rapidjson::Value const& data = doc["data"].GetObject();
+
+	if(data.HasMember("payload") && data["payload"].IsInt())
+	{
+		std::int32_t c = data["payload"].GetInt();
 		std::memcpy(buf, &c, sizeof(std::int32_t));
 		return sizeof(std::int32_t);
 	}
@@ -167,8 +184,8 @@ static request_message const req_get_rtc = {
 	}
 };
 
-static CoAP::Message::content_format fuse_get_content = CoAP::Message::content_format::application_octet_stream;
-static CoAP::Message::content_format fuse_update_content = CoAP::Message::content_format::application_octet_stream;
+static constexpr const CoAP::Message::content_format fuse_get_content = CoAP::Message::content_format::application_octet_stream;
+static constexpr const CoAP::Message::content_format fuse_update_content = CoAP::Message::content_format::application_octet_stream;
 
 static request_message const req_get_fuse = {
 	CoAP::Message::code::get,

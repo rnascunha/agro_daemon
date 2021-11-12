@@ -12,6 +12,7 @@
 #include "tt/tt.hpp"
 
 #include "../../device/message/device.hpp"
+#include "../../sensor/message/sensor.hpp"
 #include "../../user/message/auth_message.hpp"
 
 #include "../../notify/message.hpp"
@@ -172,11 +173,22 @@ read_handler(std::string data) noexcept
 			}
 
 			/**
+			 * Sending sensor types configured list
+			 */
+			this->write(Agro::Sensor::Message::sensor_types_list(share_->instance().sensor_list()));
+
+			/**
 			 * Sending device data
 			 */
 			write_policy(Agro::Authorization::rule::view_device,
 				std::make_shared<std::string>(
 						Agro::Device::Message::device_list_to_json(share_->instance().device_list())));
+
+			write_policy(Agro::Authorization::rule::view_device,
+							std::make_shared<std::string>(
+									Agro::Device::Message::device_list_sensor_data(
+											share_->instance().device_list(),
+											share_->instance().sensor_list())));
 
 			/**
 			 * Getting reports
@@ -185,17 +197,18 @@ read_handler(std::string data) noexcept
 			share_->instance().read_all_reports(reports, user_.id(), 20);
 			//Sending
 			this->write(std::make_shared<std::string>(Agro::Message::report_message(reports)));
-
 			/**
 			 * Sending device tree
 			 */
 			write_policy(Agro::Authorization::rule::view_device,
 							std::make_shared<std::string>(
 									Agro::Device::Message::device_tree_to_json(share_->instance().tree())));
+
 			/**
 			 * Sending images
 			 */
 			share_->instance().send_all_image_list();
+
 			/**
 			 * Sending apps
 			 */

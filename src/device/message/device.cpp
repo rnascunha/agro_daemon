@@ -1,6 +1,7 @@
 #include "device.hpp"
 #include "../../message/make.hpp"
 #include "../net.hpp"
+#include "esp_reset_reason.hpp"
 
 namespace Agro{
 namespace Device{
@@ -8,8 +9,8 @@ namespace Message{
 
 template<typename Allocator>
 static void make_config_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-template<typename Allocator>
-static void make_status_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
+//template<typename Allocator>
+//static void make_status_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_route_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
@@ -18,10 +19,10 @@ template<typename Allocator>
 static void make_board_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_others_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-template<typename Allocator>
-static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-template<typename Allocator>
-static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
+//template<typename Allocator>
+//static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
+//template<typename Allocator>
+//static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_job(rapidjson::Value& data, job const&, Allocator& alloc) noexcept;
 template<typename Allocator>
@@ -55,29 +56,6 @@ std::string device_config_to_json(Device const& dev) noexcept
 {
 	rapidjson::Document doc;
 	device_config_to_json(doc, dev);
-
-	return ::Message::stringify(doc);
-}
-
-void device_status_to_json(rapidjson::Document& doc, Device const& dev) noexcept
-{
-	doc.SetObject();
-	add_type(doc, ::Message::type::device);
-	add_command(doc, device_commands::data);
-
-	rapidjson::Value data;
-	data.SetObject();
-
-	make_mandatory_data_info(data, dev, doc.GetAllocator());
-
-	make_status_data(data, dev, doc.GetAllocator());
-	::Message::add_data(doc, data);
-}
-
-std::string device_status_to_json(Device const& dev) noexcept
-{
-	rapidjson::Document doc;
-	device_status_to_json(doc, dev);
 
 	return ::Message::stringify(doc);
 }
@@ -147,53 +125,6 @@ std::string device_board_to_json(Device const& dev) noexcept
 {
 	rapidjson::Document doc;
 	device_board_to_json(doc, dev);
-
-	return ::Message::stringify(doc);
-}
-
-void device_sensor_data_to_json(rapidjson::Document& doc, Device const& dev) noexcept
-{
-	doc.SetObject();
-	add_type(doc, ::Message::type::device);
-	add_command(doc, device_commands::data);
-
-	rapidjson::Value data;
-	data.SetObject();
-
-	make_mandatory_data_info(data, dev, doc.GetAllocator());
-
-	make_sensor_data(data, dev, doc.GetAllocator());
-	::Message::add_data(doc, data);
-}
-
-std::string device_sensor_data_to_json(Device const& dev) noexcept
-{
-	rapidjson::Document doc;
-	device_sensor_data_to_json(doc, dev);
-	add_command(doc, device_commands::data);
-
-	return ::Message::stringify(doc);
-}
-
-void device_gpios_to_json(rapidjson::Document& doc, Device const& dev) noexcept
-{
-	doc.SetObject();
-	add_type(doc, ::Message::type::device);
-	add_command(doc, device_commands::data);
-
-	rapidjson::Value data;
-	data.SetObject();
-
-	make_mandatory_data_info(data, dev, doc.GetAllocator());
-
-	make_gpios(data, dev, doc.GetAllocator());
-	::Message::add_data(doc, data);
-}
-
-std::string device_gpios_to_json(Device const& dev) noexcept
-{
-	rapidjson::Document doc;
-	device_gpios_to_json(doc, dev);
 
 	return ::Message::stringify(doc);
 }
@@ -391,7 +322,6 @@ void device_list_to_json(rapidjson::Document& doc, Device_List const& list) noex
 
 		make_mandatory_data_info(devj, dev, doc.GetAllocator());
 		make_device_data(devj, dev, doc.GetAllocator());
-
 		dev_arr.PushBack(devj, doc.GetAllocator());
 	}
 	::Message::add_data(doc, dev_arr);
@@ -420,6 +350,37 @@ std::string device_edited_to_json(Device const& dev) noexcept
 	data.AddMember("name",
 			rapidjson::Value(dev.name().data(), dev.name().size(),
 						doc.GetAllocator()).Move(),
+			doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
+std::string device_reset_reason_to_json(Device const& dev, long reason) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	::Message::add_device(data, dev.mac(), doc.GetAllocator());
+	data.AddMember("reset_reason",
+					reason,
+					doc.GetAllocator());
+	data.AddMember("reason_string",
+			rapidjson::Value(
+					reset_reason_string(static_cast<esp_reset_reason_t>(reason)),
+					doc.GetAllocator()).Move(),
+			doc.GetAllocator());
+	data.AddMember("reason_string_short",
+			rapidjson::Value(
+					reset_reason_string_short(static_cast<esp_reset_reason_t>(reason)),
+					doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 
 	::Message::add_data(doc, data);
@@ -475,6 +436,152 @@ std::string device_tree_to_json(Tree const& tree) noexcept
 	return ::Message::stringify(doc);
 }
 
+std::string device_custom_response(
+		CoAP::Message::message const& request,
+		CoAP::Message::message const& response,
+		endpoint const& ep,
+		CoAP::Transmission::status_t status) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::custom_response);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	::Message::add_device(data, request, doc.GetAllocator());
+	::Message::add_endpoint(data, ep, doc.GetAllocator());
+
+	::Message::add_request_type(data, request, doc.GetAllocator());
+
+	rapidjson::Value resource;
+	::Message::add_option(resource, request, CoAP::Message::Option::code::uri_path, doc.GetAllocator());
+	data.AddMember("resource", resource, doc.GetAllocator());
+
+	rapidjson::Value query;
+	::Message::add_option(query, request, CoAP::Message::Option::code::uri_query, doc.GetAllocator());
+	data.AddMember("query", query, doc.GetAllocator());
+
+	::Message::add_transaction_status(data, status, doc.GetAllocator());
+	::Message::add_response_status(data, response.mcode, doc.GetAllocator());
+
+	rapidjson::Value payload;
+	::Message::add_payload(payload, response, doc.GetAllocator());
+	data.AddMember("payload", payload, doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
+std::string device_sensor_data(Device const& dev,
+						Sensor::Sensor_List const& list,
+						Sensor::Sensor_Type_List const& type_list) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
+	rapidjson::Value sensors;
+	Sensor::Message::sensor_list(list, type_list, sensors, doc.GetAllocator());
+	data.AddMember("sensor", sensors, doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
+std::string device_sensor_data(Device const& dev,
+						const void* sensor_data, std::size_t size,
+						Sensor::Sensor_Type_List const& type_list) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
+	rapidjson::Value sensors;
+	Sensor::Message::sensor_list(sensor_data, size, type_list, sensors, doc.GetAllocator());
+	data.AddMember("sensor", sensors, doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
+std::string device_sensor_data(Device const& dev,
+						Sensor::sensor_type const& sensor,
+						Sensor::Sensor_Type_List const& type_list) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::data);
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	make_mandatory_data_info(data, dev, doc.GetAllocator());
+
+
+	rapidjson::Value vsensor, sensors;
+	sensors.SetArray();
+
+	Sensor::Message::sensor_value(sensor.value, sensor.type, sensor.index, type_list, vsensor, doc.GetAllocator());
+	sensors.PushBack(vsensor, doc.GetAllocator());
+	data.AddMember("sensor", sensors, doc.GetAllocator());
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
+std::string device_list_sensor_data(Device_List const& list,
+								Sensor::Sensor_Type_List const& type_list) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	add_type(doc, ::Message::type::device);
+	add_command(doc, device_commands::list);
+
+	rapidjson::Value data;
+	data.SetArray();
+
+	for(auto const& [key, dev] : list.list())
+	{
+		rapidjson::Value dev_data;
+		dev_data.SetObject();
+
+		::Message::add_device(dev_data, dev.mac(), doc.GetAllocator());
+
+		rapidjson::Value sensors;
+		Sensor::Message::sensor_list(dev.sensor_list(), type_list, sensors, doc.GetAllocator());
+		dev_data.AddMember("sensor", sensors, doc.GetAllocator());
+
+		data.PushBack(dev_data, doc.GetAllocator());
+	}
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
 /**
  *
  */
@@ -513,31 +620,15 @@ static void make_config_data(rapidjson::Value& data, Device const& dev, Allocato
 	data.AddMember("ch_conn", dev.channel(), alloc);
 
 	char mac_ap[18];
-	data.AddMember("net_id",
-			rapidjson::Value(dev.net()->net_addr().to_string().data(),
-					dev.net()->net_addr().to_string().size(),
-			alloc).Move(), alloc);
+	if(dev.net())
+	{
+		data.AddMember("net_id",
+				rapidjson::Value(dev.net()->net_addr().to_string().data(),
+						dev.net()->net_addr().to_string().size(),
+				alloc).Move(), alloc);
+	}
 	data.AddMember("mac_ap", rapidjson::Value(dev.mac_ap().to_string(mac_ap, 18),
 			alloc).Move(), alloc);
-}
-
-template<typename Allocator>
-static void make_status_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
-{
-	//Status
-	rapidjson::Value arr_rssi;
-	arr_rssi.SetArray();
-	auto const& rrssi = dev.rssi();
-	for(auto const& r : rrssi)
-	{
-		rapidjson::Value v;
-		v.SetObject();
-		v.AddMember("time", r.time, alloc);
-		v.AddMember("value", r.value, alloc);
-
-		arr_rssi.PushBack(v, alloc);
-	}
-	data.AddMember("rssi", arr_rssi, alloc);
 }
 
 template<typename Allocator>
@@ -564,8 +655,6 @@ static void make_full_config_data(rapidjson::Value& data, Device const& dev, All
 {
 	//Config
 	make_config_data(data, dev, alloc);
-	//Status
-	make_status_data(data, dev, alloc);
 	//Route
 	make_route_data(data, dev, alloc);
 }
@@ -580,17 +669,6 @@ static void make_board_data(rapidjson::Value& data, Device const& dev, Allocator
 					alloc).Move(), alloc);
 	data.AddMember("version_hw", rapidjson::Value(dev.hardware_version().c_str(),
 					alloc).Move(), alloc);
-}
-
-template<typename Allocator>
-static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
-{
-	rapidjson::Value gpios_v;
-	::Message::make_value_list_array(gpios_v, dev.gpios(), alloc);
-	data.AddMember("gpios", gpios_v, alloc);
-	rapidjson::Value gpios_v_out;
-	::Message::make_value_list_array(gpios_v_out, dev.gpios_out(), alloc);
-	data.AddMember("gpios_out", gpios_v_out, alloc);
 }
 
 template<typename Allocator>
@@ -660,22 +738,6 @@ static void make_apps(rapidjson::Value& data, Device const& dev, Allocator& allo
 }
 
 template<typename Allocator>
-static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
-{
-	data.AddMember("time", dev.last_packet_time(), alloc);
-
-	rapidjson::Value temp_v;
-	::Message::make_value_list_array(temp_v, dev.temperature(), alloc);
-	data.AddMember("temp", temp_v, alloc);
-
-	rapidjson::Value rssi_v;
-	::Message::make_value_list_array(rssi_v, dev.rssi(), alloc);
-	data.AddMember("rssi", rssi_v, alloc);
-
-	make_gpios(data, dev, alloc);
-}
-
-template<typename Allocator>
 static void make_others_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept
 {
 	data.AddMember("name", rapidjson::Value(dev.name().c_str(), alloc).Move(), alloc);
@@ -686,9 +748,6 @@ static void make_device_data(rapidjson::Value& data, Device const& dev, Allocato
 {
 	//Config
 	make_config_data(data, dev, alloc);
-	//Status
-//	make_status_data(data, dev, alloc);
-	make_sensor_data(data, dev, alloc);
 	//Route
 	make_route_data(data, dev, alloc);
 	//Board

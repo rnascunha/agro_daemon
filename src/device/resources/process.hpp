@@ -43,11 +43,11 @@ bool process_full_config(Agro::Device::Device&,
 					const void* payload, std::size_t payload_len,
 					std::error_code&) noexcept;
 
-bool process_sensor_data(Agro::Device::Device&,
-					Agro::instance&,
-					engine::endpoint const&,
+void process_sensors_data(Agro::Device::Device& device,
+					Agro::instance& instance,
+					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
-					std::error_code&) noexcept;
+					std::error_code& ec) noexcept;
 
 }//Resource
 }//Device

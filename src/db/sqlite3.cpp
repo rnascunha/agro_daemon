@@ -96,6 +96,11 @@ int sqlite3::statement::bind(int index, int value) noexcept
 	return sqlite3_bind_int(stmt_, index, value);
 }
 
+int sqlite3::statement::bind(int index, unsigned value) noexcept
+{
+	return sqlite3_bind_int(stmt_, index, value);
+}
+
 int sqlite3::statement::bind(int index, long value) noexcept
 {
 	return sqlite3_bind_int64(stmt_, index, value);

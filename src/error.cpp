@@ -23,6 +23,7 @@ std::string Message_Err_Category::message(int ev) const
 		case Error::user_is_deleted: return "User is deleted";
 		case Error::password_not_match: return "Password does not match";
 		case Error::session_expired: return "Session expired";
+		case Error::image_not_found: return "Image not found";
 		default:
 			return "(unrecognized error)";
 	}

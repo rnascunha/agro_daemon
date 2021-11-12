@@ -1,7 +1,8 @@
 #include "../../coap_engine.hpp"
 #include "../list.hpp"
 #include "process.hpp"
-#include "../../message/info.hpp"
+#include "../types.hpp"
+//#include "../../message/info.hpp"
 
 namespace Agro{
 namespace Device{
@@ -14,12 +15,16 @@ void put_info_handler(engine::message const& request,
 	CoAP::Message::Option::option op;
 	CoAP::Message::Option::get_option(request, op, CoAP::Message::Option::code::uri_host);
 
-	instance.share()->write_all(std::make_shared<std::string>(
-		::Message::make_info(::Message::info::info,
-				op,
-				std::string{static_cast<const char*>(request.payload), request.payload_len}.c_str()
-		))
-	);
+	std::error_code ec;
+	::mesh_addr_t addr{static_cast<const char*>(op.value), op.length, ec};
+
+	instance.share()->write_all_policy(
+			Authorization::rule::view_device,
+			instance.make_report(Agro::Message::report_type::info,
+				addr,
+				std::string{static_cast<const char*>(request.payload), request.payload_len},
+				"",
+				-1));
 
 	if(request.mtype == CoAP::Message::type::confirmable)
 	{

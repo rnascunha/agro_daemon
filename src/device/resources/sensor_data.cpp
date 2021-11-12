@@ -2,16 +2,17 @@
 #include "../../instance/agro.hpp"
 #include "../../websocket/types.hpp"
 #include "process.hpp"
-//#include <cstdio>
 
 namespace Agro{
 namespace Device{
 namespace Resource{
 
-void put_sensor_data_handler(engine::message const& request,
+void put_sensors_data_handler(engine::message const& request,
 								engine::response& response, void*,
 								Agro::instance& instance) noexcept
 {
+	tt::debug("Received 'sensors' data");
+
 	CoAP::Message::Option::option op;
 	Agro::Device::Device* dev;
 	if(!instance.process_device_request(request, &dev, op))
@@ -22,23 +23,12 @@ void put_sensor_data_handler(engine::message const& request,
 	}
 
 	std::error_code ec;
-	if(!process_sensor_data(*dev,
-					instance,
-					response.endpoint(),
-					request.payload, request.payload_len,
-					ec))
-	{
-		tt::debug("Sensor request error!");
-		CoAP::Message::Option::node uri_host{op};
-		response
-			.code(CoAP::Message::code::bad_request)
-			.add_option(uri_host)
-			.payload(ec.message().c_str())
-			.serialize();
-		return;
-	}
-
-	instance.update_db_device(*dev);
+	process_sensors_data(*dev,
+			instance,
+			response.endpoint(),
+			request.payload,
+			request.payload_len,
+			ec);
 
 	if(request.mtype == CoAP::Message::type::confirmable)
 	{

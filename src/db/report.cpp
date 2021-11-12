@@ -11,7 +11,7 @@ int DB::read_all_reports(std::vector<Message::report>& reports, User::user_id id
 	{
 		rc = db_.prepare_bind("SELECT command,type,reference,message,argument,time) "
 					"FROM report "
-					"WHERE userid = ?", res, id);
+					"WHERE userid = ? OR userid = ?", res, id, Message::report_all_user);
 	}
 	else
 	{
@@ -28,9 +28,9 @@ int DB::read_all_reports(std::vector<Message::report>& reports, User::user_id id
 
 		rc = db_.prepare_bind("SELECT command,type,reference,message,argument,time "
 							"FROM report "
-							"WHERE userid = ? "
+							"WHERE userid = ? OR userid = ?"
 							"ORDER BY time "
-							"LIMIT ? OFFSET ?", res, id, limit, offset);
+							"LIMIT ? OFFSET ?", res, id, Message::report_all_user, limit, offset);
 	}
 
 	if(rc != SQLITE_OK)

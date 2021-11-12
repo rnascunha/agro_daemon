@@ -20,6 +20,8 @@ enum class Error{
 	user_is_deleted,
 	password_not_match,
 	session_expired,
+	//Image
+	image_not_found = 200,
 };
 
 struct Message_Err_Category : public std::error_category{

@@ -15,6 +15,7 @@ class Device_List{
 		Device_List();
 
 		std::map<mesh_addr_t const, Device> const& list() const noexcept;
+		std::map<mesh_addr_t const, Device>& list() noexcept;
 
 		Device* operator[](mesh_addr_t const&) noexcept;
 		Device const* operator[](mesh_addr_t const&) const noexcept;

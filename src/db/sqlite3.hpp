@@ -27,6 +27,7 @@ class sqlite3{
 				int step() noexcept;
 
 				int bind(int, int) noexcept;
+				int bind(int, unsigned) noexcept;
 				int bind(int, long) noexcept;
 				int bind(int, std::string const&, destructor_type = static_destructor) noexcept;
 				int bind(int, const void*, int, destructor_type = static_destructor) noexcept;

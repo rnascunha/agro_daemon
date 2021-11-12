@@ -1,6 +1,9 @@
 #include "device.hpp"
 #include "../helper/time_helper.hpp"
 
+#define GPIOS_ARRAY_SENSOR_TYPE		5
+#define GPIOS_ARRAY_SENSOR_INDEX	0
+
 namespace Agro{
 namespace Device{
 
@@ -123,11 +126,6 @@ std::string const& Device::hardware_version() const noexcept
 	return hw_version_;
 }
 
-Value_List<std::int8_t> const& Device::rssi() const noexcept
-{
-	return rssi_;
-}
-
 bool Device::has_rtc() const noexcept
 {
 	return has_rtc_;
@@ -143,22 +141,7 @@ std::uint32_t Device::last_packet_time() const noexcept
 	return last_packet_time_;
 }
 
-Value_List<float> const& Device::temperature() const noexcept
-{
-	return temp_;
-}
-
-Value_List<std::uint8_t> const& Device::gpios() const noexcept
-{
-	return gpios_;
-}
-
-Value_List<std::uint8_t> const& Device::gpios_out() const noexcept
-{
-	return gpios_out_;
-}
-
-Value<value_time> const& Device::rtc_time() const noexcept
+Sensor::Value<value_time> const& Device::rtc_time() const noexcept
 {
 	return rtc_time_;
 }
@@ -197,9 +180,14 @@ std::vector<app> const& Device::apps() const noexcept
 	return apps_;
 }
 
-Value<int64_t> const& Device::uptime() const noexcept
+Sensor::Value<int64_t> const& Device::uptime() const noexcept
 {
 	return uptime_;
+}
+
+Sensor::Sensor_List const& Device::sensor_list() const noexcept
+{
+	return slist_;
 }
 
 void Device::clear_children() noexcept
@@ -215,13 +203,6 @@ void Device::add_children(mesh_addr_t const& child) noexcept
 bool Device::operator==(Device const& rhs) const noexcept
 {
 	return mac_ == rhs.mac_;
-}
-
-void Device::update(endpoint const& ep, Resource::status const& sts) noexcept
-{
-	process_packet(ep);
-
-	rssi_.add(sts.rssi);
 }
 
 void Device::update(endpoint const& ep, Resource::config const& cfg, Net* net) noexcept
@@ -255,8 +236,6 @@ void Device::update(endpoint const& ep, Resource::full_config const& cfg, Net* n
 		const uint8_t* children, std::size_t children_size) noexcept
 {
 	process_packet(ep);
-
-	rssi_.add(cfg.fstatus.rssi);
 
 	ch_config_ = cfg.fconfig.channel_config;
 	ch_conn_ = cfg.fconfig.channel_conn;
@@ -297,50 +276,34 @@ void Device::update(endpoint const& ep, Resource::board_config const& cfg,
 	}
 }
 
-void Device::update(endpoint const& ep, Resource::sensor_data const& data) noexcept
+std::size_t Device::update_sensor(const void* data, std::size_t size) noexcept
 {
-	process_packet(ep);
-
-	std::uint8_t gpios_value = data.wl1 | (data.wl2 << 1) |
-								(data.wl3 << 2) | (data.wl4 << 3) |
-								(data.gp1 << 4) | (data.gp2 << 5) |
-								(data.gp3 << 6) | (data.gp4 << 7);
-	std::uint8_t gpios_out_value = data.ac1 | (data.ac2 << 1) |
-									(data.ac3 << 2);
-
-	if(has_rtc_)
-	{
-		rssi_.add(data.time, data.rssi);
-		if(data.temp != -127.0)	//Invalid read
-			temp_.add(data.time, data.temp);
-
-		gpios_.add_change(data.time, gpios_value);
-		gpios_out_.add_change(data.time, gpios_out_value);
-	}
-	else
-	{
-		rssi_.add(data.rssi);
-		if(data.temp != -127.0)	//Invalid read
-			temp_.add(data.temp);
-
-		gpios_.add_change(gpios_value);
-		gpios_out_.add_change(gpios_out_value);
-	}
+	return slist_.add(data, size);
 }
 
-bool Device::update_ac_load(unsigned index, bool value) noexcept
+void Device::update_sensor(unsigned type, unsigned index,
+				value_time time, Sensor::sensor_value const& value) noexcept
+{
+	slist_.add(type, index, time, value);
+}
+
+int Device::update_ac_load(unsigned index, bool value) noexcept
 {
 	if(index > 2) return false;
-	if(gpios_out_.size() == 0)
+	Sensor::Sensor_List::value& list = slist_.get_or_add(GPIOS_ARRAY_SENSOR_TYPE, GPIOS_ARRAY_SENSOR_INDEX);
+	int nindex = index + 8;
+	if(list.size() == 0)
 	{
-		std::uint8_t gpios_value = value << index;
-		gpios_out_.add(gpios_value);
-		return true;
+		int gpios_value = value << nindex;
+		list.add(gpios_value);
+		return gpios_value;
 	}
-	std::uint8_t v = gpios_out_[gpios_out_.size() - 1].value;
-	gpios_out_.add_change((v & ~(1UL << index)) | (value << index));
+	int v = list[list.size() - 1].value,
+		nvalue = (v & ~(1UL << nindex)) | (value << nindex);
+//	list.add_change((v & ~(1UL << nindex)) | (value << nindex));
+	list.add(nvalue);
 
-	return true;
+	return nvalue;
 }
 
 void Device::update_uptime(int64_t time) noexcept

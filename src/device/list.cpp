@@ -10,6 +10,11 @@ std::map<mesh_addr_t const, Device> const& Device_List::list() const noexcept
 	return list_;
 }
 
+std::map<mesh_addr_t const, Device>& Device_List::list() noexcept
+{
+	return list_;
+}
+
 Device* Device_List::operator[](mesh_addr_t const& addr) noexcept
 {
 	auto dev = list_.find(addr);

@@ -24,6 +24,7 @@ enum class type{
 	user,		/**< user */
 	info,        /**< info */
 	report,		/**< report */
+	sensor,		/**< sensor */
 };
 
 constexpr const config<type> tconfig[] = {
@@ -34,7 +35,8 @@ constexpr const config<type> tconfig[] = {
 	{type::app, "app"},
 	{type::user, "user"},
 	{type::info, "info"},
-	{type::report, "report"}
+	{type::report, "report"},
+	{type::sensor, "sensor"}
 };
 
 inline constexpr config<type> const* get_type_config(type t) noexcept
