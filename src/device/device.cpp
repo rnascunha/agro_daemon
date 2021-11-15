@@ -276,15 +276,12 @@ void Device::update(endpoint const& ep, Resource::board_config const& cfg,
 	}
 }
 
-std::size_t Device::update_sensor(const void* data, std::size_t size) noexcept
+bool Device::update_sensor(unsigned type, unsigned index,
+				value_time time, Sensor::sensor_value const& value,
+				bool add_change /* = false */) noexcept
 {
-	return slist_.add(data, size);
-}
-
-void Device::update_sensor(unsigned type, unsigned index,
-				value_time time, Sensor::sensor_value const& value) noexcept
-{
-	slist_.add(type, index, time, value);
+	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
+	return slist_.add(type, index, time, value, add_change);
 }
 
 int Device::update_ac_load(unsigned index, bool value) noexcept

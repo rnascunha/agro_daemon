@@ -8,7 +8,8 @@ namespace Agro{
 int DB::read_sensor_types(Sensor::Sensor_Type_List& list) noexcept
 {
 	sqlite3::statement res;
-	int rc = db_.prepare("SELECT sensor_typeid,name,long_name,type,unit,unit_name,description FROM sensor_type",
+	int rc = db_.prepare("SELECT sensor_typeid,name,long_name,type,unit,unit_name,description,add_change "
+						"FROM sensor_type",
 						res);
 	if(rc != SQLITE_OK)
 	{
@@ -22,13 +23,14 @@ int DB::read_sensor_types(Sensor::Sensor_Type_List& list) noexcept
 
 ;
 		list.add(Sensor::sensor_description{
-			res.interger(0),
+			res.integer(0),
 			res.text(1),
 			res.text(2),
-			static_cast<Sensor::sensor_unit_type>(res.interger(3)),
+			static_cast<Sensor::sensor_unit_type>(res.integer(3)),
 			res.text(4),
 			res.text(5),
-			res.text(6)});
+			res.text(6),
+			static_cast<bool>(res.integer(7))});
 	}
 
 	return true;
@@ -38,8 +40,8 @@ int DB::add_sensor_type(Sensor::sensor_description const& sensor) noexcept
 {
 	sqlite3::statement res;
 	int rc = db_.prepare_bind("INSERT INTO sensor_type("
-			"sensor_typeid,name,long_name,type,description,unit,unit_name) "
-			"VALUES(?,?,?,?,?,?,?)",
+			"sensor_typeid,name,long_name,type,description,unit,unit_name,add_change) "
+			"VALUES(?,?,?,?,?,?,?,?)",
 			res,
 			sensor.id,
 			sensor.name,
@@ -47,7 +49,8 @@ int DB::add_sensor_type(Sensor::sensor_description const& sensor) noexcept
 			static_cast<int>(sensor.type),
 			sensor.description,
 			sensor.unit,
-			sensor.unit_name);
+			sensor.unit_name,
+			sensor.add_change);
 
 	if(rc != SQLITE_OK)
 	{
@@ -62,13 +65,14 @@ int DB::update_sensor_type(Sensor::sensor_description const& sensor) noexcept
 {
 	sqlite3::statement res;
 	int rc = db_.prepare_bind("UPDATE sensor_type "
-			"SET long_name = ?, unit = ?, unit_name = ?, description = ? "
+			"SET long_name = ?, unit = ?, unit_name = ?, description = ?, add_change = ? "
 			"WHERE sensor_typeid = ?",
 			res,
 			sensor.long_name,
 			sensor.unit,
 			sensor.unit_name,
 			sensor.description,
+			sensor.add_change,
 			sensor.id);
 
 	if(rc != SQLITE_OK)
@@ -112,7 +116,7 @@ int DB::read_sensor_values(Device::Device& dev) noexcept
 	std::vector<std::pair<unsigned, unsigned>> list_sensor;
 	while(res.step() == SQLITE_ROW)
 	{
-		list_sensor.push_back(std::make_pair(res.interger(0), res.interger(1)));
+		list_sensor.push_back(std::make_pair(res.integer(0), res.integer(1)));
 	}
 
 	res.clear_bidings();
@@ -132,7 +136,7 @@ int DB::read_sensor_values(Device::Device& dev) noexcept
 		std::vector<std::pair<value_time, Sensor::sensor_value>> v;
 		while(res.step() == SQLITE_ROW)
 		{
-			value_time time = res.interger(0);
+			value_time time = res.integer(0);
 			int size;
 			Sensor::sensor_value s{static_cast<std::uint8_t const*>(res.blob(1, size))};
 			v.push_back(std::make_pair(time, s));
@@ -156,31 +160,33 @@ void DB::read_all_sensor_values(Device::Device_List& list) noexcept
 	}
 }
 
-std::size_t DB::update_sensor_value(Device::Device const& dev, const void* data, std::size_t size) noexcept
-{
-	const std::uint8_t* d8u = static_cast<const std::uint8_t*>(data);
+//std::size_t DB::update_sensor_value(Device::Device const& dev, const void* data, std::size_t size) noexcept
+//{
+//	const std::uint8_t* d8u = static_cast<const std::uint8_t*>(data);
+//
+//	std::size_t dsize = 0, count = 0;
+//
+//	while((dsize + sizeof(Sensor::sensor_type)) <= size)
+//	{
+//		Sensor::sensor_type const* sensor = reinterpret_cast<Sensor::sensor_type const*>(d8u + dsize);
+//		int rc = update_sensor_value(dev, *sensor);
+//		if(rc != SQLITE_DONE)
+//		{
+//			tt::debug("Error stepping sensor DB statement %d", rc);
+//		}
+//		else
+//		{
+//			count++;
+//		}
+//		dsize += sizeof(Sensor::sensor_type);
+//	}
+//
+//	return count;
+//}
 
-	std::size_t dsize = 0, count = 0;
-
-	while((dsize + sizeof(Sensor::sensor_type)) <= size)
-	{
-		Sensor::sensor_type const* sensor = reinterpret_cast<Sensor::sensor_type const*>(d8u + dsize);
-		int rc = update_sensor_value(dev, *sensor);
-		if(rc != SQLITE_DONE)
-		{
-			tt::debug("Error stepping sensor DB statement %d", rc);
-		}
-		else
-		{
-			count++;
-		}
-		dsize += sizeof(Sensor::sensor_type);
-	}
-
-	return count;
-}
-
-int DB::update_sensor_value(Device::Device const& dev, Sensor::sensor_type const& data) noexcept
+int DB::update_sensor_value(Device::Device const& dev,
+		Sensor::sensor_type const& data,
+		value_time time) noexcept
 {
 	sqlite3::statement res;
 	int rc = db_.prepare_bind("INSERT INTO sensor_value("
@@ -188,7 +194,7 @@ int DB::update_sensor_value(Device::Device const& dev, Sensor::sensor_type const
 							"VALUES(?,?,?,?,?)", res,
 							dev.id(),
 							data.type,
-							get_time(),
+							time,
 							sqlite3::binary{data.value.array_v, 4},
 							data.index);
 	if(rc != SQLITE_OK)

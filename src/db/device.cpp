@@ -19,7 +19,7 @@ bool DB::read_devices_net(Device::Net_List& net_list) noexcept
 		mesh_addr_t addr(str.data(), str.size(),ec);
 		if(ec) continue;
 
-		net_list.add(Device::Net{res.interger(0), addr, res.text(2)});
+		net_list.add(Device::Net{res.integer(0), addr, res.text(2)});
 	}
 
 	return true;
@@ -56,22 +56,22 @@ bool DB::read_devices(Device::Device_List& device_list, Device::Net_List const& 
 		if(ec) continue;
 
 		CoAP::Error ecp;
-		endpoint ep(res.text(4).c_str(), static_cast<std::uint16_t>(res.interger(5)), ecp);
+		endpoint ep(res.text(4).c_str(), static_cast<std::uint16_t>(res.integer(5)), ecp);
 		if(ecp) continue;
 
-		auto* dev = device_list.add(Device::Device{res.interger(0),
+		auto* dev = device_list.add(Device::Device{res.integer(0),
 									addr, mac_ap, parent, ep,
 									res.text(6),	//name
 									res.text(7),	//fw
 									res.text(8),	//hw
-									static_cast<uint8_t>(res.interger(9)), //channel config
-									static_cast<uint8_t>(res.interger(10)), //channel
-									res.interger(11) ? true : false, //has_rtc
-									res.interger(12) ? true : false, //has_temp_sensor
-									res.interger(13)	//layer
+									static_cast<uint8_t>(res.integer(9)), //channel config
+									static_cast<uint8_t>(res.integer(10)), //channel
+									res.integer(11) ? true : false, //has_rtc
+									res.integer(12) ? true : false, //has_temp_sensor
+									res.integer(13)	//layer
 									});
-		dev->net(net_list.get(res.interger(14)));
-		dev->fuse(res.interger(15));
+		dev->net(net_list.get(res.integer(14)));
+		dev->fuse(res.integer(15));
 
 		sqlite3::statement res2;
 		rc = db_.prepare_bind("SELECT children_mac FROM children_table WHERE deviceid = ?",
@@ -216,4 +216,16 @@ int DB::update_device_route(Device::Device const& device) noexcept
 	return SQLITE_DONE;
 }
 
+int DB::set_device_state(Device::Device const& device, bool connected) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind("INSERT INTO device_state(deviceid,time,connected) VALUES(?,?,?)",
+				res, device.id(), get_time(), connected);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
 }//Agro

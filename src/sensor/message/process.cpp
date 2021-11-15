@@ -32,68 +32,84 @@ static void remove_sensor_type(rapidjson::Document const& doc,
 
 	ws->write_all(sensor_types_list(instance.sensor_list()));
 }
-static void add_sensor_type(rapidjson::Document const& doc,
-		websocket_ptr ws,
-		instance& instance,
-		User::Logged&) noexcept
+
+static bool read_data_packet(rapidjson::Document const& doc,
+							sensor_description& sensor) noexcept
 {
 	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
 		tt::warning("Sensor 'data' field not found or wrong type");
-		return;
+		return false;
 	}
 
 	rapidjson::Value const& data = doc["data"].GetObject();
-	sensor_description sensor;
 
 	if(!data.HasMember("id") || !data["id"].IsInt())
 	{
 		tt::warning("Sensor 'id' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.id = data["id"].GetInt();
 
 	if(!data.HasMember("name") || !data["name"].IsString())
 	{
 		tt::warning("Sensor 'name' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.name = data["name"].GetString();
 
 	if(!data.HasMember("long_name") || !data["long_name"].IsString())
 	{
 		tt::warning("Sensor 'long_name' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.long_name = data["long_name"].GetString();
 
 	if(!data.HasMember("unit") || !data["unit"].IsString())
 	{
 		tt::warning("Sensor 'unit' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.unit = data["unit"].GetString();
 
 	if(!data.HasMember("unit_name") || !data["unit_name"].IsString())
 	{
 		tt::warning("Sensor 'unit_name' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.unit_name = data["unit_name"].GetString();
 
 	if(!data.HasMember("description") || !data["description"].IsString())
 	{
 		tt::warning("Sensor 'description' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.description = data["description"].GetString();
 
 	if(!data.HasMember("unit_type") || !data["unit_type"].IsInt())
 	{
 		tt::warning("Sensor 'unit_type' field not found or wrong type");
-		return;
+		return false;
 	}
 	sensor.type = static_cast<sensor_unit_type>(data["unit_type"].GetInt());
+
+	if(!data.HasMember("add_change") || !data["add_change"].IsBool())
+	{
+		tt::warning("Sensor 'add_change' field not found or wrong type");
+		return false;
+	}
+	sensor.add_change = data["add_change"].GetBool();
+
+	return true;
+}
+
+static void add_sensor_type(rapidjson::Document const& doc,
+		websocket_ptr ws,
+		instance& instance,
+		User::Logged&) noexcept
+{
+	sensor_description sensor;
+	if(!read_data_packet(doc, sensor)) return;
 
 	if(!instance.add_sensor_type(sensor))
 	{
@@ -109,63 +125,8 @@ static void edit_sensor_type(rapidjson::Document const& doc,
 		instance& instance,
 		User::Logged&) noexcept
 {
-	if(!doc.HasMember("data") || !doc["data"].IsObject())
-	{
-		tt::warning("Sensor 'data' field not found or wrong type");
-		return;
-	}
-
-	rapidjson::Value const& data = doc["data"].GetObject();
 	sensor_description sensor;
-
-	if(!data.HasMember("id") || !data["id"].IsInt())
-	{
-		tt::warning("Sensor 'id' field not found or wrong type");
-		return;
-	}
-	sensor.id = data["id"].GetInt();
-
-	if(!data.HasMember("name") || !data["name"].IsString())
-	{
-		tt::warning("Sensor 'name' field not found or wrong type");
-		return;
-	}
-	sensor.name = data["name"].GetString();
-
-	if(!data.HasMember("long_name") || !data["long_name"].IsString())
-	{
-		tt::warning("Sensor 'long_name' field not found or wrong type");
-		return;
-	}
-	sensor.long_name = data["long_name"].GetString();
-
-	if(!data.HasMember("unit") || !data["unit"].IsString())
-	{
-		tt::warning("Sensor 'unit' field not found or wrong type");
-		return;
-	}
-	sensor.unit = data["unit"].GetString();
-
-	if(!data.HasMember("unit_name") || !data["unit_name"].IsString())
-	{
-		tt::warning("Sensor 'unit_name' field not found or wrong type");
-		return;
-	}
-	sensor.unit_name = data["unit_name"].GetString();
-
-	if(!data.HasMember("description") || !data["description"].IsString())
-	{
-		tt::warning("Sensor 'description' field not found or wrong type");
-		return;
-	}
-	sensor.description = data["description"].GetString();
-
-	if(!data.HasMember("unit_type") || !data["unit_type"].IsInt())
-	{
-		tt::warning("Sensor 'unit_type' field not found or wrong type");
-		return;
-	}
-	sensor.type = static_cast<sensor_unit_type>(data["unit_type"].GetInt());
+	if(!read_data_packet(doc, sensor)) return;
 
 	if(!instance.update_sensor_type(sensor))
 	{

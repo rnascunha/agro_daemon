@@ -16,12 +16,12 @@ class Sensor_List{
 		using value = Value_List<int, 20>;
 		using container = std::map<key, value>;
 
-		std::size_t add(const void* data, std::size_t) noexcept;
+//		std::size_t add(const void* data, std::size_t, bool add_change) noexcept;
 
-		void add(unsigned type, unsigned index,
-						sensor_value const& svalue) noexcept;
-		void add(unsigned type, unsigned index,
-				value_time time, sensor_value const&) noexcept;
+		bool add(unsigned type, unsigned index,
+						sensor_value const& svalue, bool add_change) noexcept;
+		bool add(unsigned type, unsigned index,
+				value_time time, sensor_value const&, bool add_change) noexcept;
 		value& get_or_add(unsigned type, unsigned index) noexcept;
 
 		container::const_iterator begin() const { return list_.begin(); }

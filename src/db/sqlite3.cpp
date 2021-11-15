@@ -133,12 +133,12 @@ int sqlite3::statement::clear_bidings() noexcept
 	return sqlite3_clear_bindings(stmt_);
 }
 
-int sqlite3::statement::interger(int index) noexcept
+int sqlite3::statement::integer(int index) noexcept
 {
 	return sqlite3_column_int(stmt_, index);
 }
 
-long sqlite3::statement::long_interger(int index) noexcept
+long sqlite3::statement::long_integer(int index) noexcept
 {
 	return sqlite3_column_int64(stmt_, index);
 }

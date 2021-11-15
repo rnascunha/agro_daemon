@@ -22,7 +22,7 @@ int DB::read_all_reports(std::vector<Message::report>& reports, User::user_id id
 		}
 
 		res.step();
-		int size = res.interger(0),
+		int size = res.integer(0),
 			offset = size > limit ? size - limit : 0;
 		res.finalize();
 
@@ -40,12 +40,12 @@ int DB::read_all_reports(std::vector<Message::report>& reports, User::user_id id
 
 	while(res.step() == SQLITE_ROW)
 	{
-		reports.emplace_back(static_cast<Message::report_commands>(res.interger(0)),
-						static_cast<Message::report_type>(res.interger(1)),
+		reports.emplace_back(static_cast<Message::report_commands>(res.integer(0)),
+						static_cast<Message::report_type>(res.integer(1)),
 						res.text(2),
 						res.text(3),
 						res.text(4),
-						res.long_interger(5));
+						res.long_integer(5));
 	}
 
 	return SQLITE_DONE;

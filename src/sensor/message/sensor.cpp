@@ -48,6 +48,9 @@ std::string sensor_types_list(Sensor_Type_List const& list) noexcept
 		desc.AddMember("description",
 				rapidjson::Value(d.description.data(), d.description.size(), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
+		desc.AddMember("add_change",
+						d.add_change,
+						doc.GetAllocator());
 
 		data.PushBack(desc, doc.GetAllocator());
 	}

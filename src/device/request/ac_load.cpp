@@ -10,19 +10,17 @@ namespace Request{
 static void process_ac_load(Agro::instance& instance,
 		Agro::websocket_ptr ws,
 		mesh_addr_t const& host,
-		unsigned index, bool value) noexcept
+		Sensor::sensor_type const& sensor) noexcept
 {
 	auto* dev = instance.device_list()[host];
-	int nvalue = dev->update_ac_load(index, value);
-	Sensor::sensor_type svalue{5, 0, nvalue};
+	instance.update_sensor_value(*dev, sensor);
 
-	instance.update_sensor_value(*dev, svalue);
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
 				std::make_shared<std::string>(
 						Agro::Device::Message::device_sensor_data(
-													*dev,
-													svalue,
-													instance.sensor_list())));
+									*dev,
+									sensor,
+									instance.sensor_list())));
 }
 
 static void ac_load_response(
@@ -35,25 +33,21 @@ static void ac_load_response(
 		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
+	if(response.payload_len != sizeof(Sensor::sensor_type))
+	{
+		tt::error("AC response packet wrong size [%zu]", response.payload_len);
+		return;
+	}
+
 	switch(req)
 	{
 		case type::ac_load1_on:
 		case type::ac_load1_off:
-			process_ac_load(instance,
-					ws, host, 0,
-					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
-		break;
 		case type::ac_load2_on:
 		case type::ac_load2_off:
-			process_ac_load(instance,
-					ws, host, 1,
-					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
-		break;
 		case type::ac_load3_on:
 		case type::ac_load3_off:
-			process_ac_load(instance,
-					ws, host, 2,
-					static_cast<bool>(*static_cast<const uint8_t*>(response.payload) - '0'));
+			process_ac_load(instance, ws, host, *static_cast<Sensor::sensor_type const*>(response.payload));
 		break;
 		default:
 			break;

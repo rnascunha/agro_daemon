@@ -353,6 +353,7 @@ set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
 					${INSTANCE_DIR}/in_progress.cpp
 					${INSTANCE_DIR}/user.cpp
 					${INSTANCE_DIR}/device.cpp
+					${INSTANCE_DIR}/tree.cpp
 					${INSTANCE_DIR}/sensor.cpp
 					${INSTANCE_DIR}/report.cpp
 					${INSTANCE_DIR}/image.cpp

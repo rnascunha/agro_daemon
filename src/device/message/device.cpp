@@ -9,8 +9,6 @@ namespace Message{
 
 template<typename Allocator>
 static void make_config_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-//template<typename Allocator>
-//static void make_status_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_route_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
@@ -19,10 +17,6 @@ template<typename Allocator>
 static void make_board_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_others_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-//template<typename Allocator>
-//static void make_sensor_data(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
-//template<typename Allocator>
-//static void make_gpios(rapidjson::Value& data, Device const& dev, Allocator& alloc) noexcept;
 template<typename Allocator>
 static void make_job(rapidjson::Value& data, job const&, Allocator& alloc) noexcept;
 template<typename Allocator>
@@ -539,7 +533,6 @@ std::string device_sensor_data(Device const& dev,
 
 	make_mandatory_data_info(data, dev, doc.GetAllocator());
 
-
 	rapidjson::Value vsensor, sensors;
 	sensors.SetArray();
 
@@ -779,4 +772,3 @@ static bool add_command(rapidjson::Document& doc, device_commands comm) noexcept
 }//Message
 }//Device
 }//Agro
-

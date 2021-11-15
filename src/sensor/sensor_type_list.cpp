@@ -26,6 +26,7 @@ bool Sensor_Type_List::update(sensor_description const& sensor) noexcept
 	u->second.unit = sensor.unit;
 	u->second.unit_name = sensor.unit_name;
 	u->second.description = sensor.description;
+	u->second.add_change = sensor.add_change;
 
 	return true;
 }

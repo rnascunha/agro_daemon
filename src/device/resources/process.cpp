@@ -115,7 +115,7 @@ void process_sensors_data(Agro::Device::Device& device,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
-	std::size_t count = device.update_sensor(payload, payload_len);
+	instance.update_db_device(device);
 	instance.update_sensor_value(device, payload, payload_len);
 
 	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,

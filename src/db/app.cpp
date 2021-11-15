@@ -43,10 +43,10 @@ int DB::read_app(std::string const& app_name,
 		return rc;
 	}
 
-	app.id = res.interger(0);
-	app.uploader = res.interger(1);
+	app.id = res.integer(0);
+	app.uploader = res.integer(1);
 	app.description = res.text(2);
-	app.time = res.interger(3);
+	app.time = res.integer(3);
 
 	auto const hash = res.blob(4);
 	std::memcpy(app.hash, hash.data(), hash.size());

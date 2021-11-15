@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on sex. nov. 12 16:54:25 2021
+-- File generated with SQLiteStudio v3.3.3 on sex. nov. 12 22:01:02 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -45,6 +45,16 @@ CREATE TABLE device (
     has_temp_sensor BOOLEAN DEFAULT (false),
     layer           INTEGER,
     parent_mac      TEXT
+);
+
+
+-- Table: device_state
+CREATE TABLE device_state (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    deviceid  INTEGER REFERENCES device (deviceid) 
+                      NOT NULL,
+    time      INTEGER NOT NULL,
+    connected BOOLEAN NOT NULL
 );
 
 
@@ -130,7 +140,8 @@ CREATE TABLE sensor_type (
     type          INTEGER NOT NULL,
     description   TEXT,
     unit          TEXT,
-    unit_name     TEXT
+    unit_name     TEXT,
+    add_change    BOOLEAN
 );
 
 

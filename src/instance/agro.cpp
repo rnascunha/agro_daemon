@@ -112,28 +112,11 @@ instance::instance(
 		return;
 	}
 	db_.read_all_sensor_values(device_list_);
-}
 
-bool instance::remove_node_from_tree(mesh_addr_t const& addr) noexcept
-{
-	bool change = tree_.remove_node(addr);
-	if(change)
+	for(auto const& device : device_list_.list())
 	{
-		share_->write_all_policy(Authorization::rule::view_device,
-				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
+		unconnected_.push_back(device.second.mac());
 	}
-	return change;
-}
-
-bool instance::update_tree(Device::Device const& device) noexcept
-{
-	bool change = tree_.update(device);
-	if(change)
-	{
-		share_->write_all_policy(Authorization::rule::view_device,
-				std::make_shared<std::string>(Device::Message::device_tree_to_json(tree_)));
-	}
-	return change;
 }
 
 Device::Device_List const& instance::device_list() const noexcept

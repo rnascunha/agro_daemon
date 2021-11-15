@@ -24,6 +24,7 @@ struct sensor_description{
 	std::string unit;
 	std::string unit_name;
 	std::string description;
+	bool		add_change;
 };
 
 class Sensor_Type_List{

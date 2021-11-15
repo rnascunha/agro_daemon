@@ -40,7 +40,7 @@ bool DB::read_users_groups(User::User_List& users) noexcept
 	while(res.step() == SQLITE_ROW)
 	{
 		users.add_group(User::Group{
-				res.interger(0),
+				res.integer(0),
 				res.text(1),
 				res.text(2)});
 	}
@@ -56,7 +56,7 @@ bool DB::read_users_groups(User::User_List& users) noexcept
 
 	while(res.step() == SQLITE_ROW)
 	{
-		users.add_user_to_group(res.interger(0), res.interger(1));
+		users.add_user_to_group(res.integer(0), res.integer(1));
 	}
 
 	return true;
@@ -113,12 +113,12 @@ bool DB::read_user_all_db(User::User_List& users) noexcept
 
 	while(res.step() == SQLITE_ROW)
 	{
-		User::user_id  id = res.interger(0);
+		User::user_id  id = res.integer(0);
 		auto* nuser = users.add(User::User{id,
 				User::Info{
 				res.text(1),
 				res.text(2),
-				static_cast<User::Info::status>(res.interger(3)),
+				static_cast<User::Info::status>(res.integer(3)),
 				res.text(4)}});
 		read_user_sessions(id, nuser->sessions());
 		read_user_subscriptions(id, nuser->subscriptions());
@@ -142,8 +142,8 @@ bool DB::read_policy_types(Authorization::Policy_Types& policy_types) noexcept
 	while(res.step() == SQLITE_ROW)
 	{
 		policy_types.emplace_back(
-				res.interger(0),
-				static_cast<Authorization::rule>(res.interger(2)),
+				res.integer(0),
+				static_cast<Authorization::rule>(res.integer(2)),
 				res.text(1), res.text(3));
 	}
 
@@ -161,9 +161,9 @@ bool DB::read_policies(Authorization::Policies& policies) noexcept
 
 	while(res.step() == SQLITE_ROW)
 	{
-		policies.add(res.interger(0),
-				res.interger(1),
-				static_cast<Authorization::rule>(res.interger(2)));
+		policies.add(res.integer(0),
+				res.integer(1),
+				static_cast<Authorization::rule>(res.integer(2)));
 	}
 
 	return true;
@@ -186,7 +186,7 @@ User::Info DB::get_user(User::user_id id) noexcept
 	return User::Info{
 		res.text(0),
 		res.text(2),
-		static_cast<User::Info::status>(res.interger(3)),
+		static_cast<User::Info::status>(res.integer(3)),
 		res.text(4)};
 }
 
@@ -207,7 +207,7 @@ User::Info DB::get_user(std::string const& username) noexcept
 	return User::Info{
 		username,
 		res.text(1),
-		static_cast<User::Info::status>(res.interger(2)),
+		static_cast<User::Info::status>(res.integer(2)),
 		res.text(3)};
 }
 

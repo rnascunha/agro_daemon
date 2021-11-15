@@ -97,9 +97,10 @@ class Device{
 		void update(endpoint const&, Resource::board_config const&,
 				const char* version, std::size_t version_len) noexcept;
 
-		std::size_t update_sensor(const void*, std::size_t) noexcept;
-		void update_sensor(unsigned type, unsigned index,
-				value_time time, Sensor::sensor_value const&) noexcept;
+//		std::size_t update_sensor(const void*, std::size_t, bool add_change = false) noexcept;
+		bool update_sensor(unsigned type, unsigned index,
+				value_time time, Sensor::sensor_value const&,
+				bool add_change = false) noexcept;
 
 		int update_ac_load(unsigned index, bool value) noexcept;
 		void update_uptime(int64_t) noexcept;

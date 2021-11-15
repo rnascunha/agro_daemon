@@ -115,6 +115,8 @@ class DB{
 		int update_device(Device::Device const&) noexcept;
 		int update_device_route(Device::Device const&) noexcept;
 
+		int set_device_state(Device::Device const&, bool connected) noexcept;
+
 		/**
 		 * Sensors interface
 		 */
@@ -125,8 +127,10 @@ class DB{
 
 		int read_sensor_values(Device::Device&) noexcept;
 		void read_all_sensor_values(Device::Device_List&) noexcept;
-		std::size_t update_sensor_value(Device::Device const&, const void*, std::size_t) noexcept;
-		int update_sensor_value(Device::Device const& dev, Sensor::sensor_type const& data) noexcept;
+//		std::size_t update_sensor_value(Device::Device const&, const void*, std::size_t) noexcept;
+		int update_sensor_value(Device::Device const& dev,
+				Sensor::sensor_type const& data,
+				value_time time) noexcept;
 
 		/**
 		 * Image interface

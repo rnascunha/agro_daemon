@@ -31,6 +31,9 @@ bool instance::process_device_request(engine::message const& request,
 		Device::device_id id;
 		db_.add_device(host, id);
 		*dev = device_list_.add(Device::Device{id, host});
+		tt::status("New device connected [%s]", host.to_string().c_str());
+
+		db_.set_device_state(**dev, true);
 
 		std::string msg = "New device added: ";
 		msg += host.to_string();

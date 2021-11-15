@@ -1,4 +1,5 @@
 #include "agro.hpp"
+#include "../helper/time_helper.hpp"
 
 namespace Agro{
 
@@ -56,15 +57,34 @@ bool instance::update_sensor_type(Sensor::sensor_description const& sensor) noex
 	return true;
 }
 
-std::size_t instance::update_sensor_value(const Device::Device& device, const void* data, std::size_t size) noexcept
+std::size_t instance::update_sensor_value(Device::Device& device,
+		const void* data, std::size_t size) noexcept
 {
-	update_db_device(device);
-	return db_.update_sensor_value(device, data, size);
+	const std::uint8_t* d8u = static_cast<const std::uint8_t*>(data);
+
+	std::size_t dsize = 0, count = 0;
+	while((dsize + sizeof(Sensor::sensor_type)) <= size)
+	{
+		Sensor::sensor_type const* sensor = reinterpret_cast<Sensor::sensor_type const*>(d8u + dsize);
+		if(update_sensor_value(device, *sensor)) count++;
+		dsize += sizeof(Sensor::sensor_type);
+	}
+
+	return count;
 }
 
-bool instance::update_sensor_value(const Device::Device& device, Sensor::sensor_type const& value) noexcept
+bool instance::update_sensor_value(Device::Device& device, Sensor::sensor_type const& sensor) noexcept
 {
-	return db_.update_sensor_value(device, value) != SQLITE_DONE;
+	value_time time = get_time();
+	Agro::Sensor::sensor_description const* stype = sensor_list_.get(sensor.type);
+	bool added = device.update_sensor(sensor.type, sensor.index, time,
+									sensor.value, stype ? stype->add_change : false);
+	if(added)
+	{
+		db_.update_sensor_value(device, sensor, time);
+	}
+
+	return added;
 }
 
 }//Agro

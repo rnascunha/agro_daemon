@@ -41,10 +41,10 @@ int DB::read_image(std::string const& image_name,
 		return rc;
 	}
 
-	image.id = res.interger(0);
-	image.uploader = res.interger(1);
+	image.id = res.integer(0);
+	image.uploader = res.integer(1);
 	image.description = res.text(2);
-	image.time = res.interger(3);
+	image.time = res.integer(3);
 
 	return rc;
 }

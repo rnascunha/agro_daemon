@@ -138,8 +138,8 @@ class instance{
 		bool add_sensor_type(Sensor::sensor_description const&) noexcept;
 		bool update_sensor_type(Sensor::sensor_description const&) noexcept;
 
-		std::size_t update_sensor_value(const Device::Device&, const void*, std::size_t) noexcept;
-		bool update_sensor_value(const Device::Device&, Sensor::sensor_type const&) noexcept;
+		std::size_t update_sensor_value(Device::Device&, const void*, std::size_t) noexcept;
+		bool update_sensor_value(Device::Device&, Sensor::sensor_type const&) noexcept;
 
 		/**
 		 * Image
@@ -172,6 +172,8 @@ class instance{
 		 */
 		bool update_tree(Device::Device const&) noexcept;
 		bool remove_node_from_tree(mesh_addr_t const&) noexcept;
+		void check_device_state() noexcept;
+
 		/**
 		 * Report
 		 */
@@ -231,6 +233,7 @@ class instance{
 		Device::Device_List	device_list_;
 		Device::Net_List	net_list_;
 		Device::Tree		tree_{device_list_};
+		std::vector<mesh_addr_t> unconnected_;
 
 		Sensor::Sensor_Type_List	sensor_list_;
 
