@@ -215,23 +215,6 @@ void make_value_list_array(rapidjson::Value& data,
 
 template<typename Message,
 		typename Endpoint>
-void make_resource(rapidjson::Document& doc,
-		Message const& msg,
-		Endpoint const& ep,
-		CoAP::Message::Option::option const& uri_host,
-		rapidjson::Value& data) noexcept
-{
-	doc.SetObject();
-
-	add_type(doc, type::resource);
-	add_device(data, uri_host, doc.GetAllocator());
-	add_resource(doc, msg);
-	add_endpoint(doc, ep);
-	add_data(doc, data);
-}
-
-template<typename Message,
-		typename Endpoint>
 void make_response(rapidjson::Document& doc,
 		Message const& request,
 		Message const& response,

@@ -6,6 +6,7 @@
 #include "user.hpp"
 #include "../device/message/process.hpp"
 #include "../sensor/message/process.hpp"
+#include "../notify/message/process.hpp"
 
 #include "../websocket/types.hpp"
 
@@ -19,7 +20,7 @@ void process(std::string&& data,
 {
 	rapidjson::Document d;
 
-	if (d.Parse(data.data(), data.size()).HasParseError() || !d.IsObject())
+	if(d.Parse(data.data(), data.size()).HasParseError() || !d.IsObject())
 	{
 		tt::error("Error parsing receiving message.");
 		return;
@@ -34,9 +35,6 @@ void process(std::string&& data,
 
 	switch(typec->mtype)
 	{
-		case ::Message::type::resource:
-		case ::Message::type::response:
-			break;
 		case ::Message::type::device:
 			Device::Message::process(d, ws, instance, user);
 			break;
@@ -55,7 +53,8 @@ void process(std::string&& data,
 		case ::Message::type::sensor:
 			Sensor::Message::process(d, ws, instance, user);
 			break;
-		case ::Message::type::info:
+		case ::Message::type::notify:
+			Notify::Message::process(d, ws, instance, user);
 			break;
 		default:
 			break;

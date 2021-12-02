@@ -19,11 +19,11 @@ bool instance::check_user_session_id(
 					session_time);
 }
 
-User::User const* instance::get_user(std::string const& username) const noexcept
+User::User* instance::get_user(std::string const& username) noexcept
 {
 	if(username == User::root_username) return &root_;
 
-	auto const* user = users_[username];
+	auto* user = users_[username];
 	if(!user) return nullptr;
 
 	return user;

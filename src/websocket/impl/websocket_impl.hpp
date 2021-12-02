@@ -15,7 +15,7 @@
 #include "../../sensor/message/sensor.hpp"
 #include "../../user/message/auth_message.hpp"
 
-#include "../../notify/message.hpp"
+#include "../../notify/message/make.hpp"
 
 #include "../../message/report.hpp"
 
@@ -165,11 +165,18 @@ read_handler(std::string data) noexcept
 			this->write(Agro::User::Message::user_authentication(user_));
 
 			/**
+			 * Sending notification info
+			 */
+			this->write(Agro::Notify::Message::make_list(user_.user()->notify()));
+			this->write(Agro::Notify::Message::make_device_list(user_.user()->notify()));
+			this->write(Agro::Notify::Message::make_sensor_list(user_.user()->notify()));
+
+			/**
 			 * Sending notify public key
 			 */
 			if(share_->instance().notify_is_valid())
 			{
-				this->write(Message::make_public_key(share_->instance().get_notify_public_key()));
+				this->write(Agro::Notify::Message::make_public_key(share_->instance().get_notify_public_key()));
 			}
 
 			/**

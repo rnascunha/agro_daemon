@@ -5,7 +5,6 @@
 
 #include "../websocket.hpp"
 
-#include "../../message/info.hpp"
 #include "../../message/report.hpp"
 
 #include "../../image/image.hpp"
@@ -182,15 +181,7 @@ void Websocket<UseSSL>::get_image_file(
 					"image upload", "Error inserting image to database", name, user_.id()
 		));
 		std::filesystem::remove(path);
-		return;
 	}
-	tt::status("Image '%s' uploaded successfully!", name.c_str());
-
-	std::stringstream ss;
-	ss << "New image uploaded [" << name << "]";
-	share_->instance().notify_all_policy(Agro::Authorization::rule::view_image, ss.str());
-
-	share_->instance().send_all_image_list();
 }
 
 template<bool UseSSL>

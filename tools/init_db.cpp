@@ -77,6 +77,12 @@ static const Agro::Sensor::sensor_description sensors[] = {
 		{5, "gpios", "GPIO's",
 				Agro::Sensor::sensor_unit_type::tunsigned, "digital array", "digital array level",
 				"Array of bits (input/outputs)", false},
+		{6, "pressure", "Pressure",
+						Agro::Sensor::sensor_unit_type::tfloat, "Pa", "Pascal",
+						"Pressure in Pascal", false},
+		{7, "density", "Density",
+								Agro::Sensor::sensor_unit_type::tfloat, "Kg/m3", "Kilos per meter cubic",
+								"Density", false}
 };
 
 static void usage(const char* program) noexcept

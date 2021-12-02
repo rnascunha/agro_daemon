@@ -19,14 +19,23 @@ static void delete_images(rapidjson::Document const& doc,
 	}
 
 	std::vector<std::string> v;
+	std::stringstream ss;
+	ss << "Images deleted: ";
 	for(auto const& i : doc["data"].GetArray())
 	{
 		std::string image(i.GetString());
 		v.emplace_back(image);
+		ss << i.GetString() << ", ";
 	}
 
 	instance.delete_image(v);
 	instance.send_all_image_list();
+
+	ss.seekp(-2, std::ios_base::end);
+	ss << ".";
+	instance.notify_all_policy(Authorization::rule::view_image,
+			Notify::general_type::image_delete,
+			ss.str());
 }
 
 static void edit_image(rapidjson::Document const& doc,

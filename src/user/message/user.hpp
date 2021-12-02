@@ -15,6 +15,7 @@ std::string edited_user(User const&, std::vector<group_id> const&) noexcept;
 std::string deleted_user(user_id) noexcept;
 std::string added_new_group(Group const&) noexcept;
 std::string deleted_group(group_id) noexcept;
+std::string make_push_subscription(bool is_subscribed) noexcept;
 
 }//Message
 }//User

@@ -103,6 +103,16 @@ class DB{
 
 		std::string notify_private_key() noexcept;
 
+		int read_general_notify(User::user_id, Notify::Notify&) noexcept;
+		int update_general_notify(User::user_id, Notify::general_type) noexcept;
+
+		int read_device_notify(User::user_id, Notify::Notify&) noexcept;
+		int update_device_notify(User::user_id, Device::device_id, Notify::device_type type) noexcept;
+
+		int read_sensor_notify(User::user_id, Notify::Notify&) noexcept;
+		int update_sensor_notify(User::user_id, Device::device_id,
+				std::vector<Notify::sensor_temp_notify> const&) noexcept;
+
 		/**
 		 * Device interface
 		 */

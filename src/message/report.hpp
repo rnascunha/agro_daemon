@@ -15,7 +15,8 @@ enum class report_commands{
 	list = 0,
 	device,
 	image,
-	app
+	app,
+	notify
 };
 
 enum class report_type{
@@ -49,6 +50,7 @@ constexpr const ::Message::config<report_commands> report_config[] = {
 	{report_commands::device, "device"},
 	{report_commands::image, "image"},
 	{report_commands::app, "app"},
+	{report_commands::notify, "notify"},
 };
 
 inline constexpr ::Message::config<report_commands> const* get_config(report_commands t) noexcept

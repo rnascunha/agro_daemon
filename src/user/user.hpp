@@ -5,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "../notify/notify.hpp"
+
 namespace Agro{
 namespace User{
 
@@ -167,6 +169,9 @@ class User{
 
 		Session_List const& sessions() const noexcept;
 		Session_List& sessions() noexcept;
+
+		Notify::Notify const& notify() const noexcept;
+		Notify::Notify& notify() noexcept;
 	private:
 		user_id id_;
 		int 	policy_ = 0;
@@ -174,11 +179,15 @@ class User{
 		Info		info_;
 		Subscription_List subscriptions_;
 		Session_List sessions_;
+
+		Notify::Notify notify_;
 };
 
 class Logged{
 	public:
-		void user(User const*) noexcept;
+		void user(User*) noexcept;
+
+		User* user() noexcept;
 		User const* user() const noexcept;
 
 		user_id id() const noexcept;
@@ -202,7 +211,7 @@ class Logged{
 		std::string session_id_;
 
 		bool authenticated_ = false;
-		User const*	 user_ = nullptr;
+		User*	 user_ = nullptr;
 };
 
 }//User

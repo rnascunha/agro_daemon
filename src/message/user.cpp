@@ -23,16 +23,20 @@ static void add_subscription(
 			user.user_agent().c_str());
 }
 
-static void remove_subcription(Agro::User::Logged const& user,
+static void remove_subcription(
+		Agro::User::Logged const& user,
+		Agro::websocket_ptr ws,
 		Agro::instance& instance) noexcept
 {
 	instance.push_unsubscribe_user(user.id(), user.user_agent());
 	tt::status("Unsubscribing %s(%s) to push notification",
 			user.user()->info().username().c_str(), user.user_agent().c_str());
+	ws->write(Agro::User::Message::make_push_subscription(false));
 }
 
 void process_subscription(
 		rapidjson::Document const& doc,
+		Agro::websocket_ptr ws,
 		Agro::User::Logged& user,
 		Agro::instance& instance) noexcept
 {
@@ -77,13 +81,15 @@ void process_subscription(
 				*auth = keys["auth"].GetString();
 
 	add_subscription(user, instance, endpoint, p256dh, auth);
+	ws->write(Agro::User::Message::make_push_subscription(true));
 }
 
 static void process_unsubscription(rapidjson::Document const&,
+		Agro::websocket_ptr ws,
 		Agro::User::Logged& user,
 		Agro::instance& instance) noexcept
 {
-	remove_subcription(user, instance);
+	remove_subcription(user, ws, instance);
 }
 
 static void logout(Agro::User::Logged const& user,
@@ -93,7 +99,7 @@ static void logout(Agro::User::Logged const& user,
 	tt::debug("User %s (%s) logging out.",
 			user.user()->info().name().c_str(), user.user()->info().username().c_str());
 	instance.clear_session_user_agent(user.id(), user.user_agent());
-	ws->close(1000);	//Normal close
+	ws->close(boost::beast::websocket::close_reason{boost::beast::websocket::close_code::normal});	//Normal close
 }
 
 static void user_group_policies(Agro::websocket_ptr ws,
@@ -400,10 +406,10 @@ void process_user(rapidjson::Document const& doc,
 	switch(config->mtype)
 	{
 		case user_commands::push_subscribe:
-			process_subscription(doc, user, instance);
+			process_subscription(doc, ws, user, instance);
 		break;
 		case user_commands::push_unsubscribe:
-			process_unsubscription(doc, user, instance);
+			process_unsubscription(doc, ws, user, instance);
 		break;
 		case user_commands::logout:
 			logout(user, instance, ws);

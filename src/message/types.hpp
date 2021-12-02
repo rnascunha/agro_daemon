@@ -16,27 +16,23 @@ struct config{
  * Types
  */
 enum class type{
-	resource = 0,/**< resource */
-	response,    /**< response */
 	device,      /**< device */
 	image,       /**< image */
 	app,		/**< app */
 	user,		/**< user */
-	info,        /**< info */
 	report,		/**< report */
 	sensor,		/**< sensor */
+	notify,		/**< notify */
 };
 
 constexpr const config<type> tconfig[] = {
-	{type::resource, "resource"},
-	{type::response, "response"},
 	{type::device, "device"},
 	{type::image, "image"},
 	{type::app, "app"},
 	{type::user, "user"},
-	{type::info, "info"},
 	{type::report, "report"},
-	{type::sensor, "sensor"}
+	{type::sensor, "sensor"},
+	{type::notify, "notify"}
 };
 
 inline constexpr config<type> const* get_type_config(type t) noexcept

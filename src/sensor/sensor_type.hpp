@@ -25,6 +25,30 @@ union sensor_value{
 	sensor_value& operator=(float) noexcept;
 	sensor_value& operator=(const std::uint8_t*) noexcept;
 	sensor_value& operator=(sensor_value const&) noexcept;
+
+	bool operator==(int) const noexcept;
+	bool operator==(unsigned) const noexcept;
+	bool operator==(float) const noexcept;
+
+	bool operator!=(int) const noexcept;
+	bool operator!=(unsigned) const noexcept;
+	bool operator!=(float) const noexcept;
+
+	bool operator<(int) const noexcept;
+	bool operator<(unsigned) const noexcept;
+	bool operator<(float) const noexcept;
+
+	bool operator<=(int) const noexcept;
+	bool operator<=(unsigned) const noexcept;
+	bool operator<=(float) const noexcept;
+
+	bool operator>(int) const noexcept;
+	bool operator>(unsigned) const noexcept;
+	bool operator>(float) const noexcept;
+
+	bool operator>=(int) const noexcept;
+	bool operator>=(unsigned) const noexcept;
+	bool operator>=(float) const noexcept;
 };
 
 struct sensor_type{

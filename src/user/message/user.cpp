@@ -165,6 +165,23 @@ std::string deleted_group(group_id id) noexcept
 	return ::Message::stringify(doc);
 }
 
+std::string make_push_subscription(bool is_subscribed) noexcept
+{
+	rapidjson::Document doc;
+
+	doc.SetObject();
+	::Message::add_type(doc, ::Message::type::user);
+
+	auto const* config = get_config(is_subscribed ?
+			::Message::user_commands::push_subscribe :
+			::Message::user_commands::push_unsubscribe);
+	doc.AddMember("command",
+			rapidjson::Value(config->name, doc.GetAllocator()).Move(),
+			doc.GetAllocator());
+
+	return ::Message::stringify(doc);
+}
+
 }//Message
 }//User
 }//Agro

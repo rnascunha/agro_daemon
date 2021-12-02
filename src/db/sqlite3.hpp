@@ -29,15 +29,25 @@ class sqlite3{
 				int bind(int, int) noexcept;
 				int bind(int, unsigned) noexcept;
 				int bind(int, long) noexcept;
+				int bind(int, float) noexcept;
+				int bind(int, double) noexcept;
+
 				int bind(int, std::string const&, destructor_type = static_destructor) noexcept;
 				int bind(int, const void*, int, destructor_type = static_destructor) noexcept;
 				int bind(int, binary const& data, destructor_type = static_destructor) noexcept;
+
+				template<typename ...Args>
+				int bind_all(Args&&...) noexcept;
 
 				int reset() noexcept;
 				int clear_bidings() noexcept;
 
 				int integer(int) noexcept;
 				long long_integer(int) noexcept;
+
+				float real(int) noexcept;
+				double long_real(int) noexcept;
+
 				std::string text(int) noexcept;
 				const unsigned char* text(int, int& size) noexcept;
 				const void* blob(int, int& size) noexcept;
@@ -47,6 +57,11 @@ class sqlite3{
 				sqlite3_stmt** native_ptr() noexcept;
 			private:
 				sqlite3_stmt* stmt_ = NULL;
+
+				template<typename Arg>
+				int bind_impl(int index, Arg&& arg) noexcept;
+				template<typename Arg, typename ...Args>
+				int bind_impl(int index, Arg&& arg, Args&& ...args) noexcept;
 		};
 
 		sqlite3(const char* db_name, std::error_code&);

@@ -76,13 +76,18 @@ std::size_t instance::update_sensor_value(Device::Device& device,
 bool instance::update_sensor_value(Device::Device& device, Sensor::sensor_type const& sensor) noexcept
 {
 	value_time time = get_time();
-	Agro::Sensor::sensor_description const* stype = sensor_list_.get(sensor.type);
+	Sensor::sensor_description const* stype = sensor_list_.get(sensor.type);
 	bool added = device.update_sensor(sensor.type, sensor.index, time,
 									sensor.value, stype ? stype->add_change : false);
 	if(added)
 	{
 		db_.update_sensor_value(device, sensor, time);
 	}
+
+	notify_all_policy(Authorization::rule::view_device,
+			device,
+			sensor,
+			stype);
 
 	return added;
 }

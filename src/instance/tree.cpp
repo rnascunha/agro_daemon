@@ -30,6 +30,8 @@ bool instance::update_tree(Device::Device const& device) noexcept
 void instance::check_device_state() noexcept
 {
 	std::vector<mesh_addr_t> new_unconnected = tree_.unconnected();
+	std::vector<std::reference_wrapper<Device::Device const>>	new_connected,
+									new_disconnected;
 	for(auto const& [addr, device] : device_list_.list())
 	{
 		bool has_new = std::find(new_unconnected.begin(), new_unconnected.end(), addr) != new_unconnected.end(),
@@ -39,8 +41,36 @@ void instance::check_device_state() noexcept
 		{
 			db_.set_device_state(device, has_old);
 			tt::status("Device [%s] %s", addr.to_string().c_str(), has_old ? "connected" : "disconnected");
+
+			if(has_old) new_connected.push_back(std::cref(device));
+			else new_disconnected.push_back(std::cref(device));
 		}
 	}
+
+	if(!new_connected.empty())
+	{
+		notify_all_policy(Authorization::rule::view_device,
+				Notify::device_type::connect,
+				new_connected,
+				"connected");
+//		notify_all_policy(
+//				Authorization::rule::view_device,
+//				Notify::general_type::device_connect,
+//				Notify::Message::make_status_devices(new_connected, "connected"));
+	}
+
+	if(!new_disconnected.empty())
+	{
+		notify_all_policy(Authorization::rule::view_device,
+						Notify::device_type::disconnect,
+						new_disconnected,
+						"disconnected");
+//		notify_all_policy(
+//					Authorization::rule::view_device,
+//					Notify::general_type::device_disconnect,
+//					Notify::Message::make_status_devices(new_disconnected, "disconnected"));
+	}
+
 	unconnected_ = std::move(new_unconnected);
 }
 

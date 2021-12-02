@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on seg. nov. 15 18:17:04 2021
+-- File generated with SQLiteStudio v3.3.3 on ter. nov. 30 21:01:20 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -86,6 +86,43 @@ CREATE TABLE net (
     netid    INTEGER PRIMARY KEY AUTOINCREMENT,
     net_addr TEXT    NOT NULL,
     name             DEFAULT ('') 
+);
+
+
+-- Table: notify_device
+CREATE TABLE notify_device (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid   INTEGER REFERENCES user (userid) 
+                     NOT NULL,
+    deviceid INTEGER REFERENCES device (deviceid) 
+                     NOT NULL,
+    notify   INTEGER DEFAULT (0) 
+);
+
+
+-- Table: notify_general
+CREATE TABLE notify_general (
+    id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid INTEGER REFERENCES user (userid) 
+                   UNIQUE
+                   NOT NULL,
+    notify INTEGER DEFAULT (0) 
+);
+
+
+-- Table: notify_sensor
+CREATE TABLE notify_sensor (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid       INTEGER REFERENCES user (userid) 
+                         NOT NULL,
+    deviceid     INTEGER REFERENCES device (deviceid) 
+                         NOT NULL,
+    sensor_type  INTEGER NOT NULL,
+    sensor_index INTEGER NOT NULL,
+    notify_type  INTEGER NOT NULL,
+    enabled      BOOLEAN NOT NULL
+                         DEFAULT (1),
+    value        DOUBLE  NOT NULL
 );
 
 
@@ -218,6 +255,13 @@ CREATE UNIQUE INDEX "" ON push_notify (
 CREATE UNIQUE INDEX user_device_idx ON session (
     userid,
     user_agent
+);
+
+
+-- Index: user_device_notify
+CREATE UNIQUE INDEX user_device_notify ON notify_device (
+    userid,
+    deviceid
 );
 
 

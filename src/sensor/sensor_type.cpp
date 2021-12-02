@@ -50,5 +50,95 @@ void sensor_value::set(uint8_t const* v) noexcept
 	memcpy(array_v, v, sizeof(float));
 }
 
+bool sensor_value::operator==(int rhs) const noexcept
+{
+	return int_v == rhs;
+}
+
+bool sensor_value::operator==(unsigned rhs) const noexcept
+{
+	return uint_v == rhs;
+}
+
+bool sensor_value::operator==(float rhs) const noexcept
+{
+	return float_v == rhs;
+}
+
+bool sensor_value::operator!=(int rhs) const noexcept
+{
+	return int_v != rhs;
+}
+
+bool sensor_value::operator!=(unsigned rhs) const noexcept
+{
+	return uint_v != rhs;
+}
+
+bool sensor_value::operator!=(float rhs) const noexcept
+{
+	return float_v != rhs;
+}
+
+bool sensor_value::operator<(int rhs) const noexcept
+{
+	return int_v < rhs;
+}
+
+bool sensor_value::operator<(unsigned rhs) const noexcept
+{
+	return uint_v < rhs;
+}
+
+bool sensor_value::operator<(float rhs) const noexcept
+{
+	return float_v < rhs;
+}
+
+bool sensor_value::operator<=(int rhs) const noexcept
+{
+	return int_v <= rhs;
+}
+
+bool sensor_value::operator<=(unsigned rhs) const noexcept
+{
+	return uint_v <= rhs;
+}
+
+bool sensor_value::operator<=(float rhs) const noexcept
+{
+	return float_v <= rhs;
+}
+
+bool sensor_value::operator>(int rhs) const noexcept
+{
+	return int_v > rhs;
+}
+
+bool sensor_value::operator>(unsigned rhs) const noexcept
+{
+	return uint_v > rhs;
+}
+
+bool sensor_value::operator>(float rhs) const noexcept
+{
+	return float_v > rhs;
+}
+
+bool sensor_value::operator>=(int rhs) const noexcept
+{
+	return int_v >= rhs;
+}
+
+bool sensor_value::operator>=(unsigned rhs) const noexcept
+{
+	return uint_v >= rhs;
+}
+
+bool sensor_value::operator>=(float rhs) const noexcept
+{
+	return float_v >= rhs;
+}
+
 }//Sensor
 }//Agro

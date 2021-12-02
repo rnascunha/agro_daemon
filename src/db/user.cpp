@@ -113,7 +113,7 @@ bool DB::read_user_all_db(User::User_List& users) noexcept
 
 	while(res.step() == SQLITE_ROW)
 	{
-		User::user_id  id = res.integer(0);
+		User::user_id id = res.integer(0);
 		auto* nuser = users.add(User::User{id,
 				User::Info{
 				res.text(1),
@@ -122,6 +122,9 @@ bool DB::read_user_all_db(User::User_List& users) noexcept
 				res.text(4)}});
 		read_user_sessions(id, nuser->sessions());
 		read_user_subscriptions(id, nuser->subscriptions());
+		read_general_notify(id, nuser->notify());
+		read_device_notify(id, nuser->notify());
+		read_sensor_notify(id, nuser->notify());
 	}
 
 	if(!read_policies(users.policies())) return false;

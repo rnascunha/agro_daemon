@@ -268,12 +268,14 @@ set(MESSAGE_DIR		${SRC_DIR}/message)
 set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 					${MESSAGE_DIR}/process.cpp
 					${MESSAGE_DIR}/user.cpp
-					${MESSAGE_DIR}/info.cpp
 					${MESSAGE_DIR}/report.cpp)
 
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
 set(NOTIFY_SRC		${NOTIFY_DIR}/notify_request.cpp
-					${NOTIFY_DIR}/message.cpp)
+					${NOTIFY_DIR}/notify.cpp
+					${NOTIFY_DIR}/message/make.cpp
+					${NOTIFY_DIR}/message/make_json.cpp
+					${NOTIFY_DIR}/message/process.cpp)
 
 set(DEVICE_DIR		${SRC_DIR}/device)
 set(DEVICE_SRC		${DEVICE_DIR}/device.cpp
@@ -291,6 +293,7 @@ set(SENSOR_DIR		${SRC_DIR}/sensor)
 set(SENSOR_SRC		${SENSOR_DIR}/sensor_type.cpp
 					${SENSOR_DIR}/sensor_type_list.cpp
 					${SENSOR_DIR}/sensor_list.cpp
+					${SENSOR_DIR}/helper.cpp
 					${SENSOR_DIR}/message/sensor.cpp
 					${SENSOR_DIR}/message/process.cpp
 					)
@@ -339,6 +342,7 @@ set(DB_SRC			${DB_DIR}/sqlite3.cpp
 					${DB_DIR}/sensor.cpp
 					${DB_DIR}/image.cpp
 					${DB_DIR}/app.cpp
+					${DB_DIR}/notify.cpp
 					${DB_DIR}/report.cpp)
 					
 set(HELPER_DIR		${SRC_DIR}/helper)

@@ -17,6 +17,17 @@ bool instance::add_image(std::string const& image_name,
 		tt::error("Error inserting image to database [%s]", image_name.c_str());
 		return false;
 	}
+
+	tt::status("Image '%s' uploaded successfully!", image_name.c_str());
+
+	std::stringstream ss;
+	ss << "New image added by " << uploader << ": " << image_name;
+	notify_all_policy(Authorization::rule::view_image,
+			Notify::general_type::image_add,
+			ss.str());
+
+	send_all_image_list();
+
 	return true;
 }
 

@@ -1,5 +1,4 @@
 #include "types.hpp"
-#include "../../message/info.hpp"
 #include "../../websocket/types.hpp"
 #include "../message/device.hpp"
 
@@ -32,9 +31,9 @@ static void send_job_response(
 	{
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Update JOB error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::error, host, p.c_str())
-		);
+//		ws->write_all(
+//				::Message::make_info(::Message::info::error, host, p.c_str())
+//		);
 		return;
 	}
 	process_jobs(instance.device_list(), host,
@@ -55,9 +54,9 @@ static void get_job_response(
 	{
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
 		std::cerr << "Get JOB error[" << response.payload_len << "]: " << p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::error, host, p.c_str())
-		);
+//		ws->write_all(
+//				::Message::make_info(::Message::info::error, host, p.c_str())
+//		);
 		return;
 	}
 	process_jobs(instance.device_list(), host,

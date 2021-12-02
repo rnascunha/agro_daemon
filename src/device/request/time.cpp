@@ -1,7 +1,6 @@
 #include "types.hpp"
 #include "../../websocket/types.hpp"
 #include "../message/device.hpp"
-#include "../../message/info.hpp"
 
 namespace Agro{
 namespace Device{

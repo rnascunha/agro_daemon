@@ -3,7 +3,6 @@
 #include "../../app/app.hpp"
 #include "../../error.hpp"
 #include "../message/device.hpp"
-#include "../../message/info.hpp"
 
 namespace Agro{
 namespace Device{
@@ -43,7 +42,7 @@ static void process_send_app(CoAP::Message::message const& response,
 		mesh_addr_t const& host,
 		Agro::websocket_ptr ws) noexcept
 {
-	ws->write_all(::Message::make_info(::Message::info::info, host, "Send app initiated"));
+//	ws->write_all(::Message::make_info(::Message::info::info, host, "Send app initiated"));
 }
 
 static void get_app_response(
@@ -63,9 +62,9 @@ static void get_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-				);
+//		ws->write_all(
+//				::Message::make_info(::Message::info::warning, host, p.c_str())
+//				);
 		return;
 	}
 	process_get_app(instance.device_list(),
@@ -90,9 +89,9 @@ static void send_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-						);
+//		ws->write_all(
+//				::Message::make_info(::Message::info::warning, host, p.c_str())
+//						);
 		return;
 	}
 	process_send_app(response, host, ws);
@@ -115,9 +114,9 @@ static void exec_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-						);
+//		ws->write_all(
+//				::Message::make_info(::Message::info::warning, host, p.c_str())
+//						);
 		return;
 	}
 
@@ -131,7 +130,7 @@ static void exec_app_response(
 		<< *static_cast<const int*>(response.payload)
 		<< "]";
 
-	ws->write_all(::Message::make_info(::Message::info::success, host, ss.str().c_str()));
+//	ws->write_all(::Message::make_info(::Message::info::success, host, ss.str().c_str()));
 }
 
 static void delete_app_response(
@@ -151,9 +150,9 @@ static void delete_app_response(
 				<< host.to_string()
 				<< "]: "
 				<< p << "\n";
-		ws->write_all(
-				::Message::make_info(::Message::info::warning, host, p.c_str())
-						);
+//		ws->write_all(
+//				::Message::make_info(::Message::info::warning, host, p.c_str())
+//						);
 		return;
 	}
 	auto const dev = instance.device_list()[host];

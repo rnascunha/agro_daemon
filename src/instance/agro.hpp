@@ -57,7 +57,7 @@ class instance{
 						std::string const& user_agent,
 						long& session_time) const noexcept;
 
-		User::User const* get_user(std::string const& username) const noexcept;
+		User::User* get_user(std::string const& username) noexcept;
 		User::User const* get_user(User::user_id) const noexcept;
 		bool get_user_password(std::string const& username,
 						std::vector<unsigned char>& salt,
@@ -107,6 +107,25 @@ class instance{
 
 		void notify_all(std::string const& data) noexcept;
 		void notify_all_policy(Authorization::rule rule, std::string const& data) noexcept;
+		void notify_all_policy(Authorization::rule rule,
+				Notify::general_type type,
+				std::string const& data) noexcept;
+		void notify_all_policy(Authorization::rule rule,
+				Notify::device_type type,
+				std::vector<std::reference_wrapper<Device::Device const>> const&,
+				const char* status) noexcept;
+		void notify_all_policy(Authorization::rule,
+				Device::Device const&,
+				Sensor::sensor_type const&,
+				Sensor::sensor_description const*) noexcept;
+
+		bool update_general_notify(User::User&, Notify::general_type) noexcept;
+		bool update_device_notify(User::User& user,
+				Device::device_id id,
+				Notify::device_type type) noexcept;
+		bool update_sensor_notify(User::User& user,
+				Device::device_id,
+				std::vector<Notify::sensor_temp_notify> const&) noexcept;
 
 		/**
 		 *

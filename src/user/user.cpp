@@ -295,7 +295,7 @@ std::size_t Session_List::size() const noexcept
 /**
  *
  */
-void Logged::user(User const* user) noexcept
+void Logged::user(User* user) noexcept
 {
 	user_ = user;
 	id_ = user->id();
@@ -342,6 +342,11 @@ void Logged::authenticate(std::string const& session_id,
 	session_id_ = session_id;
 	user_agent_ = user_agent;
 	authenticated_ = true;
+}
+
+User* Logged::user() noexcept
+{
+	return user_;
 }
 
 User const* Logged::user() const noexcept
@@ -400,6 +405,16 @@ Session_List const& User::sessions() const noexcept
 Session_List& User::sessions() noexcept
 {
 	return sessions_;
+}
+
+Notify::Notify const& User::notify() const noexcept
+{
+	return notify_;
+}
+
+Notify::Notify& User::notify() noexcept
+{
+	return notify_;
 }
 
 }//User
