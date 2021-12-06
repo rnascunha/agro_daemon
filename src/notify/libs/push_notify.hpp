@@ -1,32 +1,31 @@
-#ifndef AGRO_DAEMON_NOTIFY_REQUEST_HPP__
-#define AGRO_DAEMON_NOTIFY_REQUEST_HPP__
+#ifndef AGRO_DAEMON_NOTIFY_PUSH_NOTIFY_HPP__
+#define AGRO_DAEMON_NOTIFY_PUSH_NOTIFY_HPP__
 
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 
-#include <iostream>
 #include <memory>
 
 #include "pusha.h"
 #include "pusha.hpp"
 
-#include "../user/user.hpp"
+#include "../../user/user.hpp"
 
 #include <cstdint>
 
 using boost::asio::ip::tcp;
 
-enum { max_length = 1024 };
-
-class notify_request : public std::enable_shared_from_this<notify_request>
+class push_notify : public std::enable_shared_from_this<push_notify>
 {
+	enum { max_length = 1024 };
+
 	public:
-		notify_request(boost::asio::io_context& io_context,
+		push_notify(boost::asio::io_context& io_context,
 					boost::asio::ssl::context& context,
 					const std::string& endpoint,
 					std::uint8_t* request, std::size_t request_len);
 
-		~notify_request();
+		~push_notify();
 
 		void connect();
 	private:
@@ -44,9 +43,9 @@ class notify_request : public std::enable_shared_from_this<notify_request>
 		char reply_[max_length];
 };
 
-class notify_factory{
+class push_factory{
 	public:
-		notify_factory(
+		push_factory(
 				boost::asio::io_context& ioc,
 				pusha::key&& ec_key,
 				std::string_view const& subscriber);
@@ -70,4 +69,4 @@ class notify_factory{
 
 std::string make_public_key(std::string_view const& public_key) noexcept;
 
-#endif /* AGRO_DAEMON_NOTIFY_REQUEST_HPP__ */
+#endif /* AGRO_DAEMON_NOTIFY_PUSH_NOTIFY_HPP__ */

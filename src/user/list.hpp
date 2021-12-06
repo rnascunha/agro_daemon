@@ -37,10 +37,12 @@ class User_List{
 
 		bool add_user_to_group(user_id, group_id gid) noexcept;
 		void add_user_to_groups(user_id, std::vector<group_id> const&) noexcept;
+		void set_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept;
 		bool edit_user(user_id id,
 				std::string const& username,
 				std::string const& name,
 				std::string const& email,
+				std::string const& telegram_chat_id,
 				std::vector<group_id> const&) noexcept;
 
 		std::unordered_map<user_id, User>::iterator begin() { return list_.begin(); }

@@ -144,6 +144,7 @@ int main(int argc, char** argv)
 				description,
 				subscribe,
 				notify_key{ec_key.export_private_key()},
+				telegram_bot_token,
 				root_password;
 	do{
 		std::cout << "DB Name: " << std::flush;
@@ -164,6 +165,9 @@ int main(int argc, char** argv)
 	{
 		subscribe = "email@company.com";
 	}
+
+	std::cout << "Telegram Bot Token []: " << std::flush;
+	std::getline(std::cin, telegram_bot_token);
 
 	do{
 		std::cout << "Root password: " << std::flush;
@@ -187,11 +191,13 @@ int main(int argc, char** argv)
 
 	sqlite3::statement res;
 	rc = db.prepare_bind(
-			"INSERT INTO instance(name, description, notify_private_key, subscribe, root_password, root_salt) VALUES(?,?,?,?,?,?)",
+			"INSERT INTO instance(name, description, notify_private_key, subscribe, root_password, root_salt, telegram_bot_token) "
+			"VALUES(?,?,?,?,?,?,?)",
 			res,
 			name, description, notify_key, subscribe,
 			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
-			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH});
+			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH},
+			telegram_bot_token);
 	if(rc != SQLITE_OK)
 	{
 		std::filesystem::remove(argv[1]);

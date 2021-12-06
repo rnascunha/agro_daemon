@@ -11,6 +11,7 @@ struct arguments{
 	int 			num_threads;
 	std::string 	db_file;
 	std::string 	notify_priv_key;
+	std::string		telegram_bot_token;
 #if USE_SSL == 1
 	std::string 	key;
 	std::string 	cert;

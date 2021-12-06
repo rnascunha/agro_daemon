@@ -137,7 +137,8 @@ static void add_user(rapidjson::Document const& doc,
 	if((!data.HasMember("username") || !data["username"].IsString())
 		|| (!data.HasMember("name") || !data["name"].IsString())
 		|| (!data.HasMember("password") || !data["password"].IsString())
-		|| (!data.HasMember("email") || !data["email"].IsString()))
+		|| (!data.HasMember("email") || !data["email"].IsString())
+		|| (!data.HasMember("telegram_chat_id") || !data["telegram_chat_id"].IsString()))
 	{
 		tt::warning("'add_user' missing field or invalid type.");
 		return;
@@ -146,7 +147,8 @@ static void add_user(rapidjson::Document const& doc,
 	std::string username = data["username"].GetString(),
 				name = data["name"].GetString(),
 				password = data["password"].GetString(),
-				email =  data["email"].GetString();
+				email =  data["email"].GetString(),
+				telegram_chat_id = data["telegram_chat_id"].GetString();
 
 	if(username.empty() || password.empty())
 	{
@@ -173,9 +175,9 @@ static void add_user(rapidjson::Document const& doc,
 	}
 
 	Agro::User::user_id id;
-	if(instance.add_user(username, name, password, email, id))
+	if(instance.add_user(username, name, password, email, telegram_chat_id, id))
 	{
-		instance.add_user_to_group(id, groups);
+		instance.set_user_to_groups(id, groups);
 
 		auto const* user = instance.get_user(id);
 		if(!user)
@@ -206,6 +208,7 @@ static void edit_user(rapidjson::Document const& doc,
 		|| (!data.HasMember("username") || !data["username"].IsString())
 		|| (!data.HasMember("name") || !data["name"].IsString())
 		|| (!data.HasMember("email") || !data["email"].IsString())
+		|| (!data.HasMember("telegram_chat_id") || !data["telegram_chat_id"].IsString())
 		|| (!data.HasMember("groups") || !data["groups"].IsArray()))
 	{
 		tt::warning("'edit_user' missing field or invalid type.");
@@ -221,7 +224,8 @@ static void edit_user(rapidjson::Document const& doc,
 
 	std::string username = data["username"].GetString(),
 				name = data["name"].GetString(),
-				email =  data["email"].GetString();
+				email =  data["email"].GetString(),
+				telegram_chat_id = data["telegram_chat_id"].GetString();
 	std::vector<Agro::User::group_id> groups;
 
 	for(auto&& group : data["groups"].GetArray())
@@ -240,7 +244,7 @@ static void edit_user(rapidjson::Document const& doc,
 		name = username;
 	}
 
-	if(instance.edit_user(uid, username, name, email, groups))
+	if(instance.edit_user(uid, username, name, email, telegram_chat_id, groups))
 	{
 		auto const* user = instance.get_user(uid);
 		if(!user)

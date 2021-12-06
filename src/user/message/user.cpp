@@ -32,10 +32,6 @@ std::string user_group_permissions(Logged const&, instance const& instance) noex
 	group_list(glist, instance.users().groups(), doc.GetAllocator());
 	data.AddMember("groups", glist.Move(), doc.GetAllocator());
 
-//	rapidjson::Value plist;
-//	permission_list(plist, instance.permissions(), doc.GetAllocator());
-//	data.AddMember("policies", plist.Move(), doc.GetAllocator());
-
 	::Message::add_data(doc, data);
 
 	return ::Message::stringify(doc);

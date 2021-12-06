@@ -105,7 +105,7 @@ bool DB::read_user_sessions(User::user_id id, User::Session_List& sessions) noex
 bool DB::read_user_all_db(User::User_List& users) noexcept
 {
 	sqlite3::statement res;
-	if(db_.prepare("SELECT userid,username,name,status,email FROM user",
+	if(db_.prepare("SELECT userid,username,name,status,email,telegram_chat_id FROM user",
 			res) != SQLITE_OK)
 	{
 		return false;
@@ -119,7 +119,8 @@ bool DB::read_user_all_db(User::User_List& users) noexcept
 				res.text(1),
 				res.text(2),
 				static_cast<User::Info::status>(res.integer(3)),
-				res.text(4)}});
+				res.text(4),
+				res.text(5)}});
 		read_user_sessions(id, nuser->sessions());
 		read_user_subscriptions(id, nuser->subscriptions());
 		read_general_notify(id, nuser->notify());
@@ -175,7 +176,7 @@ bool DB::read_policies(Authorization::Policies& policies) noexcept
 User::Info DB::get_user(User::user_id id) noexcept
 {
 	sqlite3::statement res;
-	if(db_.prepare_bind("SELECT username,name,status,email FROM user WHERE userid = ?",
+	if(db_.prepare_bind("SELECT username,name,status,email,telegram_chat_id FROM user WHERE userid = ?",
 			res, id) != SQLITE_OK)
 	{
 		return User::Info{};
@@ -190,13 +191,14 @@ User::Info DB::get_user(User::user_id id) noexcept
 		res.text(0),
 		res.text(2),
 		static_cast<User::Info::status>(res.integer(3)),
-		res.text(4)};
+		res.text(4),
+		res.text(5)};
 }
 
 User::Info DB::get_user(std::string const& username) noexcept
 {
 	sqlite3::statement res;
-	if(db_.prepare_bind("SELECT userid,name,status,email FROM user WHERE username = ?",
+	if(db_.prepare_bind("SELECT userid,name,status,email,telegram_chat_id FROM user WHERE username = ?",
 			res, username) != SQLITE_OK)
 	{
 		return User::Info{};
@@ -211,7 +213,8 @@ User::Info DB::get_user(std::string const& username) noexcept
 		username,
 		res.text(1),
 		static_cast<User::Info::status>(res.integer(2)),
-		res.text(3)};
+		res.text(3),
+		res.text(4)};
 }
 
 bool DB::get_root_password(std::vector<unsigned char>& salt,
@@ -266,20 +269,22 @@ int DB::add_user(std::string const& username,
 			User::salt_password const salt,
 			std::string const& name,
 			std::string const& email,
+			std::string const& telegram_chat_id,
 			User::user_id& id,
 			User::Info::status status /* = User::Info::status::active */) noexcept
 {
 	id = User::invalid_id;
 	sqlite3::statement res;
 	int rc = db_.prepare_bind(
-			"INSERT INTO user(username,password,name,status,email,salt) VALUES(?,?,?,?,?,?)",
+			"INSERT INTO user(username,password,name,status,email,salt,telegram_chat_id) VALUES(?,?,?,?,?,?,?)",
 			res,
 			username,
 			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
 			name,
 			static_cast<int>(status),
 			email,
-			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH});
+			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH},
+			telegram_chat_id);
 	if(rc != SQLITE_OK)
 	{
 		return rc;
@@ -297,12 +302,13 @@ int DB::edit_user(User::user_id id,
 				std::string const& username,
 				std::string const& name,
 				std::string const& email,
+				std::string const& telegram_chat_id,
 				std::vector<User::group_id> const& groups) noexcept
 {
 	sqlite3::statement res;
 	int rc = db_.prepare_bind(
-			"UPDATE user SET username = ?, name = ?, email = ? WHERE userid = ?",
-			res, username, name, email, id);
+			"UPDATE user SET username = ?, name = ?, email = ?, telegram_chat_id = ? WHERE userid = ?",
+			res, username, name, email, telegram_chat_id, id);
 	if(rc != SQLITE_OK)
 	{
 		return rc;
@@ -340,26 +346,6 @@ int DB::delete_user_from_group(User::user_id id) noexcept
 
 	return res.step();
 }
-
-//int DB::delete_permissions(
-//		Authorization::type tp,
-//		Authorization::ref_type reftype,
-//		Authorization::ref_id rid) noexcept
-//{
-//	sqlite3::statement res;
-//	int rc = db_.prepare_bind(
-//			"DELETE FROM permission WHERE type = ? AND ref_type = ? AND ref_id = ?",
-//			res,
-//			static_cast<int>(tp),
-//			static_cast<int>(reftype),
-//			static_cast<int>(rid));
-//	if(rc != SQLITE_OK)
-//	{
-//		return rc;
-//	}
-//
-//	return res.step();
-//}
 
 int DB::delete_group(User::group_id gid) noexcept
 {
@@ -443,7 +429,7 @@ int DB::add_user_to_group(Agro::User::group_id gid, Agro::User::user_id uid) noe
 	return res.step();
 }
 
-void DB::add_user_to_group(User::group_id gid, std::vector<User::user_id> const& members) noexcept
+void DB::add_users_to_group(User::group_id gid, std::vector<User::user_id> const& members) noexcept
 {
 	for(auto const& m : members)
 	{
@@ -586,19 +572,6 @@ bool DB::push_unsubscribe_user(User::user_id id,
 	}
 
 	return res.step() == SQLITE_DONE;
-}
-
-std::string DB::notify_private_key() noexcept
-{
-	sqlite3::statement res;
-	if(db_.prepare("SELECT notify_private_key FROM instance LIMIT 1", res) != SQLITE_OK)
-	{
-		return std::string{};
-	}
-
-	if(res.step() != SQLITE_ROW) return std::string{};
-
-	return res.text(0);
 }
 
 }//Agro

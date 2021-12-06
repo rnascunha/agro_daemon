@@ -147,16 +147,23 @@ void User_List::remove_user_from_all_groups(user_id uid) noexcept
 	groups_.remove_user_from_all(uid);
 }
 
+void User_List::set_user_to_groups(user_id uid, std::vector<group_id> const& gid_list) noexcept
+{
+	groups_.remove_user_from_all(uid);
+	groups_.add_user_to_groups(uid, gid_list);
+}
+
 bool User_List::edit_user(user_id id,
 		std::string const& username,
 		std::string const& name,
 		std::string const& email,
+		std::string const& telegram_chat_id,
 		std::vector<group_id> const& groups) noexcept
 {
 	auto* user = get(id);
 	if(!user) return false;
 
-	user->info().set(username, name, user->info().get_status(), email);
+	user->info().set(username, name, user->info().get_status(), email, telegram_chat_id);
 
 	groups_.remove_user_from_all(id);
 	groups_.add_user_to_groups(id, groups);

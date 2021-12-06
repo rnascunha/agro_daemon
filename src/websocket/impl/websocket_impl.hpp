@@ -174,7 +174,7 @@ read_handler(std::string data) noexcept
 			/**
 			 * Sending notify public key
 			 */
-			if(share_->instance().notify_is_valid())
+			if(share_->instance().push_notify_is_valid())
 			{
 				this->write(Agro::Notify::Message::make_public_key(share_->instance().get_notify_public_key()));
 			}

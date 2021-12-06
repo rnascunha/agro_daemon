@@ -26,7 +26,7 @@ std::string const& Group::description() const noexcept
 
 bool Group::add(user_id id) noexcept
 {
-	if(std::find(users_.begin(), users_.end(), id) != users_.end())
+	if(contains(id))
 	{
 		return false;
 	}

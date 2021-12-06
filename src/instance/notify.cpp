@@ -3,9 +3,9 @@
 
 namespace Agro{
 
-bool instance::notify_is_valid() const noexcept
+bool instance::push_notify_is_valid() const noexcept
 {
-	return notify_.is_valid();
+	return notify_.push_is_valid();
 }
 
 std::string_view const& instance::get_notify_public_key() const noexcept
@@ -40,8 +40,9 @@ void instance::notify_all(std::string const& data) noexcept
 {
 	for(auto const& [uid, u] : users_)
 	{
-		for(auto const& s : u.subscriptions() )
-			notify_.notify(s, data);
+		notify_.notify(u, data);
+//		for(auto const& s : u.subscriptions() )
+//			notify_.notify(s, data);
 	}
 }
 
@@ -51,8 +52,9 @@ void instance::notify_all_policy(Authorization::rule rule, std::string const& da
 	{
 		if(Authorization::can(u, rule))
 		{
-			for(auto const& s : u.subscriptions() )
-				notify_.notify(s, data);
+			notify_.notify(u, data);
+//			for(auto const& s : u.subscriptions() )
+//				notify_.notify(s, data);
 		}
 	}
 }
@@ -65,8 +67,9 @@ void instance::notify_all_policy(Authorization::rule rule,
 	{
 		if(Authorization::can(u, rule) && u.notify().can(type))
 		{
-			for(auto const& s : u.subscriptions() )
-				notify_.notify(s, data);
+			notify_.notify(u, data);
+//			for(auto const& s : u.subscriptions() )
+//				notify_.notify(s, data);
 		}
 	}
 }
@@ -90,10 +93,11 @@ void instance::notify_all_policy(Authorization::rule rule,
 			}
 			if(ll.size())
 			{
-				for(auto const& s : u.subscriptions())
-				{
-					notify_.notify(s, Notify::Message::make_status_devices(ll, status));
-				}
+				notify_.notify(u, Notify::Message::make_status_devices(ll, status));
+//				for(auto const& s : u.subscriptions())
+//				{
+//					notify_.notify(s, Notify::Message::make_status_devices(ll, status));
+//				}
 			}
 		}
 	}
@@ -117,12 +121,11 @@ void instance::notify_all_policy(Authorization::rule rule,
 
 			for(auto const& s : vsn)
 			{
-				std::string data = Notify::Message::make_notify_sensor_data(device, type, sdesc, s, value);
-				std::cout << "Data: " << data << "\n";
-				for(auto const& s : u.subscriptions())
-				{
-					notify_.notify(s, data);
-				}
+				notify_.notify(u, Notify::Message::make_notify_sensor_data(device, type, sdesc, s, value));
+//				for(auto const& s : u.subscriptions())
+//				{
+//					notify_.notify(s, data);
+//				}
 			}
 		}
 	}

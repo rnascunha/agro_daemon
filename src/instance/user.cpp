@@ -50,6 +50,7 @@ bool instance::add_user(std::string const& username,
 						std::string const& name,
 						std::string const& password,
 						std::string const& email,
+						std::string const& telegram_chat_id,
 						User::user_id& id) noexcept
 {
 	id = User::invalid_id;
@@ -62,13 +63,13 @@ bool instance::add_user(std::string const& username,
 		return false;
 	}
 
-	if(db_.add_user(username, key, salt, name, email, id) != SQLITE_DONE)
+	if(db_.add_user(username, key, salt, name, email, telegram_chat_id, id) != SQLITE_DONE)
 	{
 		tt::error("Error adding user '%s' to database!", username.c_str());
 		return false;
 	}
 
-	if(!users_.add(User::User{id, User::Info{username, name, User::Info::status::active, email}}))
+	if(!users_.add(User::User{id, User::Info{username, name, User::Info::status::active, email, telegram_chat_id}}))
 	{
 		tt::error("Error adding user '%s'!", username.c_str());
 		return false;
@@ -94,9 +95,9 @@ bool instance::add_user_to_group(User::user_id uid, User::group_id gid) noexcept
 	return true;
 }
 
-void instance::add_user_to_group(User::user_id uid, std::vector<User::group_id> const& gid_list) noexcept
+void instance::set_user_to_groups(User::user_id uid, std::vector<User::group_id> const& gid_list) noexcept
 {
-	db_.add_user_to_group(uid, gid_list);
+	db_.set_user_to_groups(uid, gid_list);
 	users_.add_user_to_groups(uid, gid_list);
 }
 
@@ -104,15 +105,16 @@ bool instance::edit_user(User::user_id id,
 				std::string const& username,
 				std::string const& name,
 				std::string const& email,
+				std::string const& telegram_chat_id,
 				std::vector<User::group_id> const& groups) noexcept
 {
-	if(db_.edit_user(id, username, name, email, groups) != SQLITE_DONE)
+	if(db_.edit_user(id, username, name, email, telegram_chat_id, groups) != SQLITE_DONE)
 	{
 		tt::error("Error editing user '%d' at database", id);
 		return false;
 	}
 
-	if(!users_.edit_user(id, username, name, email, groups))
+	if(!users_.edit_user(id, username, name, email, telegram_chat_id, groups))
 	{
 		tt::error("Error editing user '%d'", id);
 		return false;
@@ -169,7 +171,7 @@ bool instance::add_group(std::string const& name,
 		return false;
 	}
 
-	db_.add_user_to_group(id, members);
+	db_.add_users_to_group(id, members);
 	users_.add_user_to_groups(id, members);
 
 	return true;

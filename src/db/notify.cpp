@@ -134,5 +134,30 @@ int DB::update_sensor_notify(User::user_id uid, Device::device_id did,
 	return rc;
 }
 
+std::string DB::notify_private_key() noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT notify_private_key FROM instance LIMIT 1", res) != SQLITE_OK)
+	{
+		return std::string{};
+	}
+
+	if(res.step() != SQLITE_ROW) return std::string{};
+
+	return res.text(0);
+}
+
+std::string DB::notify_telegram_bot_token() noexcept
+{
+	sqlite3::statement res;
+	if(db_.prepare("SELECT telegram_bot_token FROM instance LIMIT 1", res) != SQLITE_OK)
+	{
+		return std::string{};
+	}
+
+	if(res.step() != SQLITE_ROW) return std::string{};
+
+	return res.text(0);
+}
 
 }//Agro

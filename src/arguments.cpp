@@ -19,6 +19,7 @@
 #define DEFAULT_COAP_ADDR		DEFAULT_ADDR
 #define DEFAULT_DBFILE			"agro.db"
 #define DEFAULT_NOTIFY_PRIV_KEY	""
+#define DEFAULT_TELEGRAM_BOT_TOKEN	""
 
 static bool is_file(std::filesystem::path const& path) noexcept
 {
@@ -32,6 +33,7 @@ void usage(const char* program) noexcept
 	)" << program << R"( --help|--version|-ssl|
 		[--key=<path_key_file> --cert=<path_cert_file>]
 		[--dbfile=<database_file>] [--notify-key=<priv_key>]
+		[--telegram-bot-token=<bot_token>]
 		[--config[=<config_file>]] [--threads=<num_threads>]
 		[--dev_addr=<coap_addr>] [--dev_port=<coap_port>]
 		[--addr=<IP_listen>] <port>
@@ -54,6 +56,8 @@ Options:
 		Database file to use. If doesn't exists, create it.
 	-n, --notify-key=<priv_key>
 		Private key used to make web push notification.
+	-e, --telegram-bot-token=<bot_token>
+		Bot token to make notification using telegram.
 	-o, --config[=<config_file>]
 		If file provided, reads input configuration from file. If not
 		provided, print configuration on screen (to be redirected to
@@ -80,6 +84,9 @@ static void make_config_file(arguments const& args) noexcept
 			doc.GetAllocator());
 	doc.AddMember("notify_key",
 				rapidjson::Value(args.notify_priv_key.data(), args.notify_priv_key.size(), doc.GetAllocator()).Move(),
+				doc.GetAllocator());
+	doc.AddMember("telegram_bot_token",
+				rapidjson::Value(args.telegram_bot_token.data(), args.telegram_bot_token.size(), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	doc.AddMember("num_threads", args.num_threads, doc.GetAllocator());
 	doc.AddMember("dev_addr",
@@ -145,6 +152,11 @@ static void read_config_file(std::filesystem::path const& file, arguments& args)
 		args.notify_priv_key = doc["notify_key"].GetString();
 	}
 
+	if(doc.HasMember("telegram_bot_token") && doc["telegram_bot_token"].IsString())
+	{
+		args.telegram_bot_token = doc["telegram_bot_token"].GetString();
+	}
+
 	if(doc.HasMember("num_threads") && doc["num_threads"].IsInt())
 	{
 		args.num_threads = doc["num_threads"].GetInt();
@@ -192,6 +204,7 @@ R"(---------------------------
 )"
 			<< "|dbfile: " << args.db_file << "\n"
 			<< "|notify_key: " << args.notify_priv_key << "\n"
+			<< "|telegram_bot_token: " << args.telegram_bot_token << "\n"
 			<< "|num threads: " << args.num_threads << "\n"
 			<< "|dev addr: " << args.coap_addr << ":" << args.coap_port << "\n"
 			<< "|addr: " << args.addr << ":" << args.port << "\n"
@@ -208,6 +221,7 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 
 	cmdl.add_params({"-b", "--dbfile"});
 	cmdl.add_params({"-n", "--notify-key"});
+	cmdl.add_params({"-e", "--telegram-bot-token"});
 	cmdl.add_params({"-o", "--config"});
 	cmdl.add_params({"-t", "--threads"});
 	cmdl.add_params({"-d", "--dev_addr"});
@@ -244,6 +258,7 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	args.coap_port = DEFAULT_COAP_PORT;
 	args.db_file = DEFAULT_DBFILE;
 	args.notify_priv_key = DEFAULT_NOTIFY_PRIV_KEY;
+	args.telegram_bot_token = DEFAULT_TELEGRAM_BOT_TOKEN;
 	args.num_threads = DEFAULT_NUMBER_THEADS;
 
 	std::string file_config;
@@ -259,6 +274,11 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 	 * Notify private key
 	 */
 	cmdl({"-n","--notify-key"}, DEFAULT_NOTIFY_PRIV_KEY) >> args.notify_priv_key;
+
+	/**
+	 * Telegram bot token
+	 */
+	cmdl({"-e","--telegram-bot-token"}, DEFAULT_TELEGRAM_BOT_TOKEN) >> args.telegram_bot_token;
 
 	/**
 	 * Checking port

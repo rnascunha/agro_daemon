@@ -1,9 +1,10 @@
-#include "notify_request.hpp"
+#include "push_notify.hpp"
+#include <iostream>
 
 #define PUSH_DEFAULT_EXAPIRATION	(12 * 60 * 60)
 #define PUSH_DEFAULT_TTL			60
 
-notify_request::notify_request(boost::asio::io_context& io_context,
+push_notify::push_notify(boost::asio::io_context& io_context,
 					boost::asio::ssl::context& context,
 					const std::string& endpoint,
 					std::uint8_t* request, std::size_t request_len)
@@ -13,13 +14,13 @@ notify_request::notify_request(boost::asio::io_context& io_context,
   payload_(request), payload_len_(request_len)
 {}
 
-notify_request::~notify_request()
+push_notify::~push_notify()
 {
 	free(payload_);
 }
 
 //void notify_request::connect(const tcp::resolver::results_type& endpoints)
-void notify_request::connect()
+void push_notify::connect()
 {
 	auto self = shared_from_this();
 	char* host;
@@ -39,7 +40,7 @@ void notify_request::connect()
 		});
 }
 
-void notify_request::do_connect(const boost::asio::ip::tcp::resolver::results_type& endpoints)
+void push_notify::do_connect(const boost::asio::ip::tcp::resolver::results_type& endpoints)
 {
 	auto self = shared_from_this();
 	boost::asio::async_connect(socket_.lowest_layer(), endpoints,
@@ -58,7 +59,7 @@ void notify_request::do_connect(const boost::asio::ip::tcp::resolver::results_ty
 	);
 }
 
-void notify_request::handshake()
+void push_notify::handshake()
 {
 	auto self = shared_from_this();
 	socket_.async_handshake(boost::asio::ssl::stream_base::client,
@@ -76,7 +77,7 @@ void notify_request::handshake()
 	);
 }
 
-void notify_request::send_request()
+void push_notify::send_request()
 {
 	auto self = shared_from_this();
 	boost::asio::async_write(socket_,
@@ -95,7 +96,7 @@ void notify_request::send_request()
 	);
 }
 
-void notify_request::receive_response()
+void push_notify::receive_response()
 {
 	auto self = shared_from_this();
 	socket_.async_read_some(boost::asio::buffer(reply_, max_length),
@@ -118,7 +119,7 @@ void notify_request::receive_response()
 	);
 }
 
-notify_factory::notify_factory(boost::asio::io_context& ioc,
+push_factory::push_factory(boost::asio::io_context& ioc,
 		pusha::key&& ec_key,
 		std::string_view const& subscriber)
 	: ioc_{ioc},
@@ -127,7 +128,7 @@ notify_factory::notify_factory(boost::asio::io_context& ioc,
 	  push_{std::move(ec_key), subscriber}
 {}
 
-bool notify_factory::notify(Agro::User::Subscription const& user,
+bool push_factory::notify(Agro::User::Subscription const& user,
 			std::uint8_t const* payload, std::size_t payload_len,
 			unsigned expiration /* = 0 */, unsigned ttl /* = 0 */) noexcept
 {
@@ -175,30 +176,24 @@ bool notify_factory::notify(Agro::User::Subscription const& user,
 	}
 	std::cout << "Notify serialized [" << packet_size << "]\n";
 
-	std::make_shared<notify_request>(ioc_, ctx_, user.endpoint(), packet, packet_size)->connect();
+	std::make_shared<push_notify>(ioc_, ctx_, user.endpoint(), packet, packet_size)->connect();
 
 	return true;
 }
 
-bool notify_factory::notify(Agro::User::Subscription const& user,
+bool push_factory::notify(Agro::User::Subscription const& user,
 					std::string const& data,
 					unsigned expiration /* = 0 */, unsigned ttl /* = 0 */) noexcept
 {
 	return notify(user, reinterpret_cast<std::uint8_t const*>(data.data()), data.size(), expiration, ttl);
 }
 
-bool notify_factory::is_valid() const noexcept
+bool push_factory::is_valid() const noexcept
 {
 	return is_valid_;
 }
 
-std::string_view const& notify_factory::public_key() const noexcept
+std::string_view const& push_factory::public_key() const noexcept
 {
 	return public_key_;
 }
-
-//void notify_factory::request(std::string const& endpoint,
-//				std::uint8_t* payload, std::size_t payload_len)
-//{
-//	std::make_shared<notify_request>(ioc_, ctx_, endpoint, payload, payload_len)->connect();
-//}

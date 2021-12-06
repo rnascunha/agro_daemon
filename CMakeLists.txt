@@ -271,7 +271,9 @@ set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 					${MESSAGE_DIR}/report.cpp)
 
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
-set(NOTIFY_SRC		${NOTIFY_DIR}/notify_request.cpp
+set(NOTIFY_SRC		${NOTIFY_DIR}/libs/push_notify.cpp
+					${NOTIFY_DIR}/libs/telegram_bot.cpp
+					${NOTIFY_DIR}/factory.cpp
 					${NOTIFY_DIR}/notify.cpp
 					${NOTIFY_DIR}/message/make.cpp
 					${NOTIFY_DIR}/message/make_json.cpp

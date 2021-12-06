@@ -53,6 +53,7 @@ int main(int argc, char** argv)
 	Agro::instance instance{ioc,
 		args.db_file.c_str(),
 		args.notify_priv_key, subscriber,
+		args.telegram_bot_token,
 		ep, epl,
 #if USE_SSL == 1
 		args.key, args.cert,

@@ -52,6 +52,7 @@ class DB{
 				User::salt_password const salt,
 				std::string const& name,
 				std::string const& email,
+				std::string const& telegram_chat_id,
 				User::user_id& id,
 				User::Info::status status = User::Info::status::active) noexcept;
 
@@ -59,6 +60,7 @@ class DB{
 				std::string const& username,
 				std::string const& name,
 				std::string const& email,
+				std::string const& telegram_chat_id,
 				std::vector<User::group_id> const& groups) noexcept;
 
 		int delete_user(User::user_id) noexcept;
@@ -73,7 +75,7 @@ class DB{
 				User::group_id&) noexcept;
 
 		int add_user_to_group(User::group_id, User::user_id) noexcept;
-		void add_user_to_group(User::group_id, std::vector<User::user_id> const&) noexcept;
+		void add_users_to_group(User::group_id, std::vector<User::user_id> const&) noexcept;
 
 		int set_user_to_groups(User::user_id, std::vector<User::group_id> const&) noexcept;
 		int remove_all_user_groups(User::user_id) noexcept;
@@ -102,6 +104,7 @@ class DB{
 				std::string const& user_agent) noexcept;
 
 		std::string notify_private_key() noexcept;
+		std::string notify_telegram_bot_token() noexcept;
 
 		int read_general_notify(User::user_id, Notify::Notify&) noexcept;
 		int update_general_notify(User::user_id, Notify::general_type) noexcept;

@@ -13,6 +13,7 @@
 #include "../user/password.hpp"
 
 static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept;
+static std::string get_telegram_bot_token(std::string const& telegram_bot_token, Agro::DB& db) noexcept;
 
 namespace Agro{
 
@@ -21,6 +22,7 @@ instance::instance(
 		std::string const& db_file,
 		std::string const& notify_priv_key,
 		std::string_view const& subscriber,
+		std::string const& telegram_bot_token,
 		udp_conn::endpoint& ep,
 		boost::asio::ip::tcp::endpoint const& epl,
 #if USE_SSL == 1
@@ -32,7 +34,9 @@ instance::instance(
 	  ioc_{ioc},
 	  db_{db_file.c_str(), ec},
 	  coap_engine_{udp_conn{}, CoAP::Message::message_id{CoAP::random_generator()}},
-	  notify_{ioc, !ec ? get_notify_key(notify_priv_key, db_) : pusha::key{}, subscriber}
+	  notify_{ioc,
+		  !ec ? get_notify_key(notify_priv_key, db_) : pusha::key{}, subscriber,
+			!ec ? get_telegram_bot_token(telegram_bot_token, db_) : ""}
 {
 	if(ec)
 	{
@@ -201,5 +205,12 @@ import_db:
 
 end:
 	return key;
+}
+
+static std::string get_telegram_bot_token(std::string const& telegram_bot_token, Agro::DB& db) noexcept
+{
+	if(!telegram_bot_token.empty()) return telegram_bot_token;
+
+	return db.notify_telegram_bot_token();
 }
 

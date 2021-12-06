@@ -14,7 +14,7 @@
 
 #include "../sensor/sensor_type_list.hpp"
 
-#include "../notify/notify_request.hpp"
+#include "../notify/factory.hpp"
 
 #include "../user/list.hpp"
 #include "../user/policy.hpp"
@@ -37,6 +37,7 @@ class instance{
 			std::string const& db_file,
 			std::string const& notify_priv_key,
 			std::string_view const& subscriber,
+			std::string const& telegram_bot_token,
 			udp_conn::endpoint& ep,
 			boost::asio::ip::tcp::endpoint const& epl,
 #if USE_SSL == 1
@@ -67,14 +68,16 @@ class instance{
 						std::string const& name,
 						std::string const& password,
 						std::string const& email,
+						std::string const& telegram_chat_id,
 						User::user_id& id) noexcept;
 		bool add_user_to_group(User::user_id, User::group_id) noexcept;
-		void add_user_to_group(User::user_id, std::vector<User::group_id> const&) noexcept;
+		void set_user_to_groups(User::user_id, std::vector<User::group_id> const&) noexcept;
 
 		bool edit_user(User::user_id,
 				std::string const& username,
 				std::string const& name,
 				std::string const& email,
+				std::string const& telegram_chat_id,
 				std::vector<User::group_id> const&) noexcept;
 
 		bool delete_user(User::user_id) noexcept;
@@ -86,7 +89,7 @@ class instance{
 						User::group_id&) noexcept;
 		bool delete_group(User::group_id) noexcept;
 
-		bool notify_is_valid() const noexcept;
+		bool push_notify_is_valid() const noexcept;
 		std::string_view const& get_notify_public_key() const noexcept;
 
 		bool update_user_session_id(User::user_id,
@@ -245,7 +248,7 @@ class instance{
 		boost::asio::io_context& ioc_;
 		DB					db_;
 		engine				coap_engine_;
-		notify_factory 		notify_;
+		Notify::Factory		notify_;
 
 		share_ptr			share_;
 
@@ -263,7 +266,8 @@ class instance{
 							User::root_username,
 							User::root_name,
 							User::Info::status::active,
-							"" /* email */}};
+							"" /* email */,
+							"" /* telegram_chat_id */}};
 
 		Device::Request::Request_in_Pogress_List requests_;
 
