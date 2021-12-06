@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on ter. nov. 30 21:01:20 2021
+-- File generated with SQLiteStudio v3.3.3 on seg. dez. 6 17:51:38 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -77,7 +77,8 @@ CREATE TABLE instance (
     notify_private_key TEXT,
     subscribe          TEXT,
     root_password      BLOB,
-    root_salt          BLOB
+    root_salt          BLOB,
+    telegram_bot_token TEXT
 );
 
 
@@ -208,16 +209,17 @@ CREATE TABLE session (
 
 -- Table: user
 CREATE TABLE user (
-    userid   INTEGER   PRIMARY KEY AUTOINCREMENT
-                       NOT NULL,
-    username TEXT      UNIQUE
-                       NOT NULL,
-    password BLOB      NOT NULL,
-    name     TEXT,
-    status   INT       DEFAULT (0) 
-                       NOT NULL,
-    email    TEXT,
-    salt     BLOB (32) NOT NULL
+    userid           INTEGER   PRIMARY KEY AUTOINCREMENT
+                               NOT NULL,
+    username         TEXT      UNIQUE
+                               NOT NULL,
+    password         BLOB      NOT NULL,
+    name             TEXT,
+    status           INT       DEFAULT (0) 
+                               NOT NULL,
+    email            TEXT,
+    salt             BLOB (32) NOT NULL,
+    telegram_chat_id TEXT
 );
 
 
