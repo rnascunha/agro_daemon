@@ -273,6 +273,8 @@ set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
 set(NOTIFY_SRC		${NOTIFY_DIR}/libs/push_notify.cpp
 					${NOTIFY_DIR}/libs/telegram_bot.cpp
+					${NOTIFY_DIR}/libs/smtp/client.cpp
+					${NOTIFY_DIR}/libs/mail.cpp
 					${NOTIFY_DIR}/factory.cpp
 					${NOTIFY_DIR}/notify.cpp
 					${NOTIFY_DIR}/message/make.cpp

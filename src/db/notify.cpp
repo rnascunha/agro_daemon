@@ -160,4 +160,27 @@ std::string DB::notify_telegram_bot_token() noexcept
 	return res.text(0);
 }
 
+int DB::notify_mail_server_info(SMTP::server& server) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare("SELECT smtp_server,smtp_port,smtp_user,smtp_password FROM instance LIMIT 1", res);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	rc = res.step();
+	if(rc != SQLITE_ROW)
+	{
+		return rc;
+	}
+
+	server.server = res.text(0);
+	server.port = res.text(1);
+	server.user = res.text(2);
+	server.password = res.text(3);
+
+	return rc;
+}
+
 }//Agro

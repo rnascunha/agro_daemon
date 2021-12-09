@@ -34,17 +34,15 @@ namespace Agro{
 class instance{
 	public:
 		instance(boost::asio::io_context& ioc,
-			std::string const& db_file,
-			std::string const& notify_priv_key,
-			std::string_view const& subscriber,
-			std::string const& telegram_bot_token,
-			udp_conn::endpoint& ep,
-			boost::asio::ip::tcp::endpoint const& epl,
-#if USE_SSL == 1
-			std::string const& ssl_key,
-			std::string const& ssl_cert,
-#endif /**/
-			std::error_code& ec);
+					DB&&,
+					Notify::Factory&&,
+					udp_conn::endpoint& ep,
+					boost::asio::ip::tcp::endpoint const& epl,
+		#if USE_SSL == 1
+					std::string const& ssl_key,
+					std::string const& ssl_cert,
+		#endif /**/
+					std::error_code& ec);
 
 		template<unsigned TimeoutMs>
 		void run(int num_threads, CoAP::Error& ecp) noexcept;

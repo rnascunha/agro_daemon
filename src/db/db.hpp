@@ -21,11 +21,14 @@
 
 #include "../message/report.hpp"
 
+#include "../notify/libs/smtp/client.hpp"
+
 namespace Agro{
 
 class DB{
 	public:
 		DB(std::string const& db_name, std::error_code& ec);
+		DB(DB&&);
 
 		/**
 		 * User interface
@@ -105,6 +108,7 @@ class DB{
 
 		std::string notify_private_key() noexcept;
 		std::string notify_telegram_bot_token() noexcept;
+		int notify_mail_server_info(SMTP::server&) noexcept;
 
 		int read_general_notify(User::user_id, Notify::Notify&) noexcept;
 		int update_general_notify(User::user_id, Notify::general_type) noexcept;

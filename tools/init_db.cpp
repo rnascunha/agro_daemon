@@ -17,6 +17,9 @@
 
 #include "../src/sensor/sensor_type_list.hpp"
 
+#include "../src/notify/libs/smtp/client.hpp"
+//#include "../src/notify/libs/mail.hpp"
+
 #define SQL_FILE		"scheme.sql"
 
 struct group{
@@ -146,6 +149,8 @@ int main(int argc, char** argv)
 				notify_key{ec_key.export_private_key()},
 				telegram_bot_token,
 				root_password;
+	SMTP::server smtp_server;
+
 	do{
 		std::cout << "DB Name: " << std::flush;
 		std::getline(std::cin, name);
@@ -169,6 +174,32 @@ int main(int argc, char** argv)
 	std::cout << "Telegram Bot Token []: " << std::flush;
 	std::getline(std::cin, telegram_bot_token);
 
+
+	std::string smtp_config;
+	std::cout << "Configure email notify [y/N]: ";
+	std::getline(std::cin, smtp_config);
+	if(smtp_config[0] == 'y' || smtp_config[0] == 'Y')
+	{
+		std::cout << "SMTP server: ";
+		std::getline(std::cin, smtp_server.server);
+
+		std::cout << "SMTP port: ";
+		std::getline(std::cin, smtp_server.port);
+
+		std::cout << "SMTP user: ";
+		std::getline(std::cin, smtp_server.user);
+
+		std::cout << "SMTP password: ";
+		std::getline(std::cin, smtp_server.password);
+
+//		if(!mail_factory::is_valid(smtp_server))
+//		{
+//			std::filesystem::remove(argv[1]);
+//			std::cerr << "Invalid SMTP parameters\n";
+//			return 1;
+//		}
+	}
+
 	do{
 		std::cout << "Root password: " << std::flush;
 		std::getline(std::cin, root_password);
@@ -191,13 +222,16 @@ int main(int argc, char** argv)
 
 	sqlite3::statement res;
 	rc = db.prepare_bind(
-			"INSERT INTO instance(name, description, notify_private_key, subscribe, root_password, root_salt, telegram_bot_token) "
-			"VALUES(?,?,?,?,?,?,?)",
+			"INSERT INTO instance(name, description, "
+						"notify_private_key, subscribe, root_password, root_salt, "
+						"telegram_bot_token, smtp_server, smtp_port, smtp_user, smtp_password) "
+			"VALUES(?,?,?,?,?,?,?,?,?,?,?)",
 			res,
 			name, description, notify_key, subscribe,
 			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
 			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH},
-			telegram_bot_token);
+			telegram_bot_token,
+			smtp_server.server, smtp_server.port, smtp_server.user, smtp_server.password);
 	if(rc != SQLITE_OK)
 	{
 		std::filesystem::remove(argv[1]);

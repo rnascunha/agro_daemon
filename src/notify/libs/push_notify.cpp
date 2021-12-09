@@ -43,7 +43,9 @@ void push_notify::connect()
 void push_notify::do_connect(const boost::asio::ip::tcp::resolver::results_type& endpoints)
 {
 	auto self = shared_from_this();
-	boost::asio::async_connect(socket_.lowest_layer(), endpoints,
+	boost::asio::async_connect(
+			socket_.lowest_layer(),
+			endpoints,
 		[self](const boost::system::error_code& error,
 				const tcp::endpoint& /*endpoint*/)
 		{

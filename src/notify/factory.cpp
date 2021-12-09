@@ -3,38 +3,84 @@
 namespace Agro{
 namespace Notify{
 
-Factory::Factory(boost::asio::io_context& ioc,
-				//push
-				pusha::key&& ec_key,
-				std::string_view const& subscriber,
-				//telegram
-				std::string const& token)
-	: push_fac_{ioc, std::move(ec_key), subscriber},
-	  tele_fac_{ioc, token}{}
+push::push(boost::asio::io_context& ioc,
+				pusha::key&& key,
+				std::string_view const& subscriber)
+	: push_{ioc, std::move(key), subscriber}{}
+
+void push::notify(User::User const& user, std::string const& message) noexcept
+{
+	for(auto const& s : user.subscriptions())
+	{
+		push_.notify(s, message);
+	}
+}
+
+std::string_view const& push::public_key() const noexcept
+{
+	return push_.public_key();
+}
+
+bool push::is_valid() const noexcept
+{
+	return push_.is_valid();
+}
+
+telegram::telegram(boost::asio::io_context& ioc, std::string const& token)
+	: tele_{ioc, token}{}
+
+void telegram::notify(User::User const& user, std::string const& message) noexcept
+{
+	tele_.notify(user.info().telegram_chat_id(), message);
+}
+
+mail::mail(boost::asio::io_context& ioc,
+			SMTP::server const& server,
+			std::string const& name)
+	: mail_(ioc, server, name){}
+
+void mail::notify(User::User const& user, std::string const& message) noexcept
+{
+	mail_.notify(user.info().email(), user.info().name(), message);
+}
+
+Factory::Factory(){}
 
 bool Factory::push_is_valid() const noexcept
 {
-	return push_fac_.is_valid();
+	auto it = notifys_.find("push");
+	if(it == notifys_.end())
+	{
+		return false;
+	}
+
+	return static_cast<push*>(it->second.get())->is_valid();
 }
 
 std::string_view const& Factory::public_key() const noexcept
 {
-	return push_fac_.public_key();
+	static constexpr const std::string_view vw{""};
+	auto it = notifys_.find("push");
+	if(it == notifys_.end())
+	{
+		return vw;
+	}
+
+	return static_cast<push*>(it->second.get())->public_key();
+}
+
+bool Factory::add(std::string const& name, std::unique_ptr<notify_impl> notify) noexcept
+{
+	notifys_.emplace(name, std::move(notify));
+
+	return true;
 }
 
 void Factory::notify(User::User const& user, std::string const& message) noexcept
 {
-	if(push_fac_.is_valid())
+	for(auto& [name, n] : notifys_)
 	{
-		for(auto const& s : user.subscriptions() )
-		{
-			push_fac_.notify(s, message);
-		}
-	}
-
-	if(tele_fac_.is_valid())
-	{
-		tele_fac_.notify(user.info().telegram_chat_id(), message);
+		n->notify(user, message);
 	}
 }
 

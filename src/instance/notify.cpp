@@ -41,8 +41,6 @@ void instance::notify_all(std::string const& data) noexcept
 	for(auto const& [uid, u] : users_)
 	{
 		notify_.notify(u, data);
-//		for(auto const& s : u.subscriptions() )
-//			notify_.notify(s, data);
 	}
 }
 
@@ -53,8 +51,6 @@ void instance::notify_all_policy(Authorization::rule rule, std::string const& da
 		if(Authorization::can(u, rule))
 		{
 			notify_.notify(u, data);
-//			for(auto const& s : u.subscriptions() )
-//				notify_.notify(s, data);
 		}
 	}
 }
@@ -68,8 +64,6 @@ void instance::notify_all_policy(Authorization::rule rule,
 		if(Authorization::can(u, rule) && u.notify().can(type))
 		{
 			notify_.notify(u, data);
-//			for(auto const& s : u.subscriptions() )
-//				notify_.notify(s, data);
 		}
 	}
 }
@@ -94,10 +88,6 @@ void instance::notify_all_policy(Authorization::rule rule,
 			if(ll.size())
 			{
 				notify_.notify(u, Notify::Message::make_status_devices(ll, status));
-//				for(auto const& s : u.subscriptions())
-//				{
-//					notify_.notify(s, Notify::Message::make_status_devices(ll, status));
-//				}
 			}
 		}
 	}
@@ -122,10 +112,6 @@ void instance::notify_all_policy(Authorization::rule rule,
 			for(auto const& s : vsn)
 			{
 				notify_.notify(u, Notify::Message::make_notify_sensor_data(device, type, sdesc, s, value));
-//				for(auto const& s : u.subscriptions())
-//				{
-//					notify_.notify(s, data);
-//				}
 			}
 		}
 	}

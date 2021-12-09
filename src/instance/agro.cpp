@@ -12,38 +12,24 @@
 
 #include "../user/password.hpp"
 
-static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept;
-static std::string get_telegram_bot_token(std::string const& telegram_bot_token, Agro::DB& db) noexcept;
-
 namespace Agro{
 
-instance::instance(
-		boost::asio::io_context& ioc,
-		std::string const& db_file,
-		std::string const& notify_priv_key,
-		std::string_view const& subscriber,
-		std::string const& telegram_bot_token,
-		udp_conn::endpoint& ep,
-		boost::asio::ip::tcp::endpoint const& epl,
+instance::instance(boost::asio::io_context& ioc,
+			DB&& db,
+			Notify::Factory&& notify,
+			udp_conn::endpoint& ep,
+			boost::asio::ip::tcp::endpoint const& epl,
 #if USE_SSL == 1
-		std::string const& ssl_key,
-		std::string const& ssl_cert,
+			std::string const& ssl_key,
+			std::string const& ssl_cert,
 #endif /**/
-		std::error_code& ec)
+			std::error_code& ec)
 	: image_{images_path}, app_{apps_path},
 	  ioc_{ioc},
-	  db_{db_file.c_str(), ec},
+	  db_{std::move(db)},
 	  coap_engine_{udp_conn{}, CoAP::Message::message_id{CoAP::random_generator()}},
-	  notify_{ioc,
-		  !ec ? get_notify_key(notify_priv_key, db_) : pusha::key{}, subscriber,
-			!ec ? get_telegram_bot_token(telegram_bot_token, db_) : ""}
+	  notify_{std::move(notify)}
 {
-	if(ec)
-	{
-		tt::error("Error opening DB! [%s]", db_file.c_str());
-		return;
-	}
-
 	if(!db_.read_user_all_db(users_))
 	{
 		ec = make_error_code(Error::internal_error);
@@ -164,53 +150,3 @@ share_ptr instance::share() noexcept
 }
 
 }//Agro
-
-static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept
-{
-	pusha::key key;
-
-	if(!path.empty())
-	{
-		if(!std::filesystem::is_regular_file(path))
-		{
-			tt::error("notify private key: '%s' is not a valid file.", path.c_str());
-			goto import_db;
-		}
-		else if(!key.import(path))
-		{
-			tt::error("notify private key: Failed to import from '%s' file.", path.c_str());
-			goto import_db;
-		}
-		else {
-			tt::debug("notify private key: imported from '%s' file.", path.c_str());
-			goto end;
-		}
-	}
-	else
-	{
-import_db:
-		std::string keyb64 = db.notify_private_key();
-		if(!keyb64.empty())
-		{
-			if(!key.import(keyb64))
-			{
-				tt::error("notifiy private key: import from 'DB' fail.");
-			}
-			else
-			{
-				tt::debug("notify private key: key imported from DB.");
-			}
-		}
-	}
-
-end:
-	return key;
-}
-
-static std::string get_telegram_bot_token(std::string const& telegram_bot_token, Agro::DB& db) noexcept
-{
-	if(!telegram_bot_token.empty()) return telegram_bot_token;
-
-	return db.notify_telegram_bot_token();
-}
-

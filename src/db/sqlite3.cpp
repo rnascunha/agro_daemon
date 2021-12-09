@@ -10,6 +10,12 @@ sqlite3::sqlite3(const char* db_name, std::error_code& ec)
 	if(rc != SQLITE_OK) ec = make_error_code(Error::open_db);
 }
 
+sqlite3::sqlite3(sqlite3&& db)
+{
+	db_ = db.db_;
+	db.db_ = nullptr;
+}
+
 sqlite3::~sqlite3()
 {
 	close();

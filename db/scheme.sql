@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on seg. dez. 6 17:51:38 2021
+-- File generated with SQLiteStudio v3.3.3 on qua. dez. 8 22:30:57 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -78,7 +78,11 @@ CREATE TABLE instance (
     subscribe          TEXT,
     root_password      BLOB,
     root_salt          BLOB,
-    telegram_bot_token TEXT
+    telegram_bot_token TEXT,
+    smtp_server        TEXT    DEFAULT (''),
+    smtp_port          TEXT    DEFAULT (''),
+    smtp_user          TEXT    DEFAULT (''),
+    smtp_password      TEXT    DEFAULT ('') 
 );
 
 
