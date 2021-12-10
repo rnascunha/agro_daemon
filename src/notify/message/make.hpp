@@ -4,6 +4,7 @@
 #include "../../message/types.hpp"
 #include "../notify.hpp"
 #include "../../sensor/sensor_type_list.hpp"
+#include "../factory.hpp"
 
 #include <string>
 
@@ -114,8 +115,11 @@ std::string make_notify_sensor_data(Device::Device const& device,
 		sensor_notify const& sn,
 		float value) noexcept;
 
-std::string make_status_devices(std::vector<std::reference_wrapper<Device::Device const>> const&,
+std::string make_status_devices(
+		std::vector<std::reference_wrapper<Device::Device const>> const&,
 		const char*) noexcept;
+
+std::string make_credential_list(Factory const&) noexcept;
 
 }//Message
 }//Notify

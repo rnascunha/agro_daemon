@@ -1,5 +1,5 @@
 --
--- File generated with SQLiteStudio v3.3.3 on qua. dez. 8 22:30:57 2021
+-- File generated with SQLiteStudio v3.3.3 on qui. dez. 9 21:51:58 2021
 --
 -- Text encoding used: UTF-8
 --
@@ -82,7 +82,10 @@ CREATE TABLE instance (
     smtp_server        TEXT    DEFAULT (''),
     smtp_port          TEXT    DEFAULT (''),
     smtp_user          TEXT    DEFAULT (''),
-    smtp_password      TEXT    DEFAULT ('') 
+    smtp_password      TEXT    DEFAULT (''),
+    push_enable        BOOLEAN DEFAULT (1),
+    telegram_enable    BOOLEAN DEFAULT (1),
+    mail_enable        BOOLEAN DEFAULT (1) 
 );
 
 

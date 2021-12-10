@@ -238,6 +238,75 @@ std::string make_public_key(std::string_view const& public_key) noexcept
 	return ::Message::stringify(doc);
 }
 
+#define STRING_TO_JVALUE(m)		rapidjson::Value(m.data(), m.size(), alloc).Move()
+
+template<typename Allocator>
+static void make_mail_credential(rapidjson::Value& data, mail const& mfac, Allocator& alloc) noexcept
+{
+	data.SetObject();
+
+	data.AddMember("server", STRING_TO_JVALUE(mfac.server().server), alloc);
+	data.AddMember("port", STRING_TO_JVALUE(mfac.server().port), alloc);
+	data.AddMember("user", STRING_TO_JVALUE(mfac.server().user), alloc);
+	data.AddMember("password", STRING_TO_JVALUE(mfac.server().password), alloc);
+}
+
+template<typename Allocator>
+static void make_push_credential(rapidjson::Value& data, push const& pfac, Allocator& alloc) noexcept
+{
+	data.SetObject();
+
+//	data.AddMember("key", STRING_TO_JVALUE(pfac.public_key()), alloc);
+}
+
+template<typename Allocator>
+static void make_telegram_credential(rapidjson::Value& data, telegram const& tfac, Allocator& alloc) noexcept
+{
+	data.SetObject();
+
+	data.AddMember("token", STRING_TO_JVALUE(tfac.token()), alloc);
+}
+
+std::string make_credential_list(Factory const& fac) noexcept
+{
+	rapidjson::Document doc;
+	doc.SetObject();
+
+	::Message::add_type(doc, ::Message::type::notify);
+	add_command(doc, notify_commands::credential_list, doc.GetAllocator());
+
+	rapidjson::Value data;
+	data.SetObject();
+
+	for(auto const& [name, noti] : fac)
+	{
+		rapidjson::Value v;
+		if(name == "mail")
+		{
+			make_mail_credential(v, *static_cast<mail const*>(noti.get()), doc.GetAllocator());
+		}
+		else if(name == "telegram")
+		{
+			make_telegram_credential(v, *static_cast<telegram const*>(noti.get()), doc.GetAllocator());
+		}
+		else if(name == "push")
+		{
+			make_push_credential(v, *static_cast<push const*>(noti.get()), doc.GetAllocator());
+		}
+		else
+		{
+			continue;
+		}
+		v.AddMember("enable", noti->enable(), doc.GetAllocator());
+
+		data.AddMember(rapidjson::Value(name.data(), name.size(), doc.GetAllocator()).Move(), v, doc.GetAllocator());
+	}
+
+	::Message::add_data(doc, data);
+
+	return ::Message::stringify(doc);
+}
+
 }//Message
 }//Notify
 }//Agro

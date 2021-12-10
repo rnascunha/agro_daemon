@@ -106,9 +106,14 @@ class DB{
 		bool push_unsubscribe_user(User::user_id,
 				std::string const& user_agent) noexcept;
 
-		std::string notify_private_key() noexcept;
-		std::string notify_telegram_bot_token() noexcept;
-		int notify_mail_server_info(SMTP::server&) noexcept;
+		std::string notify_private_key(bool&) noexcept;
+		int update_push_notify(bool enable) noexcept;
+
+		std::string notify_telegram_bot_token(bool&) noexcept;
+		int update_telegram_bot_token(std::string const&, bool) noexcept;
+
+		int notify_mail_server_info(SMTP::server&, bool&) noexcept;
+		int update_mail_server_info(SMTP::server const&, bool) noexcept;
 
 		int read_general_notify(User::user_id, Notify::Notify&) noexcept;
 		int update_general_notify(User::user_id, Notify::general_type) noexcept;

@@ -120,6 +120,10 @@ class instance{
 				Sensor::sensor_type const&,
 				Sensor::sensor_description const*) noexcept;
 
+		bool update_push_credential(bool enable) noexcept;
+		bool update_telegram_credential(std::string const&, bool enable) noexcept;
+		bool update_mail_credential(SMTP::server const&, bool enable) noexcept;
+
 		bool update_general_notify(User::User&, Notify::general_type) noexcept;
 		bool update_device_notify(User::User& user,
 				Device::device_id id,
@@ -222,6 +226,8 @@ class instance{
 		User::User_List const& users() const noexcept;
 
 		Device::Tree& tree() noexcept;
+
+		Notify::Factory const& notify() const noexcept;
 
 		Sensor::Sensor_Type_List const& sensor_list() const noexcept;
 

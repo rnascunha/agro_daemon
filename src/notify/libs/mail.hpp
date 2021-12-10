@@ -15,6 +15,11 @@ class mail_factory{
 				std::string const& name,
 				std::string const message) noexcept;
 
+		SMTP::server const& server() const noexcept;
+		void server(SMTP::server const&) noexcept;
+
+		std::string const& name() const noexcept;
+
 		static bool is_valid(SMTP::server const&) noexcept;
 	private:
 		boost::asio::io_context& ioc_;

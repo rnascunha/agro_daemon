@@ -3,6 +3,16 @@
 namespace Agro{
 namespace Notify{
 
+bool notify_impl::enable() const noexcept
+{
+	return enable_;
+}
+
+void notify_impl::enable(bool en) noexcept
+{
+	enable_ = en;
+}
+
 push::push(boost::asio::io_context& ioc,
 				pusha::key&& key,
 				std::string_view const& subscriber)
@@ -26,6 +36,10 @@ bool push::is_valid() const noexcept
 	return push_.is_valid();
 }
 
+/**
+ *
+ */
+
 telegram::telegram(boost::asio::io_context& ioc, std::string const& token)
 	: tele_{ioc, token}{}
 
@@ -33,6 +47,25 @@ void telegram::notify(User::User const& user, std::string const& message) noexce
 {
 	tele_.notify(user.info().telegram_chat_id(), message);
 }
+
+bool telegram::is_valid() const noexcept
+{
+	return tele_.is_valid();
+}
+
+std::string const& telegram::token() const noexcept
+{
+	return tele_.token();
+}
+
+void telegram::token(std::string const& ntoken) noexcept
+{
+	tele_.token(ntoken);
+}
+
+/**
+ *
+ */
 
 mail::mail(boost::asio::io_context& ioc,
 			SMTP::server const& server,
@@ -43,6 +76,30 @@ void mail::notify(User::User const& user, std::string const& message) noexcept
 {
 	mail_.notify(user.info().email(), user.info().name(), message);
 }
+
+bool mail::is_valid() const noexcept
+{
+	return mail_.is_valid();
+}
+
+SMTP::server const& mail::server() const noexcept
+{
+	return mail_.server();
+}
+
+void mail::server(SMTP::server const& server) noexcept
+{
+	mail_.server(server);
+}
+
+std::string const& mail::name() const noexcept
+{
+	return mail_.name();
+}
+
+/**
+ *
+ */
 
 Factory::Factory(){}
 
@@ -80,8 +137,22 @@ void Factory::notify(User::User const& user, std::string const& message) noexcep
 {
 	for(auto& [name, n] : notifys_)
 	{
-		n->notify(user, message);
+		if(n->enable() && n->is_valid())
+		{
+			n->notify(user, message);
+		}
 	}
+}
+
+notify_impl* Factory::get(std::string const& name) noexcept
+{
+	auto it = notifys_.find(name);
+	if(it == notifys_.end())
+	{
+		return nullptr;
+	}
+
+	return it->second.get();
 }
 
 }//Notify

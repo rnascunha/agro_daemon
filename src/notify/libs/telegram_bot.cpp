@@ -137,3 +137,13 @@ void telegram_factory::notify(std::string const& chatid, std::string const& mess
 	if(chatid.empty()) return;
 	std::make_shared<telegram_bot>(ioc_, ctx_, token_, chatid, message)->connect();
 }
+
+std::string const& telegram_factory::token() const noexcept
+{
+	return token_;
+}
+
+void telegram_factory::token(std::string const& ntoken) noexcept
+{
+	token_ = ntoken;
+}

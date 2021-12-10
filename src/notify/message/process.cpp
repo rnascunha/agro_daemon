@@ -240,6 +240,120 @@ static void send_sensor_list(Agro::websocket_ptr ws,
 	ws->write(make_sensor_list(user.user()->notify()));
 }
 
+static void send_credential_list(rapidjson::Document const& doc,
+				Agro::websocket_ptr ws,
+				Agro::instance& instance,
+				Agro::User::Logged& user) noexcept
+{
+	if(!Agro::Authorization::can(user, Agro::Authorization::rule::user_admin))
+	{
+		tt::warning("user_group_policies: User %d not allowed", user.id());
+		return;
+	}
+	tt::debug("Sending user '%d' notify credential list", user.id());
+	ws->write(make_credential_list(instance.notify()));
+}
+
+static void update_mail_credential(rapidjson::Value const& data,
+		Agro::instance& instance) noexcept
+{
+	tt::debug("Updating mail notify");
+
+	if((!data.HasMember("server") || !data["server"].IsString())
+		|| (!data.HasMember("port") || !data["port"].IsString())
+		|| (!data.HasMember("user") || !data["user"].IsString())
+		|| (!data.HasMember("password") || !data["password"].IsString())
+		|| (!data.HasMember("enable") || !data["enable"].IsBool())
+	)
+	{
+		tt::warning("Missing field or wrong type updating mail notify");
+		return;
+	}
+
+	SMTP::server nserver;
+	nserver.server = data["server"].GetString();
+	nserver.port = data["port"].GetString();
+	nserver.user = data["user"].GetString();
+	nserver.password = data["password"].GetString();
+
+	instance.update_mail_credential(nserver, data["enable"].GetBool());
+}
+
+static void update_push_credential(rapidjson::Value const& data,
+		Agro::instance& instance) noexcept
+{
+	tt::debug("Updating push notify");
+
+	if(!data.HasMember("enable") || !data["enable"].IsBool())
+	{
+		tt::warning("Missing field or wrong type updating push notify");
+		return;
+	}
+
+	instance.update_push_credential(data["enable"].GetBool());
+}
+
+static void update_telegram_credential(rapidjson::Value const& data,
+		Agro::instance& instance) noexcept
+{
+	tt::debug("Updating telegram notify");
+
+	if((!data.HasMember("token") || !data["token"].IsString())
+		|| (!data.HasMember("enable") || !data["enable"].IsBool())
+	)
+	{
+		tt::warning("Missing field or wrong type updating telegram notify");
+		return;
+	}
+
+	instance.update_telegram_credential(data["token"].GetString(),
+			data["enable"].GetBool());
+}
+
+static void update_credential(rapidjson::Document const& doc,
+				Agro::websocket_ptr ws,
+				Agro::instance& instance,
+				Agro::User::Logged& user) noexcept
+{
+	if(!Agro::Authorization::can(user, Agro::Authorization::rule::user_admin))
+	{
+		tt::warning("user_group_policies: User %d not allowed", user.id());
+		return;
+	}
+
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
+	{
+		tt::warning("Missing 'data' field or wrong type");
+		return;
+	}
+	rapidjson::Value const& data = doc["data"];
+	for(auto const& d : data.GetObject())
+	{
+		std::string key = d.name.GetString();
+		if(!d.value.IsObject()) continue;
+		if(key == "mail")
+		{
+			update_mail_credential(d.value.GetObject(), instance);
+		}
+		else if(key == "push")
+		{
+			update_push_credential(d.value.GetObject(), instance);
+		}
+		else if(key == "telegram")
+		{
+			update_telegram_credential(d.value.GetObject(), instance);
+		}
+	}
+
+	send_credential_list(doc, ws, instance, user);
+	ws->write(instance.make_report(Agro::Message::report_commands::notify,
+						Agro::Message::report_type::success,
+					"notify credential",
+					"Updated",
+					"",
+					ws->user().id()));
+}
+
 void process(rapidjson::Document const& doc,
 				Agro::websocket_ptr ws,
 				Agro::instance& instance,
@@ -277,6 +391,12 @@ void process(rapidjson::Document const& doc,
 			break;
 		case notify_commands::sensor_set:
 			set_sensor_notify(doc, ws, instance, user);
+			break;
+		case notify_commands::credential_list:
+			send_credential_list(doc, ws, instance, user);
+			break;
+		case notify_commands::update_credential:
+			update_credential(doc, ws, instance, user);
 			break;
 		default:
 			tt::warning("No callback registered to '%s'", config->name);

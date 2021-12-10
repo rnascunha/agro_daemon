@@ -134,36 +134,71 @@ int DB::update_sensor_notify(User::user_id uid, Device::device_id did,
 	return rc;
 }
 
-std::string DB::notify_private_key() noexcept
+std::string DB::notify_private_key(bool& enable) noexcept
 {
+	enable = false;
+
 	sqlite3::statement res;
-	if(db_.prepare("SELECT notify_private_key FROM instance LIMIT 1", res) != SQLITE_OK)
+	if(db_.prepare("SELECT notify_private_key,push_enable FROM instance LIMIT 1", res) != SQLITE_OK)
 	{
 		return std::string{};
 	}
 
 	if(res.step() != SQLITE_ROW) return std::string{};
+	enable = res.integer(1);
 
 	return res.text(0);
 }
 
-std::string DB::notify_telegram_bot_token() noexcept
+int DB::update_push_notify(bool enable) noexcept
 {
 	sqlite3::statement res;
-	if(db_.prepare("SELECT telegram_bot_token FROM instance LIMIT 1", res) != SQLITE_OK)
+	int rc = db_.prepare_bind("UPDATE instance SET push_enable = ?",
+			res, enable);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
+
+std::string DB::notify_telegram_bot_token(bool& enable) noexcept
+{
+	enable = false;
+
+	sqlite3::statement res;
+	if(db_.prepare("SELECT telegram_bot_token,telegram_enable FROM instance LIMIT 1", res) != SQLITE_OK)
 	{
 		return std::string{};
 	}
 
 	if(res.step() != SQLITE_ROW) return std::string{};
+	enable = res.integer(1);
 
 	return res.text(0);
 }
 
-int DB::notify_mail_server_info(SMTP::server& server) noexcept
+int DB::update_telegram_bot_token(std::string const& token, bool enable) noexcept
 {
 	sqlite3::statement res;
-	int rc = db_.prepare("SELECT smtp_server,smtp_port,smtp_user,smtp_password FROM instance LIMIT 1", res);
+	int rc = db_.prepare_bind("UPDATE instance SET "
+			"telegram_bot_token = ?, telegram_enable = ?",
+			res, token, enable);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
+}
+
+int DB::notify_mail_server_info(SMTP::server& server, bool& enable) noexcept
+{
+	enable = false;
+
+	sqlite3::statement res;
+	int rc = db_.prepare("SELECT smtp_server,smtp_port,smtp_user,smtp_password,mail_enable FROM instance LIMIT 1", res);
 	if(rc != SQLITE_OK)
 	{
 		return rc;
@@ -179,8 +214,23 @@ int DB::notify_mail_server_info(SMTP::server& server) noexcept
 	server.port = res.text(1);
 	server.user = res.text(2);
 	server.password = res.text(3);
+	enable = res.integer(4);
 
 	return rc;
+}
+
+int DB::update_mail_server_info(SMTP::server const& server, bool enable) noexcept
+{
+	sqlite3::statement res;
+	int rc = db_.prepare_bind("UPDATE instance SET "
+				"smtp_server = ?, smtp_port = ?, smtp_user = ?, smtp_password = ?, mail_enable = ?",
+			res, server.server, server.port, server.user, server.password, enable);
+	if(rc != SQLITE_OK)
+	{
+		return rc;
+	}
+
+	return res.step();
 }
 
 }//Agro

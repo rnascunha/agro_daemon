@@ -158,4 +158,70 @@ bool instance::update_sensor_notify(User::User& user,
 	return true;
 }
 
+bool instance::update_push_credential(bool enable) noexcept
+{
+	Notify::notify_impl* noti = notify_.get("push");
+	if(!noti)
+	{
+		tt::warning("'push' notify not found");
+		return false;
+	}
+
+	if(db_.update_push_notify(enable) != SQLITE_DONE)
+	{
+		tt::error("Error updating 'push' notify");
+		return false;
+	}
+
+	Notify::push* p = static_cast<Notify::push*>(noti);
+	p->enable(enable);
+
+	return true;
+}
+
+bool instance::update_telegram_credential(std::string const& token, bool enable) noexcept
+{
+	Notify::notify_impl* noti = notify_.get("telegram");
+	if(!noti)
+	{
+		tt::warning("'telegram' notify not found");
+		return false;
+	}
+
+	if(db_.update_telegram_bot_token(token, enable) != SQLITE_DONE)
+	{
+		tt::error("Error updating 'telegram' notify");
+		return false;
+	}
+
+	Notify::telegram* t = static_cast<Notify::telegram*>(noti);
+	t->token(token);
+	t->enable(enable);
+
+	return true;
+}
+
+bool instance::update_mail_credential(SMTP::server const& server, bool enable) noexcept
+{
+	Notify::notify_impl* noti = notify_.get("mail");
+	if(!noti)
+	{
+		tt::warning("'mail' notify not found");
+		return false;
+	}
+
+	if(db_.update_mail_server_info(server, enable) != SQLITE_DONE)
+	{
+		tt::error("Error updating 'mail' notify");
+		return false;
+	}
+
+	Notify::mail* nmail = static_cast<Notify::mail*>(noti);
+	nmail->enable(enable);
+	nmail->server(server);
+
+	return true;
+}
+
+
 }//Agro

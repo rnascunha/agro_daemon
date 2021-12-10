@@ -149,4 +149,9 @@ share_ptr instance::share() noexcept
 	return share_;
 }
 
+Notify::Factory const& instance::notify() const noexcept
+{
+	return notify_;
+}
+
 }//Agro

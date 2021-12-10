@@ -46,3 +46,18 @@ bool mail_factory::notify(
 
 	return true;
 }
+
+SMTP::server const& mail_factory::server() const noexcept
+{
+	return server_;
+}
+
+void mail_factory::server(SMTP::server const& server) noexcept
+{
+	server_ = server;
+}
+
+std::string const& mail_factory::name() const noexcept
+{
+	return name_;
+}

@@ -12,9 +12,9 @@
 
 static constexpr const std::string_view subscriber{"mailto:email@email.com"};
 
-static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept;
-static std::string get_telegram_bot_token(std::string const& telegram_bot_token, Agro::DB& db) noexcept;
-static bool get_smtp_server_info(SMTP::server& server, Agro::DB& db) noexcept;
+static pusha::key get_notify_key(std::filesystem::path const& path, bool& enable, Agro::DB& db) noexcept;
+static std::string get_telegram_bot_token(std::string const& telegram_bot_token, bool& enable, Agro::DB& db) noexcept;
+static bool get_smtp_server_info(SMTP::server& server, bool& enable, Agro::DB& db) noexcept;
 
 int main(int argc, char** argv)
 {
@@ -69,36 +69,72 @@ int main(int argc, char** argv)
 	 * Instantiating notify factory
 	 */
 	Agro::Notify::Factory noti_fac;
+	bool enable;
 
 	/**
 	 * Adding push notification
 	 */
-	pusha::key notify_priv_key = get_notify_key(args.notify_priv_key, db);
-	if(notify_priv_key.check())
-	{
-		tt::status("Adding 'push notification' notify support");
-		noti_fac.add("push", std::make_unique<Agro::Notify::push>(ioc, std::move(notify_priv_key), subscriber));
-	}
+	pusha::key notify_priv_key = get_notify_key(args.notify_priv_key, enable, db);
+	tt::status("Adding 'push notification' notify support");
+	auto n1 = std::make_unique<Agro::Notify::push>(ioc, std::move(notify_priv_key), subscriber);
+	n1->enable(enable);
+	noti_fac.add("push", std::move(n1));
 
 	/**
 	 * Adding telegram bot notification
 	 */
-	std::string notify_telegram_token = get_telegram_bot_token(args.telegram_bot_token, db);
-	if(!notify_telegram_token.empty())
-	{
-		tt::status("Adding 'telegram bot' notify support");
-		noti_fac.add("telegram", std::make_unique<Agro::Notify::telegram>(ioc, notify_telegram_token));
-	}
+	std::string notify_telegram_token = get_telegram_bot_token(args.telegram_bot_token, enable, db);
+	tt::status("Adding 'telegram bot' notify support");
+	auto n2 = std::make_unique<Agro::Notify::telegram>(ioc, notify_telegram_token);
+	n2->enable(enable);
+	noti_fac.add("telegram", std::move(n2));
 
 	/**
 	 * Adding mail support
 	 */
 	SMTP::server mail_server;
-	if(get_smtp_server_info(mail_server, db))
-	{
-		tt::status("Adding 'mail' notify support");
-		noti_fac.add("mail", std::make_unique<Agro::Notify::mail>(ioc, mail_server, "Agro Telemetry"));
-	}
+	get_smtp_server_info(mail_server, enable, db);
+	tt::status("Adding 'mail' notify support");
+	auto n3 = std::make_unique<Agro::Notify::mail>(ioc, mail_server, "Agro Telemetry");
+	n3->enable(enable);
+	noti_fac.add("mail", std::move(n3));
+
+//	/**
+//	 * Adding push notification
+//	 */
+//	pusha::key notify_priv_key = get_notify_key(args.notify_priv_key, db);
+//	if(notify_priv_key.check())
+//	{
+//		tt::status("Adding 'push notification' notify support");
+//		auto n = std::make_unique<Agro::Notify::push>(ioc, std::move(notify_priv_key), subscriber);
+//		n->enable(true);
+//		noti_fac.add("push", std::move(n));
+//	}
+//
+//	/**
+//	 * Adding telegram bot notification
+//	 */
+//	std::string notify_telegram_token = get_telegram_bot_token(args.telegram_bot_token, db);
+//	if(!notify_telegram_token.empty())
+//	{
+//		tt::status("Adding 'telegram bot' notify support");
+//		auto n = std::make_unique<Agro::Notify::telegram>(ioc, notify_telegram_token);
+//		n->enable(true);
+//		noti_fac.add("telegram", std::move(n));
+//	}
+//
+//	/**
+//	 * Adding mail support
+//	 */
+//	SMTP::server mail_server;
+//	if(get_smtp_server_info(mail_server, db))
+//	{
+//		tt::status("Adding 'mail' notify support");
+//		auto n = std::make_unique<Agro::Notify::mail>(ioc, mail_server, "Agro Telemetry");
+//		n->enable(true);
+//		noti_fac.add("mail", std::move(n));
+//
+//	}
 
 	Agro::instance instance{ioc,
 		std::move(db),
@@ -127,7 +163,7 @@ int main(int argc, char** argv)
 	return EXIT_SUCCESS;
 }
 
-static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db) noexcept
+static pusha::key get_notify_key(std::filesystem::path const& path, bool& enable, Agro::DB& db) noexcept
 {
 	pusha::key key;
 
@@ -145,13 +181,14 @@ static pusha::key get_notify_key(std::filesystem::path const& path, Agro::DB& db
 		}
 		else {
 			tt::debug("notify private key: imported from '%s' file.", path.c_str());
+			enable = true;
 			goto end;
 		}
 	}
 	else
 	{
 import_db:
-		std::string keyb64 = db.notify_private_key();
+		std::string keyb64 = db.notify_private_key(enable);
 		if(!keyb64.empty())
 		{
 			if(!key.import(keyb64))
@@ -169,16 +206,17 @@ end:
 	return key;
 }
 
-static std::string get_telegram_bot_token(std::string const& telegram_bot_token, Agro::DB& db) noexcept
+static std::string get_telegram_bot_token(std::string const& telegram_bot_token, bool& enable, Agro::DB& db) noexcept
 {
+	enable = false;
 	if(!telegram_bot_token.empty()) return telegram_bot_token;
 
-	return db.notify_telegram_bot_token();
+	return db.notify_telegram_bot_token(enable);
 }
 
-static bool get_smtp_server_info(SMTP::server& server, Agro::DB& db) noexcept
+static bool get_smtp_server_info(SMTP::server& server, bool& enable, Agro::DB& db) noexcept
 {
-	if(db.notify_mail_server_info(server) == SQLITE_ROW)
+	if(db.notify_mail_server_info(server, enable) == SQLITE_ROW)
 	{
 		return mail_factory::is_valid(server);
 	}

@@ -14,6 +14,8 @@ enum class notify_commands{
 	device_set,
 	sensor_list,
 	sensor_set,
+	credential_list,
+	update_credential,
 };
 
 constexpr const ::Message::config<notify_commands> notify_config[] = {
@@ -23,6 +25,8 @@ constexpr const ::Message::config<notify_commands> notify_config[] = {
 	{notify_commands::device_set, "device_set"},
 	{notify_commands::sensor_list, "sensor_list"},
 	{notify_commands::sensor_set, "sensor_set"},
+	{notify_commands::credential_list, "credential_list"},
+	{notify_commands::update_credential, "update_credential"},
 };
 
 inline constexpr ::Message::config<notify_commands> const* get_config(notify_commands t) noexcept

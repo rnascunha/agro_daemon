@@ -42,6 +42,9 @@ class telegram_factory{
 
 		bool is_valid() const noexcept;
 		void notify(std::string const& chatid, std::string const& message) noexcept;
+
+		std::string const& token() const noexcept;
+		void token(std::string const&) noexcept;
 	private:
 		boost::asio::io_context& ioc_;
 		boost::asio::ssl::context ctx_{boost::asio::ssl::context::sslv23};
