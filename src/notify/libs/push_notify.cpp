@@ -110,12 +110,12 @@ void push_notify::receive_response()
 				if(str)
 				{
 					str += std::strlen("HTTP/1.1 ");
-					std::cout << "Reply: " << std::string{str, (size_t)(std::strchr(str, '\r') - str)} << "\n";
+					std::cout << "[push] Reply: " << std::string{str, (size_t)(std::strchr(str, '\r') - str)} << "\n";
 				}
 			}
 			else
 			{
-				std::cout << "Read failed: " << error.message() << "\n";
+				std::cout << "[push] failed: " << error.message() << "\n";
 			}
 		}
 	);

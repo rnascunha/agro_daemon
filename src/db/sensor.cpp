@@ -120,7 +120,7 @@ int DB::read_sensor_values(Device::Device& dev) noexcept
 	}
 
 	res.clear_bidings();
-	for(auto const [type, idx] : list_sensor)
+	for(auto const& [type, idx] : list_sensor)
 	{
 		rc = db_.prepare_bind("SELECT time,value FROM sensor_value "
 							"WHERE deviceid = ? AND sensor_typeid = ? AND idx = ? "

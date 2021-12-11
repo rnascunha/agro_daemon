@@ -261,7 +261,7 @@ template<bool UsePipeline,
 void Client<UsePipeline, TimeOut>::error(const boost::system::error_code& ec,
 		const char* what /* = "" */) noexcept
 {
-	std::cerr << what << ": " << ec.message() << " [" << ec.value() << "]\n";
+	std::cerr << "[mail] " << what << ": " << ec.message() << " [" << ec.value() << "]\n";
 
 	boost::system::error_code ignore_ec;
 	timer_.cancel(ignore_ec);

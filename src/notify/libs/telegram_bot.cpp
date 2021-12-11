@@ -112,12 +112,12 @@ void telegram_bot::receive_response()
 				if(str)
 				{
 					str += std::strlen("HTTP/1.1 ");
-					std::cout << "Reply: " << std::string{str, (size_t)(std::strchr(str, '\r') - str)} << "\n";
+					std::cout << "[telegram] Reply: " << std::string{str, (size_t)(std::strchr(str, '\r') - str)} << "\n";
 				}
 			}
 			else
 			{
-				std::cout << "Read failed: " << error.message() << "\n";
+				std::cout << "[telegram] Failed: " << error.message() << "\n";
 			}
 		}
 	);
