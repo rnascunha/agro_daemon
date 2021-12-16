@@ -1,5 +1,13 @@
 #/bin/bash
 
+OPENSSL=openssl
+
+if ! command -v "$OPENSSL" &> /dev/null
+then
+	echo "ERROR! Command '$OPENSSL' not found" 
+	exit 1;
+fi
+
 DNS_LIST=()
 IP_LIST=()
 
@@ -30,10 +38,11 @@ OUTPUT_DIR=certs
 
 usage()
 {
-	echo "$(basename $0) [-o <output_directory>] "
-	echo "               [-c <ca_prefix>] [-m <domain_prefix>] "
-	echo "               [-s <key_size>] [-a <valid_days>]"
-	echo "               [-i <IP>]... [-d <domain name>]..."
+	echo "Usage:"
+	echo -e "\t$(basename $0) -h|[-o <output_directory>] "
+	echo -e "\t\t\t[-c <ca_prefix>] [-m <domain_prefix>] "
+	echo -e "\t\t\t[-s <key_size>] [-a <valid_days>]"
+	echo -e "\t\t\t[-i <IP>]... [-d <domain name>]..."
 }
 
 exit_if_not_number()
@@ -46,8 +55,12 @@ exit_if_not_number()
 	fi
 }
 
-while getopts i:d:o:c:m:s:a: op; do
-	case $op in 
+while getopts hi:d:o:c:m:s:a: op; do
+	case $op in
+		h)
+			usage
+			exit 0
+		;; 
 		i)
 			IP_LIST+=($OPTARG)
 		;;
@@ -72,7 +85,7 @@ while getopts i:d:o:c:m:s:a: op; do
 			exit_if_not_number $DAYS "-a"
 		;;
 		*)
-			echo "Option '$options' not supported"
+			echo "Option '$op' not supported"
 		;;
 	esac
 done
@@ -86,8 +99,6 @@ fi
 
 CA_SUBJ="/C=$CA_C/ST=$CA_ST/L=$CA_L/O=$CA_O/OU=$CA_OU/CN=$CA_CN"
 DOMAIN_SUBJ="/C=$DOMAIN_C/ST=$DOMAIN_ST/L=$DOMAIN_L/O=$DOMAIN_O/OU=$DOMAIN_OU/CN=$DOMAIN_CN"
-
-OPENSSL=openssl
 
 mkdir -p $OUTPUT_DIR
 cd $OUTPUT_DIR

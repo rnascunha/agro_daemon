@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <limits>
 
 #include "../device/device.hpp"
 #include "../sensor/sensor_type.hpp"
@@ -27,7 +28,8 @@ enum class general_type{
 	app_delete = 1 << 8,
 	//Jobs
 	job_running = 1 << 9,
-	job_stopped = 1 << 10
+	job_stopped = 1 << 10,
+	all_alerts = std::numeric_limits<int>::max()
 };
 
 enum class device_type{
@@ -115,7 +117,7 @@ class Notify{
 				unsigned type, unsigned index,
 				float value) noexcept;
 	private:
-		general_type type_ = general_type::no_alert;
+		general_type type_ = general_type::all_alerts;
 		device_container dev_type_;
 		sensor_container sensor_type_;
 };
