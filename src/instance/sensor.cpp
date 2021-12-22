@@ -92,4 +92,14 @@ bool instance::update_sensor_value(Device::Device& device, Sensor::sensor_type c
 	return added;
 }
 
+std::string instance::get_sensor_value(
+		Device::device_id id,
+		unsigned type, unsigned index,
+		value_time init, value_time end) noexcept
+{
+	Sensor::sensor_description const* stype = sensor_list_.get(type);
+
+	return db_.get_sensor_value(id, stype, type, index, init, end);
+}
+
 }//Agro

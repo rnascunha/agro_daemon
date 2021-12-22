@@ -339,8 +339,7 @@ set(USER_SRC		${USER_DIR}/user.cpp
 					${USER_DIR}/message/user.cpp)
 
 set(DB_DIR			${SRC_DIR}/db)
-set(DB_SRC			${DB_DIR}/sqlite3.cpp
-					${DB_DIR}/db.cpp
+set(DB_SRC			${DB_DIR}/db.cpp
 					${DB_DIR}/user.cpp
 					${DB_DIR}/device.cpp
 					${DB_DIR}/sensor.cpp
@@ -352,7 +351,13 @@ set(DB_SRC			${DB_DIR}/sqlite3.cpp
 set(HELPER_DIR		${SRC_DIR}/helper)
 set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
 					${HELPER_DIR}/time_helper.cpp
-					${HELPER_DIR}/coap_helper.cpp)	
+					${HELPER_DIR}/coap_helper.cpp)
+
+set(LIBS_DIR		${SRC_DIR}/libs)
+set(LIBS_SRC		${LIBS_DIR}/csv/csv.cpp
+					${LIBS_DIR}/csv/scsv.cpp
+					${LIBS_DIR}/csv/fcsv.cpp
+					${LIBS_DIR}/sqlite3/sqlite3.cpp)
 					
 set(INSTANCE_DIR	${SRC_DIR}/instance)
 set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
@@ -382,7 +387,8 @@ set(MAIN_SRC ${SRC_DIR}/main.cpp
 			${NOTIFY_SRC}
 			${DB_SRC}
 			${USER_SRC}
-			${HELPER_SRC})
+			${HELPER_SRC}
+			${LIBS_SRC})
 			
 if(USE_SSL EQUAL 1)
 	list(APPEND MAIN_SRC ${SRC_DIR}/websocket/load_certificate.cpp)
@@ -414,7 +420,7 @@ endif()
 ################
 #### add user
 add_executable(add_user tools/add_user.cpp 
-						${DB_DIR}/sqlite3.cpp
+						${LIBS_DIR}/sqlite3/sqlite3.cpp
 						${SRC_DIR}/error.cpp)
 
 set_target_properties(add_user PROPERTIES
@@ -428,7 +434,7 @@ target_link_libraries(add_user ${SQLite3_LIBRARIES})
 
 #### add db
 add_executable(init_db tools/init_db.cpp 
-						${DB_DIR}/sqlite3.cpp
+						${LIBS_DIR}/sqlite3/sqlite3.cpp
 						${SRC_DIR}/error.cpp
 						${USER_DIR}/password.cpp)
 

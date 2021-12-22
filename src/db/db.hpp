@@ -1,7 +1,7 @@
 #ifndef AGRO_DAEMON_DB_HPP__
 #define AGRO_DAEMON_DB_HPP__
 
-#include "sqlite3.hpp"
+#include "../libs/sqlite3/sqlite3.hpp"
 #include <system_error>
 #include <string>
 #include <vector>
@@ -153,6 +153,11 @@ class DB{
 		int update_sensor_value(Device::Device const& dev,
 				Sensor::sensor_type const& data,
 				value_time time) noexcept;
+		std::string get_sensor_value(Device::device_id id,
+				Sensor::sensor_description const*,
+				unsigned type, unsigned index,
+				value_time init, value_time end) noexcept;
+
 
 		/**
 		 * Image interface

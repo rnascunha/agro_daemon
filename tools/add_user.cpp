@@ -6,7 +6,7 @@
 #include <openssl/evp.h>
 #include <openssl/rand.h>
 
-#include "../src/db/sqlite3.hpp"
+#include "../src/libs/sqlite3/sqlite3.hpp"
 #include "../src/user/authenticate_params.h"
 
 #include <system_error>

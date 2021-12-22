@@ -2,6 +2,7 @@
 #include "../sensor/sensor_type.hpp"
 #include "tt/tt.hpp"
 #include "../helper/time_helper.hpp"
+#include "../libs/csv/scsv.hpp"
 
 namespace Agro{
 
@@ -204,6 +205,65 @@ int DB::update_sensor_value(Device::Device const& dev,
 	}
 
 	return res.step();
+}
+
+static void get_value(CSV::swriter& os,
+		Sensor::sensor_description const* stype,
+		Sensor::sensor_value const& value) noexcept
+{
+	if(!stype)
+	{
+		os.column(value.int_v);
+		return;
+	}
+
+	switch(stype->type)
+	{
+		case Sensor::sensor_unit_type::tfloat:
+			os.column(value.float_v);
+		break;
+		case Sensor::sensor_unit_type::tunsigned:
+			os.column(value.uint_v);
+		break;
+		case Sensor::sensor_unit_type::array:
+		case Sensor::sensor_unit_type::integer:
+		default:
+			os.column(value.int_v);
+		break;
+	}
+}
+
+std::string DB::get_sensor_value(Device::device_id id,
+				Sensor::sensor_description const* stype,
+				unsigned type, unsigned index,
+				value_time init, value_time end) noexcept
+{
+	std::string str;
+	sqlite3::statement res;
+	int rc = db_.prepare_bind("SELECT time,value "
+								"FROM sensor_value "
+								"WHERE deviceid = ? AND sensor_typeid = ? AND idx = ? AND "
+								"time > ? AND time < ?", res,
+								id, type, index, init, end);
+	if(rc != SQLITE_OK)
+	{
+		return str;
+	}
+
+	CSV::swriter os;
+	os.row("time", "value");
+	while(res.step() == SQLITE_ROW)
+	{
+		int size;
+		os.column(res.integer(0));
+		get_value(os, stype, Sensor::sensor_value{static_cast<std::uint8_t const*>(res.blob(1, size))});
+		os.nl();
+
+	}
+
+	str = os.str();
+
+	return str;
 }
 
 }//Agro

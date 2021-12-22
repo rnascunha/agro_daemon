@@ -165,6 +165,10 @@ class instance{
 		std::size_t update_sensor_value(Device::Device&, const void*, std::size_t) noexcept;
 		bool update_sensor_value(Device::Device&, Sensor::sensor_type const&) noexcept;
 
+		std::string get_sensor_value(Device::device_id,
+				unsigned type, unsigned index,
+				value_time init, value_time end) noexcept;
+
 		/**
 		 * Image
 		 */

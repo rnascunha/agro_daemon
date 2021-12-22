@@ -17,6 +17,7 @@ enum class sensor_commands{
 	add,
 	edit,
 	remove,
+	exportv
 };
 
 constexpr const ::Message::config<sensor_commands> sensor_config[] = {
@@ -24,6 +25,7 @@ constexpr const ::Message::config<sensor_commands> sensor_config[] = {
 	{sensor_commands::add, "add"},
 	{sensor_commands::edit, "edit"},
 	{sensor_commands::remove, "remove"},
+	{sensor_commands::exportv, "export"},
 };
 
 inline constexpr ::Message::config<sensor_commands> const* get_config(sensor_commands t) noexcept

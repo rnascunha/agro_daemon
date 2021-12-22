@@ -103,7 +103,7 @@ write_file(binary_type type,
 				std::string const& name,
 				std::filesystem::path const& path) noexcept
 {
-	tt::status("Sending file [%d]%s of path %s",
+	tt::status("Sending file [%d] %s of path %s",
 			static_cast<int>(type),
 			name.c_str(), path.c_str());
 
@@ -116,6 +116,29 @@ write_file(binary_type type,
 	ss.write(reinterpret_cast<char const*>(&size), sizeof(size));
 	ss << name;
 	ss << in.rdbuf();
+
+	this->write(std::make_shared<std::string>(ss.str()), false);
+}
+
+template<bool UseSSL>
+void
+Websocket<UseSSL>::
+write_binary(binary_type type,
+				std::string const& name,
+				std::string const& data) noexcept
+{
+	tt::status("Sending binary data [%d/size=%zu] %s",
+			static_cast<int>(type), data.size(),
+			name.c_str());
+
+	std::stringstream ss;
+
+	std::uint8_t t = static_cast<std::uint8_t>(type);
+	ss.write(reinterpret_cast<char const*>(&t), sizeof(t));
+	std::uint16_t size = name.size();
+	ss.write(reinterpret_cast<char const*>(&size), sizeof(size));
+	ss << name;
+	ss << data;
 
 	this->write(std::make_shared<std::string>(ss.str()), false);
 }

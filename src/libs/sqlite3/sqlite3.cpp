@@ -1,5 +1,5 @@
 #include "sqlite3.hpp"
-#include "../error.hpp"
+#include "../../error.hpp"
 #include <string>
 #include <vector>
 #include <iostream>

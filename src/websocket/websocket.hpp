@@ -14,7 +14,8 @@
 enum class binary_type{
 	json = 0,
 	image = 1,
-	app = 2
+	app = 2,
+	file = 3
 };
 
 template<bool UseSSL>
@@ -57,6 +58,9 @@ class Websocket final :
 		void write_file(binary_type type,
 				std::string const&,
 				std::filesystem::path const&) noexcept;
+		void write_binary(binary_type type,
+				std::string const& name,
+				std::string const& data) noexcept;
 
 		Agro::User::Logged const& user() const noexcept;
 
