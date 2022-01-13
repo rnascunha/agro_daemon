@@ -7,6 +7,8 @@ jobs:
     steps:
       - name: Checking out repostitory
         uses: actions/checkout@v2
+        with:
+          submodules: recursive
       - name: Install boost
         id: install-boost
         uses: MarkusJx/install-boost@v2.1.0
