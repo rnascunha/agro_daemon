@@ -247,7 +247,6 @@ include_directories(third/coap-te/src)
 # My async
 ###########################
 
-#add_subdirectory(third/my_async/src)
 include_directories(third/my_async/include)
 
 ############################
@@ -411,16 +410,13 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_EXTENSIONS ON
 )
 
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${SQLite3_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} OpenSSL::SSL)
-
-target_link_libraries(${PROJECT_NAME} coap-te)
-target_link_libraries(${PROJECT_NAME} pusha)
-target_link_libraries(${PROJECT_NAME} csv_export)
-
-message(STATUS "Linking threads: ${CMAKE_THREAD_LIBS_INIT}")
-target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES}
+										${SQLite3_LIBRARIES}
+										OpenSSL::SSL
+										coap-te
+										pusha
+										csv_export
+										${CMAKE_THREAD_LIBS_INIT})
 
 #if(WIN32)
 #	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
@@ -442,8 +438,8 @@ set_target_properties(add_user PROPERTIES
     CXX_EXTENSIONS ON
 )
 
-target_link_libraries(add_user OpenSSL::SSL)
-target_link_libraries(add_user ${SQLite3_LIBRARIES})
+target_link_libraries(add_user OpenSSL::SSL
+								${SQLite3_LIBRARIES})
 
 #### add db
 add_executable(init_db tools/init_db.cpp 
@@ -457,9 +453,9 @@ set_target_properties(init_db PROPERTIES
     CXX_EXTENSIONS ON
 )
 
-#target_link_libraries(add_user OpenSSL::SSL)
-target_link_libraries(init_db ${SQLite3_LIBRARIES})
-target_link_libraries(init_db pusha)
+target_link_libraries(init_db ${SQLite3_LIBRARIES} 
+								pusha 
+								${CMAKE_THREAD_LIBS_INIT})
 
 #### add user group
 #add_executable(add_user_group tools/add_user_group.cpp 
