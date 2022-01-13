@@ -13,8 +13,6 @@ jobs:
         with:
           boost_version: 1.73.0
           platform_version: 18.04
-        env:
-          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       - name: Build app
         id: build-app
         run: |
@@ -23,3 +21,5 @@ jobs:
           cd build
           cmake -DWITH_SSL=0 -DBOOST_PATH=$BOOST_ROOT ..
           cmake -build .
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
