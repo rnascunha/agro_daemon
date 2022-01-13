@@ -13,6 +13,7 @@ jobs:
         with:
           boost_version: 1.75.0
           toolset: gcc
+          platform_version: 18.04
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
       - name: Build app
