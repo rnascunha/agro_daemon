@@ -1,14 +1,15 @@
-#include "csv/swriter.hpp"
+#include "html/swriter.hpp"
 #include <iostream>
 
 int main()
 {
-	std::cout << "CSV String Test\n";
+	std::cout << "HTML String Test\n";
 
-	CSV::swriter os;
+	HTML::swriter os;
 
 	std::cout << "Writing to string stream...\n";
-	os.row("col1", "col2", "col3")
+	os.init()
+		.row("col1", "col2", "col3")
 		.column(1)
 		.column(2.3)
 		.column('a')
@@ -17,7 +18,8 @@ int main()
 		.row(5, 7, 9)
 		.column("t\"es,te")
 		.column("teste2")
-		.column(CSV::io::break_line, 1, "teste3", CSV::io::break_line);
+		.column(HTML::io::break_line, 1, "teste3", HTML::io::break_line)
+		.end();
 
 	std::cout << "Printing string...\n\n";
 

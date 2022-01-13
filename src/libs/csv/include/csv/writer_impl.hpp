@@ -2,15 +2,26 @@
 #define AGRO_DAEMON_LIB_CSV_WRITE_IMPL_HPP__
 
 #include <type_traits>
-#include "csv.hpp"
+#include "writer.hpp"
 
 namespace CSV{
 
 template<typename Value>
+writer& writer::column_val_impl(Value&& v) noexcept
+{
+	if constexpr(std::is_same<std::string, std::remove_cv_t<std::remove_reference_t<Value>>>::value)
+	{
+		return column_str(v);
+	}
+	else
+	{
+		return column_arthimectic(v);
+	}
+}
+
+template<typename Value>
 writer& writer::column_arthimectic(Value&& v) noexcept
 {
-	static_assert(!std::is_arithmetic<Value>::value, "Value must be a float or integer");
-
 	if(has_col_)
 	{
 		os_ << sep_;
@@ -33,8 +44,15 @@ writer& writer::operator<<(Value&& v) noexcept
 template<typename ...Args>
 writer& writer::column(Args&&... args) noexcept
 {
-	column_impl(std::forward<Args>(args)...);
-	return *this;
+	if constexpr(sizeof...(args) == 1)
+	{
+		return column_val_impl(args...);
+	}
+	else
+	{
+		column_impl(std::forward<Args>(args)...);
+		return *this;
+	}
 }
 
 template<typename ...Args>

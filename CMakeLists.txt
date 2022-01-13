@@ -140,12 +140,18 @@ add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignor
 				-DTT_LEVEL=${TT_LEVEL})
 
 ###############################
+find_package(Threads REQUIRED)
+if(Threads_FOUND)
+	message(STATUS "Threads found")
+else()
+	message(FATAL_ERROR "ERROR! Threads NOT found!")
+endif() 
+
 find_package(Boost COMPONENTS REQUIRED)
 
 if(Boost_FOUND)
 	message(STATUS "Boost Library found! " ${Boost_INCLUDE_DIRS})
-#	include_directories(${Boost_INCLUDE_DIRS})
-	include_directories(${BOOST_ROOT})
+	include_directories(${Boost_INCLUDE_DIRS})
 else()
 	message(FATAL_ERROR "Boost Library NOT found! Define variable BOOST_ROOT (and BOOST_INCLUDEDIR if necessary")
 endif()
@@ -251,6 +257,12 @@ include_directories(third/my_async/include)
 add_subdirectory(third/pusha)
 include_directories(third/pusha/include third/pusha/include_cpp)
 
+############################
+# csv_export
+############################
+add_subdirectory(${SRC_DIR}/libs/csv)
+include_directories(${SRC_DIR}/libs/csv/include)
+
 ###########################
 # Adding files 
 ###########################
@@ -354,10 +366,7 @@ set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
 					${HELPER_DIR}/coap_helper.cpp)
 
 set(LIBS_DIR		${SRC_DIR}/libs)
-set(LIBS_SRC		${LIBS_DIR}/csv/csv.cpp
-					${LIBS_DIR}/csv/scsv.cpp
-					${LIBS_DIR}/csv/fcsv.cpp
-					${LIBS_DIR}/sqlite3/sqlite3.cpp)
+set(LIBS_SRC		${LIBS_DIR}/sqlite3/sqlite3.cpp)
 					
 set(INSTANCE_DIR	${SRC_DIR}/instance)
 set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
@@ -408,12 +417,16 @@ target_link_libraries(${PROJECT_NAME} OpenSSL::SSL)
 
 target_link_libraries(${PROJECT_NAME} coap-te)
 target_link_libraries(${PROJECT_NAME} pusha)
+target_link_libraries(${PROJECT_NAME} csv_export)
 
-if(WIN32)
-	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
-else()
-	target_link_libraries(${PROJECT_NAME} pthread)
-endif()
+message(STATUS "Linking threads: ${CMAKE_THREAD_LIBS_INIT}")
+target_link_libraries(${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+
+#if(WIN32)
+#	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
+#else()
+#	target_link_libraries(${PROJECT_NAME} pthread)
+#endif()
 
 ################
 #tools

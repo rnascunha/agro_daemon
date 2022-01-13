@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project (csv)
+project (html_export)
 
 message(STATUS "Building OS: " ${CMAKE_SYSTEM_NAME})
 
@@ -13,10 +13,9 @@ if(MSVC)
 	message(STATUS "MSVC build")
 	set(CMAKE_CXX_FLAGS "/W4 /std:c++17 /EHsc /bigobj")
 	set(CMAKE_CXX_FLAGS_RELEASE "/O2")
-	add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
 else()
 	message(STATUS "NO MSVC build")
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter")	#-fmax-errors=5 
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -std=c++17")	#-fmax-errors=5 
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
@@ -47,12 +46,20 @@ endif()
 
 message(STATUS "Compiler: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
 
-set(DIR_SRC		../)
-set(MAIN_SRC	${DIR_SRC}/csv.cpp ${DIR_SRC}/fcsv.cpp ${DIR_SRC}/scsv.cpp)
+set(DIR_SRC		./)
+set(MAIN_SRC	${DIR_SRC}/writer.cpp ${DIR_SRC}/fwriter.cpp ${DIR_SRC}/swriter.cpp)
 
-include_directories(${DIR_SRC})
+include_directories(${DIR_SRC}/include)
 
-add_executable(csv_test ${MAIN_SRC} main_csv.cpp)
-add_executable(csv_file ${MAIN_SRC} file_csv.cpp)
-add_executable(csv_string ${MAIN_SRC} string_csv.cpp)
+add_library(${PROJECT_NAME}	${MAIN_SRC})
 
+if(DEFINED WITH_EXAMPLES)
+	if(${WITH_EXAMPLES} EQUAL 1)
+		set(EXAMPLE_DIR	examples)
+		set(EXAMPLE_LIST	html_test html_file html_str)
+		foreach(example ${EXAMPLE_LIST})
+			add_executable(${example} ${EXAMPLE_DIR}/${example}.cpp)
+			target_link_libraries(${example} ${PROJECT_NAME})
+		endforeach()
+	endif()
+endif()

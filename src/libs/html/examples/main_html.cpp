@@ -1,12 +1,12 @@
-#include "csv/writer.hpp"
+#include "html/writer.hpp"
 #include <iostream>
 #include <fstream>
 
-#define FILE_NAME "test.txt"
+#define FILE_NAME "test.html"
 
 int main()
 {
-	std::cout << "CSV Test\n";
+	std::cout << "HTML Test\n";
 
 	std::ofstream osf;
 	std::filebuf * fb = osf.rdbuf();
@@ -20,19 +20,23 @@ int main()
 
 	std::cout << "Opened file\n";
 
-	CSV::writer os{fb};
+	HTML::writer os{fb};
+	const std::string t{"teste\"ter'sd"};
 
 	std::cout << "Writing to file...\n";
-	os.row(std::string{"col1"}, "col2", "col3")
+	os.init()
+		.hrow(std::string{"co>l1"}, "co<l2", "col3")
 		.column(1)
 		.column(2.3)
 		.column('a')
 		.nl()
 		.row(1, 2, 2.3)
 		.row(5, 7, 9)
-		.column("t\"es,te")
-		.column("teste2")
-		.column(CSV::io::break_line, 1, "teste3", CSV::io::break_line);
+		.row(t, 2, 3.3)
+		.column(std::string{"t\"es,te"}, 1)
+		.column("te<ste2")
+		.column(HTML::io::break_line, 1, "teste3", HTML::io::break_line)
+		.end();
 
 	std::cout << "Closing file...\n";
 	fb->close();

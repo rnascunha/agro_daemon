@@ -1,5 +1,4 @@
-#include "csv.hpp"
-#include <iostream>
+#include "include/csv/writer.hpp"
 
 namespace CSV{
 
@@ -39,6 +38,33 @@ writer& writer::column(double val) noexcept
 }
 
 writer& writer::column(std::string const& str) noexcept
+{
+	return column_str(str);
+}
+
+writer& writer::column(std::string&& str) noexcept
+{
+	return column(static_cast<std::string const&>(str));
+}
+
+writer& writer::column(const char* str) noexcept
+{
+	return column(std::string{str});
+}
+
+writer& writer::column(io) noexcept
+{
+	return nl();
+}
+
+writer& writer::nl() noexcept
+{
+	has_col_ = false;
+	os_ << nl_;
+	return *this;
+}
+
+writer& writer::column_str(std::string const& str) noexcept
 {
 	bool use_dquote = false;
 	for(char const& c : str)
@@ -93,28 +119,6 @@ writer& writer::column(std::string const& str) noexcept
 		os_ << dquote;
 	}
 
-	return *this;
-}
-
-writer& writer::column(std::string&& str) noexcept
-{
-	return column(static_cast<std::string const&>(str));
-}
-
-writer& writer::column(const char* str) noexcept
-{
-	return column(std::string{str});
-}
-
-writer& writer::column(io) noexcept
-{
-	return nl();
-}
-
-writer& writer::nl() noexcept
-{
-	has_col_ = false;
-	os_ << nl_;
 	return *this;
 }
 

@@ -1,14 +1,13 @@
-#include "csv/fwriter.hpp"
+#include "html/fwriter.hpp"
 #include <iostream>
-#include <fstream>
 
-#define FILE_NAME "file.txt"
+#define FILE_NAME "file2.html"
 
 int main()
 {
-	std::cout << "CSV File Test\n";
+	std::cout << "HTML File Test\n";
 
-	CSV::fwriter os(FILE_NAME);
+	HTML::fwriter os(FILE_NAME);
 
 	if(!os.is_open())
 	{
@@ -19,7 +18,8 @@ int main()
 	std::cout << "Opened file\n";
 
 	std::cout << "Writing to file...\n";
-	os.row("col1", "col2", "col3")
+	os.init()
+		.hrow("col1", std::string{"col2"}, "col3")
 		.column(1)
 		.column(2.3)
 		.column('a')
@@ -28,7 +28,7 @@ int main()
 		.row(5, 7, 9)
 		.column("t\"es,te")
 		.column("teste2")
-		.column(CSV::io::break_line, 1, "teste3", CSV::io::break_line);
+		.column(HTML::io::break_line, 1, "teste3", HTML::io::break_line);
 
 	std::cout << "Closing file...\n";
 

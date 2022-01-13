@@ -49,8 +49,12 @@ class writer{
 		const char*		nl_;
 		bool			has_col_ = false;
 
+		template<typename Value>
+		writer& column_val_impl(Value&&) noexcept;
+
 		template<typename Arg>
 		writer& column_arthimectic(Arg&&) noexcept;
+		writer& column_str(std::string const& str) noexcept;
 
 		template<typename Arg>
 		void column_impl(Arg&& arg) noexcept;
@@ -65,6 +69,6 @@ class writer{
 
 }//CSV
 
-#include "csv_impl.hpp"
+#include "writer_impl.hpp"
 
 #endif /* AGRO_DAEMON_LIB_CSV_WRITE_HPP__ */
