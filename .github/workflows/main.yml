@@ -9,10 +9,9 @@ jobs:
         uses: actions/checkout@v2
       - name: Install boost
         id: install-boost
-        uses: MarkusJx/install-boost@v2.0.0
+        uses: MarkusJx/install-boost@v2.1.0
         with:
           boost_version: 1.73.0
-          toolset: gcc
           platform_version: 18.04
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
