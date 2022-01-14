@@ -1,6 +1,13 @@
 name: Agro Build
-on: [push, pull_request, workflow_dispatch]
-
+on: 
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      ssl:
+        description: Compile with SSL
+        required: true
+        default: '1'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -20,7 +27,8 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DWITH_SSL=1 -DBOOST_PATH=$BOOST_ROOT ..
+          cmake -DWITH_SSL=$WITH_SSL -DBOOST_PATH=$BOOST_ROOT ..
           cmake --build .
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+          WITH_SSL: ${{ github.event.inputs.ssl }}
