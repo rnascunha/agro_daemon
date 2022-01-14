@@ -1,0 +1,130 @@
+#include "process.hpp"
+#include "types.hpp"
+#include "../../error.hpp"
+#include "../../instance/agro.hpp"
+#include "../message/device.hpp"
+
+namespace Agro{
+namespace Device{
+namespace Resource{
+
+bool process_route(Agro::Device::Device& device,
+					Agro::instance& instance,
+					engine::endpoint const& ep,
+					const void* payload, std::size_t payload_len,
+					std::error_code& ec,
+					bool force_send /* = true */) noexcept
+{
+	if(payload_len < sizeof(route))
+	{
+		ec = make_error_code(Error::value_too_small);
+		return false;
+	}
+	route const* rt = static_cast<route const*>(payload);
+
+	device.update(ep, *rt,
+			static_cast<const uint8_t*>(payload) + sizeof(route),
+			payload_len - sizeof(route));
+
+	if(instance.update_tree(device) || force_send)
+	{
+		instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
+	}
+
+	return true;
+}
+
+bool process_board(Agro::Device::Device& device,
+					Agro::instance& instance,
+					engine::endpoint const& ep,
+					const void* payload, std::size_t payload_len,
+					std::error_code& ec) noexcept
+{
+	if(payload_len < sizeof(board_config))
+	{
+		ec = make_error_code(Error::value_too_small);
+		return false;
+	}
+	board_config const* rt = static_cast<board_config const*>(payload);
+
+	device.update(ep, *rt,
+				static_cast<const char*>(payload) + sizeof(board_config),
+				payload_len - sizeof(board_config));
+
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_board_to_json(device)));
+
+	return true;
+}
+
+bool process_config(Agro::Device::Device& device,
+					Agro::instance& instance,
+					engine::endpoint const& ep,
+					const void* payload, std::size_t payload_len,
+					std::error_code& ec) noexcept
+{
+	if(payload_len < sizeof(config))
+	{
+		ec = make_error_code(Error::value_too_small);
+		return false;
+	}
+	config const* rt = static_cast<config const*>(payload);
+
+	::mesh_addr_t net_addr{rt->net_id.addr};
+	Agro::Device::Net* net = instance.get_or_add_net(net_addr);
+	device.update(ep, *rt, net);
+
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_config_to_json(device)));
+
+	return true;
+}
+
+bool process_full_config(Agro::Device::Device& device,
+					Agro::instance& instance,
+					engine::endpoint const& ep,
+					const void* payload, std::size_t payload_len,
+					std::error_code& ec) noexcept
+{
+	if(payload_len < sizeof(full_config))
+	{
+		ec = make_error_code(Error::value_too_small);
+		return false;
+	}
+	full_config const* rt = static_cast<full_config const*>(payload);
+
+	::mesh_addr_t net_addr{rt->fconfig.net_id.addr};
+	Agro::Device::Net* net = instance.get_or_add_net(net_addr);
+
+	device.update(ep, *rt, net,
+			static_cast<const uint8_t*>(payload) + sizeof(route) + sizeof(int8_t) + sizeof(config),
+			payload_len - sizeof(route) - sizeof(int8_t) - sizeof(config));
+
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(Agro::Device::Message::device_full_config_to_json(device)));
+
+	instance.update_tree(device);
+
+	return true;
+}
+
+void process_sensors_data(Agro::Device::Device& device,
+					Agro::instance& instance,
+					engine::endpoint const& ep,
+					const void* payload, std::size_t payload_len,
+					std::error_code& ec) noexcept
+{
+	instance.update_db_device(device);
+	instance.update_sensor_value(device, payload, payload_len);
+
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+			std::make_shared<std::string>(
+					Message::device_sensor_data(device,
+							payload, payload_len,
+							instance.sensor_list())));
+}
+
+}//Resource
+}//Device
+}//Agro

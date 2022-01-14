@@ -60,7 +60,7 @@ mesh_addr_t& mesh_addr_t::operator=(mesh_addr_t const& rhs) noexcept
 	return *this;
 }
 
-mesh_addr_t& mesh_addr_t::operator=(Resource::mesh_addr_t const& rhs) noexcept
+mesh_addr_t& mesh_addr_t::operator=(Agro::Device::Resource::mesh_addr_t const& rhs) noexcept
 {
 	std::memcpy(addr, &rhs, sizeof(this->addr));
 	return *this;
@@ -77,5 +77,5 @@ char* mesh_addr_t::to_string(char* str, unsigned size) const noexcept
 std::string mesh_addr_t::to_string() const noexcept
 {
 	char buf[18];
-	return std::string{to_string(buf, 18)};
+	return to_string(buf, 18);
 }

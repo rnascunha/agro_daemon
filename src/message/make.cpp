@@ -1,5 +1,4 @@
 #include "make.hpp"
-#include "../device/helper.hpp"
 #include "coap-te/helper/json/util.hpp"
 #include "rapidjson/writer.h" // for stringify JSON
 
@@ -38,25 +37,6 @@ void add_response_status(rapidjson::Document& doc, CoAP::Message::code mcode) no
 	doc.AddMember("status", CoAP::Message::is_success(mcode), doc.GetAllocator());
 }
 
-void add_device(rapidjson::Document& doc, CoAP::Message::Option::option const& op) noexcept
-{
-	doc.AddMember("device",
-			rapidjson::Value(static_cast<const char*>(op.value), op.length,
-				doc.GetAllocator()).Move(),
-				doc.GetAllocator());
-}
-
-
-void add_device(rapidjson::Document& doc, mesh_addr_t const& mesh) noexcept
-{
-	char addr[18];
-	snprintf(addr, 18, MACSTR, MAC2STR(mesh.addr));
-	doc.AddMember("device",
-				rapidjson::Value(addr,
-					doc.GetAllocator()).Move(),
-					doc.GetAllocator());
-}
-
 void add_data(rapidjson::Document& doc, rapidjson::Value& data) noexcept
 {
 	doc.AddMember("data", data, doc.GetAllocator());
@@ -68,7 +48,7 @@ std::string stringify(rapidjson::Document const& doc) noexcept
 	rapidjson::Writer<rapidjson::StringBuffer> writer(sb);
 	doc.Accept(writer);
 
-	return std::string{sb.GetString()};
+	return sb.GetString();
 }
 
 }//Message

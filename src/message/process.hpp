@@ -1,18 +1,30 @@
 #ifndef AGRO_MESH_MESSAGE_PROCESS_HPP__
 #define AGRO_MESH_MESSAGE_PROCESS_HPP__
 
+#include "../instance/agro.hpp"
 #include "../coap_engine.hpp"
 #include "../device/list.hpp"
+#include "../user/user.hpp"
+#include "../websocket/types.hpp"
 #include <string>
 
+namespace Agro{
 namespace Message{
 
-void process_request(rapidjson::Document const& doc,
-			Device_List& device_list,
-			engine& coap_engine) noexcept;
-void process_commands(rapidjson::Document const& d, Device_List& list) noexcept;
-void process(engine&, std::string&& str, Device_List&) noexcept;
+void process(std::string&& str,
+		websocket_ptr,
+		instance&,
+		User::Logged&) noexcept;
+
+void process_report(rapidjson::Document const&,
+		websocket_ptr ws,
+		instance& instance,
+		User::Logged& user) noexcept;
+
+void process_image(rapidjson::Document const&, websocket_ptr, instance&) noexcept;
+void process_app(rapidjson::Document const&, Agro::websocket_ptr, instance&) noexcept;
 
 }//Message
+}//Agro
 
 #endif /* AGRO_MESH_MESSAGE_PROCESS_HPP__ */

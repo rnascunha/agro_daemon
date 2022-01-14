@@ -10,3 +10,9 @@
 [submodule "third/rapidjson"]
 	path = third/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "third/pusha"]
+	path = third/pusha
+	url = https://github.com/rnascunha/pusha.git
+[submodule "third/argh"]
+	path = third/argh
+	url = https://github.com/adishavit/argh.git
