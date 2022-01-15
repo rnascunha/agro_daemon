@@ -64,7 +64,7 @@ instance::instance(boost::asio::io_context& ioc,
 	load_certificate(ctx_, ssl_cert, ssl_key, ecb);
 	if(ec)
 	{
-		tt::error("Error loading key/certificate! [%d/%s]", ec.value(), ec.message());
+		tt::error("Error loading key/certificate! [%d/%s]", ec.value(), ec.message().c_str());
 		return;
 	}
 

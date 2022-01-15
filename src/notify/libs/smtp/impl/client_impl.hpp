@@ -281,7 +281,7 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 		os << base64_encode(server_.user) << "\r\n";
 		os << base64_encode(server_.password) << "\r\n";
 		os << "MAIL FROM: <" << data_.from_email << ">\r\n";
-		for(auto const& to: data_.to_email)
+		for(auto const& to : data_.to_email)
 		{
 			os << "RCPT TO: <" << to <<  ">\r\n";
 		}
@@ -293,7 +293,10 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 		comm_.emplace_back("", 334);
 		comm_.emplace_back("", 334);
 		comm_.emplace_back("", 235);
-		for(auto const& to: data_.to_email)
+
+		auto s = data_.to_email.size();
+//		for(auto const& to : data_.to_email)
+		while(s--)
 		{
 			comm_.emplace_back("", 250);
 		}
