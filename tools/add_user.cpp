@@ -30,6 +30,8 @@ void usage(const char* program)
 
 int main(int argc, char** argv)
 {
+	using xeds::sqlite3;
+
 	if(argc != 2)
 	{
 		std::cerr << "Wrong number of arguments!\n";

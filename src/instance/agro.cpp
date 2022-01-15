@@ -72,7 +72,7 @@ instance::instance(boost::asio::io_context& ioc,
 #endif /* USE_SSL == 0 */
 	if(ec)
 	{
-		tt::error("Error opening listener! [%d/%s]", ec.value(), ec.message());
+		tt::error("Error opening listener! [%d/%s]", ec.value(), ec.message().c_str());
 		return;
 	}
 

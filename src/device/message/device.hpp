@@ -8,6 +8,7 @@
 #include "../../message/types.hpp"
 #include <string>
 #include "../../sensor/message/sensor.hpp"
+#include "../../helper/utility.hpp"
 
 namespace Agro{
 namespace Device{
@@ -44,7 +45,8 @@ inline constexpr ::Message::config<device_commands> const* get_device_config(con
 {
 	for(std::size_t i = 0; i < sizeof(device_config) / sizeof(device_config[0]); i++)
 	{
-		if(std::strcmp(t, device_config[i].name) == 0) return &device_config[i];
+//		if(std::strcmp(t, device_config[i].name) == 0) return &device_config[i];
+		if(is_equal(t, device_config[i].name) == 0) return &device_config[i];
 	}
 	return nullptr;
 }

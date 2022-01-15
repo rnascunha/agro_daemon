@@ -2,6 +2,7 @@
 #include "make.hpp"
 #include "../websocket/types.hpp"
 #include "../instance/agro.hpp"
+#include "../helper/utility.hpp"
 
 namespace Agro{
 namespace Message{
@@ -26,7 +27,8 @@ inline constexpr ::Message::config<report_type> const* get_report_type_config(co
 {
 	for(std::size_t i = 0; i < sizeof(report_type_arr) / sizeof(report_type_arr[0]); i++)
 	{
-		if(std::strcmp(t, report_type_arr[i].name) == 0) return &report_type_arr[i];
+//		if(std::strcmp(t, report_type_arr[i].name) == 0) return &report_type_arr[i];
+		if(is_equal(t, report_type_arr[i].name)) return &report_type_arr[i];
 	}
 	return nullptr;
 }

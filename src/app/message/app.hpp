@@ -6,6 +6,8 @@
 #include "../../message/types.hpp"
 #include "../../instance/agro.hpp"
 
+#include "../../helper/utility.hpp"
+
 namespace Agro{
 namespace Message {
 
@@ -36,7 +38,8 @@ inline constexpr ::Message::config<app_commands> const* get_app_config(const cha
 {
 	for(std::size_t i = 0; i < sizeof(app_config) / sizeof(app_config[0]); i++)
 	{
-		if(std::strcmp(t, app_config[i].name) == 0) return &app_config[i];
+//		if(std::strcmp(t, app_config[i].name) == 0) return &app_config[i];
+		if(is_equal(t, app_config[i].name) == 0) return &app_config[i];
 	}
 	return nullptr;
 }

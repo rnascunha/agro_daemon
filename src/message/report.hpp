@@ -4,6 +4,7 @@
 #include <string>
 #include "types.hpp"
 #include "../device/types.hpp"
+#include "../helper/utility.hpp"
 
 #include "rapidjson/document.h"
 //#include "../websocket/types.hpp"
@@ -66,7 +67,8 @@ inline constexpr ::Message::config<report_commands> const* get_report_config(con
 {
 	for(std::size_t i = 0; i < sizeof(report_config) / sizeof(report_config[0]); i++)
 	{
-		if(std::strcmp(t, report_config[i].name) == 0) return &report_config[i];
+//		if(std::strcmp(t, report_config[i].name) == 0) return &report_config[i];
+		if(is_equal(t, report_config[i].name)) return &report_config[i];
 	}
 	return nullptr;
 }

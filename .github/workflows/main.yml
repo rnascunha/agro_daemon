@@ -9,10 +9,23 @@ on:
         required: true
         default: '1'
 env:
-  ssl: ${{ github.event.inputs.ssl || '1' }}
+  WITH_SSL: ${{ github.event.inputs.ssl || '1' }}
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Ubuntu GCC
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+          - name: Ubuntu Clang
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
     steps:
       - name: Checking out repostitory
         uses: actions/checkout@v2
@@ -29,8 +42,9 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DWITH_SSL=$WITH_SSL -DBOOST_PATH=$BOOST_ROOT ..
+          cmake -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
+                -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx}} \
+                -DWITH_SSL=$WITH_SSL -DBOOST_PATH=$BOOST_ROOT ..
           cmake --build .
         env:
           BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
-          WITH_SSL: ${{ env.ssl }}

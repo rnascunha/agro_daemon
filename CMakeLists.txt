@@ -102,7 +102,7 @@ if(MSVC)
 	add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
 else()
 	message(STATUS "NO MSVC build")
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter")	#-fmax-errors=5 
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
@@ -131,7 +131,7 @@ if(WIN32)
         message("WIN32: " ${ver})
 endif()
 
-message(STATUS "Compiler: " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
+message(STATUS "Compiler: " ${CMAKE_C_COMPILER} " | " ${CMAKE_CXX_COMPILER} " " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
 
 add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignored at POSIX
 				-DJSON_MESSAGES 
@@ -140,33 +140,25 @@ add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignor
 				-DTT_LEVEL=${TT_LEVEL})
 
 ###############################
+
 find_package(Threads REQUIRED)
-if(Threads_FOUND)
-	message(STATUS "Threads found")
-else()
-	message(FATAL_ERROR "ERROR! Threads NOT found!")
-endif() 
+
+###############################
 
 find_package(Boost COMPONENTS REQUIRED)
-
 if(Boost_FOUND)
-	message(STATUS "Boost Library found! " ${Boost_INCLUDE_DIRS})
 	include_directories(${Boost_INCLUDE_DIRS})
-else()
-	message(FATAL_ERROR "Boost Library NOT found! Define variable BOOST_ROOT (and BOOST_INCLUDEDIR if necessary")
 endif()
 
 ###############################
+
 find_package(OpenSSL REQUIRED)
 if(OPENSSL_FOUND)
-	message(STATUS "OpenSSL Libraty found!")
 	include_directories(${OPENSSL_INCLUDE_DIR})
-else()
-	message(FATAL_ERROR "OpenSSL Libraty NOT found! Define variable_requires OPENSSL_ROOT_DIR, or compile WITHOUT SSL support")
 endif()
 
 ###############################
-find_package(Git)
+find_package(Git REQUIRED)
 if(Git_FOUND)
 	message("Git found: ${GIT_EXECUTABLE}")
 	
@@ -191,15 +183,12 @@ if(Git_FOUND)
 	
 	string(TIMESTAMP TIME_NOW "%Y/%m/%d %H:%M:%SZ" UTC)
 	add_definitions(-DCOMPILE_TIME=${TIME_NOW})	
-else()
-	message(FATAL_ERROR "Git not found")
 endif()
 
 ################################
+
 find_package(SQLite3 REQUIRED)
 if(SQLite3_FOUND)
-	message(STATUS ${SQLite3_INCLUDE_DIRS})
-	message(STATUS ${SQLite3_LIBRARIES})
 	message(STATUS ${SQLite3_VERSION})
 	include_directories(${SQLite3_INCLUDE_DIRS})
 endif()
@@ -230,15 +219,11 @@ include_directories(${RAPIDJSON_ROOT})
 # CoAP-te 
 #########################
 add_definitions(-DCOAP_TE_PORT_C_STANDARD=1
-				-DCOAP_TE_PORT_POSIX=1)
-
-#Command line definitions
-add_definitions(-DCOAP_TE_LOG_COLOR=1
+				-DCOAP_TE_PORT_POSIX=1
+				-DCOAP_TE_LOG_COLOR=1
 				-DCOAP_TE_LOG_LEVEL=5
 				-DCOAP_TE_USE_ERROR_MESSAGES=1
 				-DCOAP_TE_JSON_HELPER=1)
-
-set(RAPIDJSON_PATH 	${RAPIDJSON_ROOT})
 
 add_subdirectory(third/coap-te)
 include_directories(third/coap-te/src)		
@@ -254,7 +239,8 @@ include_directories(third/my_async/include)
 ############################
 
 add_subdirectory(third/pusha)
-include_directories(third/pusha/include third/pusha/include_cpp)
+include_directories(third/pusha/include 
+					third/pusha/include_cpp)
 
 ############################
 # csv_export

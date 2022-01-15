@@ -95,6 +95,8 @@ static void usage(const char* program) noexcept
 
 int main(int argc, char** argv)
 {
+	using xeds::sqlite3;
+
 	if(argc != 2)
 	{
 		std::cerr << "Error! Wrong number of argumetns!\n";

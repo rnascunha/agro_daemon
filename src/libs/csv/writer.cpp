@@ -7,6 +7,11 @@ writer::writer(std::streambuf* sb,
 		const char* nl /* = "\r\n" */) // @suppress("Member declaration not found")
 	: os_{sb}, sep_{sep}, nl_{nl}{}
 
+void writer::streambuffer(std::streambuf* sb) noexcept
+{
+	os_.rdbuf(sb);
+}
+
 writer& writer::column(char val) noexcept
 {
 	return column_arthimectic(val);

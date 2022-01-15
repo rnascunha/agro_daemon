@@ -23,7 +23,7 @@
 
 namespace SMTP{
 
-static std::string base64_encode(const std::string& data)
+[[maybe_unused]] static std::string base64_encode(const std::string& data)
 {
     using namespace boost::archive::iterators;
 

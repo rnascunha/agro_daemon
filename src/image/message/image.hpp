@@ -8,6 +8,8 @@
 #include "../../message/types.hpp"
 #include "../../instance/agro.hpp"
 
+#include "../../helper/utility.hpp"
+
 namespace Agro{
 namespace Message {
 
@@ -38,7 +40,8 @@ inline constexpr ::Message::config<image_commands> const* get_image_config(const
 {
 	for(std::size_t i = 0; i < sizeof(img_config) / sizeof(img_config[0]); i++)
 	{
-		if(std::strcmp(t, img_config[i].name) == 0) return &img_config[i];
+//		if(std::strcmp(t, img_config[i].name) == 0) return &img_config[i];
+		if(is_equal(t, img_config[i].name) == 0) return &img_config[i];
 	}
 	return nullptr;
 }

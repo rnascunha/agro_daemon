@@ -8,6 +8,8 @@
 #include "../../instance/agro.hpp"
 #include "../../websocket/types.hpp"
 
+#include "../../helper/utility.hpp"
+
 namespace Agro{
 namespace Device{
 namespace Request{
@@ -111,7 +113,8 @@ inline constexpr request_config const* get_requests_config(const char* t) noexce
 {
 	for(std::size_t i = 0; i < sizeof(rconfig) / sizeof(rconfig[0]); i++)
 	{
-		if(std::strcmp(t, rconfig[i].name) == 0) return &rconfig[i];
+//		if(std::strcmp(t, rconfig[i].name) == 0) return &rconfig[i];
+		if(is_equal(t, rconfig[i].name) == 0) return &rconfig[i];
 	}
 	return nullptr;
 }

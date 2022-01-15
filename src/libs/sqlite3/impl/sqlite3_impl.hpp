@@ -1,5 +1,7 @@
-#ifndef AGRO_DAEMON_DB_SQLITE3_IMPL_HPP__
-#define AGRO_DAEMON_DB_SQLITE3_IMPL_HPP__
+#ifndef AGRO_DAEMON_LIB_SQLITE3_IMPL_HPP__
+#define AGRO_DAEMON_LIB_SQLITE3_IMPL_HPP__
+
+namespace xeds{
 
 template<typename Arg>
 int sqlite3::prepare_bind_impl(statement& res, int index, Arg&& arg) noexcept
@@ -44,4 +46,6 @@ int sqlite3::statement::bind_all(Args&&... args) noexcept
 	return bind_impl(0, std::forward<Args>(args)...);
 }
 
-#endif /* AGRO_DAEMON_DB_SQLITE3_IMPL_HPP__ */
+}//xeds
+
+#endif /* AGRO_DAEMON_LIB_SQLITE3_IMPL_HPP__ */

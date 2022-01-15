@@ -19,6 +19,11 @@ static constexpr const std::size_t size_arr = std::extent<decltype(escape_chars)
 writer::writer(std::streambuf* sb)
 	: os_{sb}{}
 
+void writer::streambuffer(std::streambuf* sb) noexcept
+{
+	os_.rdbuf(sb);
+}
+
 writer& writer::init(const char* header /* = default_header */) noexcept
 {
 	os_ << "<html><head>" << header << "</head><body><table>";

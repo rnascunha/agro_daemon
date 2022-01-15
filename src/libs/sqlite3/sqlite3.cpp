@@ -4,6 +4,8 @@
 #include <vector>
 #include <iostream>
 
+namespace xeds{
+
 sqlite3::sqlite3(const char* db_name, std::error_code& ec)
 {
 	int rc = open(db_name);
@@ -206,3 +208,5 @@ sqlite3_stmt** sqlite3::statement::native_ptr() noexcept
 {
 	return &stmt_;
 }
+
+}//xeds

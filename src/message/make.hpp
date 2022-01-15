@@ -68,7 +68,7 @@ void make_resource(rapidjson::Document&,
 		Message const&,
 		Endpoint const&,
 		CoAP::Message::Option::option const& uri_host,
-		rapidjson::Value& data = rapidjson::Value()) noexcept;
+		rapidjson::Value& data/* = rapidjson::Value()*/) noexcept;
 
 template<typename Message,
 		typename Endpoint>

@@ -2,6 +2,7 @@
 #define AGRO_DAEMON_NOTIFY_MESSAGE_HPP__
 
 #include "../../message/types.hpp"
+#include "../../helper/utility.hpp"
 
 namespace Agro{
 namespace Notify{
@@ -42,7 +43,8 @@ inline constexpr ::Message::config<notify_commands> const* get_notify_config(con
 {
 	for(std::size_t i = 0; i < sizeof(notify_config) / sizeof(notify_config[0]); i++)
 	{
-		if(std::strcmp(t, notify_config[i].name) == 0) return &notify_config[i];
+//		if(std::strcmp(t, notify_config[i].name) == 0) return &notify_config[i];
+		if(is_equal(t, notify_config[i].name) == 0) return &notify_config[i];
 	}
 	return nullptr;
 }

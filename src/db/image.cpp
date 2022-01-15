@@ -3,6 +3,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 int DB::add_image(std::string const& image_name,
 					User::user_id uploader_id,
 					std::string const& description /* = "" */) noexcept

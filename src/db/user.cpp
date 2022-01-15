@@ -13,6 +13,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 static long db_time_to_epoch(std::string const& str_time)
 {
 	std::tm tm;

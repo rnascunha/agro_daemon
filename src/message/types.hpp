@@ -2,7 +2,8 @@
 #define AGRO_DAEMON_MESSAGE_TYPES_HPP__
 
 #include <cstdlib>
-#include <cstring>
+//#include <cstring>
+#include "../helper/utility.hpp"
 
 namespace Message{
 
@@ -48,7 +49,8 @@ inline constexpr config<type> const* get_type_config(const char* t) noexcept
 {
 	for(std::size_t i = 0; i < sizeof(tconfig) / sizeof(tconfig[0]); i++)
 	{
-		if(std::strcmp(t, tconfig[i].name) == 0) return &tconfig[i];
+//		if(std::strcmp(t, tconfig[i].name) == 0) return &tconfig[i];
+		if(is_equal(t, tconfig[i].name)) return &tconfig[i];
 	}
 	return nullptr;
 }

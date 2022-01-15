@@ -2,6 +2,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 int DB::read_general_notify(User::user_id id, Notify::Notify& notify) noexcept
 {
 	sqlite3::statement res;

@@ -7,6 +7,7 @@
 #include "../sensor_type.hpp"
 #include "../sensor_list.hpp"
 #include "rapidjson/document.h"
+#include "../../helper/utility.hpp"
 
 namespace Agro{
 namespace Sensor{
@@ -41,7 +42,8 @@ inline constexpr ::Message::config<sensor_commands> const* get_sensor_config(con
 {
 	for(std::size_t i = 0; i < sizeof(sensor_config) / sizeof(sensor_config[0]); i++)
 	{
-		if(std::strcmp(t, sensor_config[i].name) == 0) return &sensor_config[i];
+//		if(std::strcmp(t, sensor_config[i].name) == 0) return &sensor_config[i];
+		if(is_equal(t, sensor_config[i].name) == 0) return &sensor_config[i];
 	}
 	return nullptr;
 }

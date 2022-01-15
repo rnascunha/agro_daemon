@@ -198,7 +198,7 @@ class DB{
 
 		const char* error(){ return db_.error(); };
 	private:
-		sqlite3 db_;
+		xeds::sqlite3 db_;
 };
 
 }//Agro

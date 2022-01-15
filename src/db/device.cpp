@@ -3,6 +3,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 bool DB::read_devices_net(Device::Net_List& net_list) noexcept
 {
 	sqlite3::statement res;

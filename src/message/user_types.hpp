@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include "types.hpp"
+#include "../helper/utility.hpp"
 
 namespace Message{
 
@@ -48,7 +49,8 @@ inline constexpr config<user_commands> const* get_user_config(const char* t) noe
 {
 	for(std::size_t i = 0; i < sizeof(user_config) / sizeof(user_config[0]); i++)
 	{
-		if(std::strcmp(t, user_config[i].name) == 0) return &user_config[i];
+//		if(std::strcmp(t, user_config[i].name) == 0) return &user_config[i];
+		if(is_equal(t, user_config[i].name) == 0) return &user_config[i];
 	}
 	return nullptr;
 }

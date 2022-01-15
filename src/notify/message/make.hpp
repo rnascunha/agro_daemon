@@ -5,6 +5,7 @@
 #include "../notify.hpp"
 #include "../../sensor/sensor_type_list.hpp"
 #include "../factory.hpp"
+#include "../../helper/utility.hpp"
 
 #include <string>
 
@@ -40,7 +41,8 @@ inline constexpr ::Message::config<general_type> const* get_general_type_config(
 {
 	for(std::size_t i = 0; i < sizeof(general_type_config) / sizeof(general_type_config[0]); i++)
 	{
-		if(std::strcmp(t, general_type_config[i].name) == 0) return &general_type_config[i];
+//		if(std::strcmp(t, general_type_config[i].name) == 0) return &general_type_config[i];
+		if(is_equal(t, general_type_config[i].name) == 0) return &general_type_config[i];
 	}
 	return nullptr;
 }
@@ -66,7 +68,8 @@ inline constexpr ::Message::config<device_type> const* get_device_type_config(co
 {
 	for(std::size_t i = 0; i < sizeof(device_type_config) / sizeof(device_type_config[0]); i++)
 	{
-		if(std::strcmp(t, device_type_config[i].name) == 0) return &device_type_config[i];
+//		if(std::strcmp(t, device_type_config[i].name) == 0) return &device_type_config[i];
+		if(is_equal(t, device_type_config[i].name) == 0) return &device_type_config[i];
 	}
 	return nullptr;
 }
@@ -93,7 +96,8 @@ inline constexpr ::Message::config<sensor_type> const* get_sensor_type_config(co
 {
 	for(std::size_t i = 0; i < sizeof(sensor_type_config) / sizeof(sensor_type_config[0]); i++)
 	{
-		if(std::strcmp(t, sensor_type_config[i].name) == 0) return &sensor_type_config[i];
+//		if(std::strcmp(t, sensor_type_config[i].name) == 0) return &sensor_type_config[i];
+		if(is_equal(t, sensor_type_config[i].name) == 0) return &sensor_type_config[i];
 	}
 	return nullptr;
 }
