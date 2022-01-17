@@ -213,7 +213,7 @@ void process(rapidjson::Document const& doc,
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case sensor_commands::list:
 			ws->write(sensor_types_list(instance.sensor_list()));

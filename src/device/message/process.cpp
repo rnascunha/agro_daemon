@@ -72,7 +72,7 @@ void process(rapidjson::Document const& doc,
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case device_commands::list:
 		case device_commands::data:

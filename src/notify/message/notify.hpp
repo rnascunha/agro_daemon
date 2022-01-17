@@ -1,7 +1,7 @@
 #ifndef AGRO_DAEMON_NOTIFY_MESSAGE_HPP__
 #define AGRO_DAEMON_NOTIFY_MESSAGE_HPP__
 
-#include "../../message/types.hpp"
+//#include "../../message/types.hpp"
 #include "../../helper/utility.hpp"
 
 namespace Agro{
@@ -19,7 +19,7 @@ enum class notify_commands{
 	update_credential,
 };
 
-constexpr const ::Message::config<notify_commands> notify_config[] = {
+constexpr const config<notify_commands> notify_config[] = {
 	{notify_commands::general_list, "general_list"},
 	{notify_commands::general_set, "general_set"},
 	{notify_commands::device_list, "device_list"},
@@ -30,23 +30,14 @@ constexpr const ::Message::config<notify_commands> notify_config[] = {
 	{notify_commands::update_credential, "update_credential"},
 };
 
-inline constexpr ::Message::config<notify_commands> const* get_config(notify_commands t) noexcept
+inline constexpr auto get_notify_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(notify_config) / sizeof(notify_config[0]); i++)
-	{
-		if(t == notify_config[i].mtype) return &notify_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, notify_config);
 }
 
-inline constexpr ::Message::config<notify_commands> const* get_notify_config(const char* t) noexcept
+inline constexpr auto get_config(notify_commands mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(notify_config) / sizeof(notify_config[0]); i++)
-	{
-//		if(std::strcmp(t, notify_config[i].name) == 0) return &notify_config[i];
-		if(is_equal(t, notify_config[i].name) == 0) return &notify_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, notify_config);
 }
 
 }//Message

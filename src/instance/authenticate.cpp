@@ -130,7 +130,7 @@ static bool is_auth_package(rapidjson::Document const& doc,
 		return false;
 	}
 
-	if(typec->mtype != ::Message::type::user)
+	if(typec->type != ::Message::type::user)
 	{
 		ec = make_error_code(Error::invalid_value);
 		return false;
@@ -150,8 +150,8 @@ static bool is_auth_package(rapidjson::Document const& doc,
 	}
 	rapidjson::Value const& payload = doc["data"].GetObject();
 
-	::Message::config<::Message::user_commands> const* user_type = ::Message::get_user_config(doc["command"].GetString());
-	comm = user_type->mtype;
+	auto const* user_type = ::Message::get_user_config(doc["command"].GetString());
+	comm = user_type->type;
 	switch(comm)
 	{
 		case ::Message::user_commands::autheticate:

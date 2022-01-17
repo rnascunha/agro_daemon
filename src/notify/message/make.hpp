@@ -1,7 +1,7 @@
 #ifndef AGRO_DAEMON_NOTIFY_MESSAGE_MAKE_HPP__
 #define AGRO_DAEMON_NOTIFY_MESSAGE_MAKE_HPP__
 
-#include "../../message/types.hpp"
+//#include "../../message/types.hpp"
 #include "../notify.hpp"
 #include "../../sensor/sensor_type_list.hpp"
 #include "../factory.hpp"
@@ -13,7 +13,7 @@ namespace Agro{
 namespace Notify{
 namespace Message{
 
-constexpr const ::Message::config<general_type> general_type_config[] = {
+constexpr const config<general_type> general_type_config[] = {
 	{general_type::no_alert, "no_alert"},
 	{general_type::device_new, "new_device"},
 	{general_type::device_connect, "device_conn"},
@@ -28,26 +28,17 @@ constexpr const ::Message::config<general_type> general_type_config[] = {
 	{general_type::job_stopped, "job_stop"}
 };
 
-inline constexpr ::Message::config<general_type> const* get_config(general_type t) noexcept
+inline constexpr auto get_general_type_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(general_type_config) / sizeof(general_type_config[0]); i++)
-	{
-		if(t == general_type_config[i].mtype) return &general_type_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, general_type_config);
 }
 
-inline constexpr ::Message::config<general_type> const* get_general_type_config(const char* t) noexcept
+inline constexpr auto get_config(general_type mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(general_type_config) / sizeof(general_type_config[0]); i++)
-	{
-//		if(std::strcmp(t, general_type_config[i].name) == 0) return &general_type_config[i];
-		if(is_equal(t, general_type_config[i].name) == 0) return &general_type_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, general_type_config);
 }
 
-constexpr const ::Message::config<device_type> device_type_config[] = {
+constexpr const config<device_type> device_type_config[] = {
 	{device_type::no_alert, "no_alert"},
 	{device_type::connect, "connect"},
 	{device_type::disconnect, "disconnect"},
@@ -55,26 +46,17 @@ constexpr const ::Message::config<device_type> device_type_config[] = {
 	{device_type::app_installed, "app_installed"},
 };
 
-inline constexpr ::Message::config<device_type> const* get_config(device_type t) noexcept
+inline constexpr auto get_device_type_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(device_type_config) / sizeof(device_type_config[0]); i++)
-	{
-		if(t == device_type_config[i].mtype) return &device_type_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, device_type_config);
 }
 
-inline constexpr ::Message::config<device_type> const* get_device_type_config(const char* t) noexcept
+inline constexpr auto get_config(device_type mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(device_type_config) / sizeof(device_type_config[0]); i++)
-	{
-//		if(std::strcmp(t, device_type_config[i].name) == 0) return &device_type_config[i];
-		if(is_equal(t, device_type_config[i].name) == 0) return &device_type_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, device_type_config);
 }
 
-constexpr const ::Message::config<sensor_type> sensor_type_config[] = {
+constexpr const config<sensor_type> sensor_type_config[] = {
 	{sensor_type::less, "less"},
 	{sensor_type::less_equal, "less_equal"},
 	{sensor_type::equal, "equal"},
@@ -83,23 +65,14 @@ constexpr const ::Message::config<sensor_type> sensor_type_config[] = {
 	{sensor_type::different, "different"},
 };
 
-inline constexpr ::Message::config<sensor_type> const* get_config(sensor_type t) noexcept
+inline constexpr auto get_sensor_type_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(sensor_type_config) / sizeof(sensor_type_config[0]); i++)
-	{
-		if(t == sensor_type_config[i].mtype) return &sensor_type_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, sensor_type_config);
 }
 
-inline constexpr ::Message::config<sensor_type> const* get_sensor_type_config(const char* t) noexcept
+inline constexpr auto get_config(sensor_type mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(sensor_type_config) / sizeof(sensor_type_config[0]); i++)
-	{
-//		if(std::strcmp(t, sensor_type_config[i].name) == 0) return &sensor_type_config[i];
-		if(is_equal(t, sensor_type_config[i].name) == 0) return &sensor_type_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, sensor_type_config);
 }
 
 std::string make_list(Notify const&) noexcept;

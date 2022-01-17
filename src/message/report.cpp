@@ -7,30 +7,21 @@
 namespace Agro{
 namespace Message{
 
-constexpr const ::Message::config<report_type> report_type_arr[] = {
+constexpr const config<report_type> report_type_arr[] = {
 	{report_type::error, "error"},
 	{report_type::warning, "warning"},
 	{report_type::success, "success"},
 	{report_type::info, "info"},
 };
 
-inline constexpr ::Message::config<report_type> const* get_config(report_type t) noexcept
+inline constexpr auto get_report_type_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(report_type_arr) / sizeof(report_type_arr[0]); i++)
-	{
-		if(t == report_type_arr[i].mtype) return &report_type_arr[i];
-	}
-	return nullptr;
+    return ::get_config(name, report_type_arr);
 }
 
-inline constexpr ::Message::config<report_type> const* get_report_type_config(const char* t) noexcept
+inline constexpr auto get_config(report_type mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(report_type_arr) / sizeof(report_type_arr[0]); i++)
-	{
-//		if(std::strcmp(t, report_type_arr[i].name) == 0) return &report_type_arr[i];
-		if(is_equal(t, report_type_arr[i].name)) return &report_type_arr[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, report_type_arr);
 }
 
 template<typename Allocator>
@@ -214,7 +205,7 @@ void process_report(rapidjson::Document const& doc,
 	{
 		arg = data["arg"].GetString();
 	}
-	ws->write(instance.make_report(config->mtype, report_type->mtype, reference, message, arg, user.id()));
+	ws->write(instance.make_report(config->type, report_type->type, reference, message, arg, user.id()));
 }
 
 }//Message

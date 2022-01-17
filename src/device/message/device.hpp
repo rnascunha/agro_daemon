@@ -5,7 +5,7 @@
 #include "../device.hpp"
 #include "../list.hpp"
 #include "../tree.hpp"
-#include "../../message/types.hpp"
+//#include "../../message/types.hpp"
 #include <string>
 #include "../../sensor/message/sensor.hpp"
 #include "../../helper/utility.hpp"
@@ -23,7 +23,7 @@ enum class device_commands{
 	custom_response,
 };
 
-constexpr const ::Message::config<device_commands> device_config[] = {
+constexpr const config<device_commands> device_config[] = {
 	{device_commands::list, "list"},
 	{device_commands::data, "data"},
 	{device_commands::tree, "tree"},
@@ -32,23 +32,14 @@ constexpr const ::Message::config<device_commands> device_config[] = {
 	{device_commands::custom_response, "custom_response"},
 };
 
-inline constexpr ::Message::config<device_commands> const* get_config(device_commands t) noexcept
+inline constexpr auto get_device_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(device_config) / sizeof(device_config[0]); i++)
-	{
-		if(t == device_config[i].mtype) return &device_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, device_config);
 }
 
-inline constexpr ::Message::config<device_commands> const* get_device_config(const char* t) noexcept
+inline constexpr auto get_config(device_commands mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(device_config) / sizeof(device_config[0]); i++)
-	{
-//		if(std::strcmp(t, device_config[i].name) == 0) return &device_config[i];
-		if(is_equal(t, device_config[i].name) == 0) return &device_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, device_config);
 }
 
 void device_config_to_json(rapidjson::Document& doc, Device const& dev) noexcept;

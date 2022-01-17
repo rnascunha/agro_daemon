@@ -2,16 +2,9 @@
 #define AGRO_DAEMON_MESSAGE_TYPES_HPP__
 
 #include <cstdlib>
-//#include <cstring>
 #include "../helper/utility.hpp"
 
 namespace Message{
-
-template<typename Type>
-struct config{
-	Type		mtype;
-	const char* name;
-};
 
 /**
  * Types
@@ -36,23 +29,14 @@ constexpr const config<type> tconfig[] = {
 	{type::notify, "notify"}
 };
 
-inline constexpr config<type> const* get_type_config(type t) noexcept
+inline constexpr auto get_type_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(tconfig) / sizeof(tconfig[0]); i++)
-	{
-		if(t == tconfig[i].mtype) return &tconfig[i];
-	}
-	return nullptr;
+    return ::get_config(name, tconfig);
 }
 
-inline constexpr config<type> const* get_type_config(const char* t) noexcept
+inline constexpr auto get_config(type mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(tconfig) / sizeof(tconfig[0]); i++)
-	{
-//		if(std::strcmp(t, tconfig[i].name) == 0) return &tconfig[i];
-		if(is_equal(t, tconfig[i].name)) return &tconfig[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, tconfig);
 }
 
 }//Message

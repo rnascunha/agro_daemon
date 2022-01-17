@@ -102,14 +102,14 @@ void process_image(rapidjson::Document const& doc,
 		return;
 	}
 
-	::Message::config<image_commands> const* config = get_image_config(doc["command"].GetString());
+	auto const* config = get_image_config(doc["command"].GetString());
 	if(!config)
 	{
 		tt::warning("Image command '%s' not found", doc["command"].GetString());
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case image_commands::erase:
 			delete_images(doc, instance);

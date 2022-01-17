@@ -22,7 +22,7 @@ static general_type read_type(rapidjson::Value const& data) noexcept
 		return general_type::no_alert;
 	}
 
-	return config->mtype;
+	return config->type;
 }
 
 static general_type read_types(rapidjson::Value const& data) noexcept
@@ -44,7 +44,7 @@ static device_type read_device_type(rapidjson::Value const& data) noexcept
 		return device_type::no_alert;
 	}
 
-	return config->mtype;
+	return config->type;
 }
 
 static device_type read_device_types(rapidjson::Value const& data) noexcept
@@ -211,7 +211,7 @@ static void set_sensor_notify(rapidjson::Document const& doc,
 				s["sensor"]["type"].GetUint(),
 				s["sensor"]["index"].GetUint(),
 				s["enable"].GetBool(),
-				config->mtype,
+				config->type,
 				s["value"].GetFloat(),
 				false);
 	}
@@ -372,7 +372,7 @@ void process(rapidjson::Document const& doc,
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case notify_commands::general_list:
 			send_general_list(ws, user);

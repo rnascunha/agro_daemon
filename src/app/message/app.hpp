@@ -3,7 +3,7 @@
 
 #include "rapidjson/document.h"
 #include <filesystem>
-#include "../../message/types.hpp"
+//#include "../../message/types.hpp"
 #include "../../instance/agro.hpp"
 
 #include "../../helper/utility.hpp"
@@ -18,30 +18,16 @@ enum class app_commands{
 	download,
 };
 
-constexpr const ::Message::config<app_commands> app_config[] = {
+constexpr const config<app_commands> app_config[] = {
 	{app_commands::erase, "delete"},
 	{app_commands::list, "list"},
 	{app_commands::edit, "edit"},
 	{app_commands::download, "download"}
 };
 
-inline constexpr ::Message::config<app_commands> const* get_config(app_commands t) noexcept
+inline constexpr auto get_app_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(app_config) / sizeof(app_config[0]); i++)
-	{
-		if(t == app_config[i].mtype) return &app_config[i];
-	}
-	return nullptr;
-}
-
-inline constexpr ::Message::config<app_commands> const* get_app_config(const char* t) noexcept
-{
-	for(std::size_t i = 0; i < sizeof(app_config) / sizeof(app_config[0]); i++)
-	{
-//		if(std::strcmp(t, app_config[i].name) == 0) return &app_config[i];
-		if(is_equal(t, app_config[i].name) == 0) return &app_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, app_config);
 }
 
 void app_list(rapidjson::Document& doc, std::filesystem::path const& path, instance&) noexcept;

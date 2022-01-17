@@ -33,7 +33,7 @@ void process(std::string&& data,
 		return;
 	}
 
-	switch(typec->mtype)
+	switch(typec->type)
 	{
 		case ::Message::type::device:
 			Device::Message::process(d, ws, instance, user);

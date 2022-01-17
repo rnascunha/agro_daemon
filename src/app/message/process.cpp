@@ -91,14 +91,14 @@ void process_app(rapidjson::Document const& doc,
 		return;
 	}
 
-	::Message::config<app_commands> const* config = get_app_config(doc["command"].GetString());
+	auto const* config = get_app_config(doc["command"].GetString());
 	if(!config)
 	{
 		tt::warning("App command '%s' not found.", doc["command"].GetString());
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case app_commands::erase:
 			delete_apps(doc, ws, instance);

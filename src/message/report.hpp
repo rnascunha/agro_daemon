@@ -2,12 +2,11 @@
 #define AGRO_DAEMON_MESSAGE_REPORT_HPP__
 
 #include <string>
-#include "types.hpp"
+//#include "types.hpp"
 #include "../device/types.hpp"
 #include "../helper/utility.hpp"
 
 #include "rapidjson/document.h"
-//#include "../websocket/types.hpp"
 
 namespace Agro{
 namespace Message{
@@ -46,7 +45,7 @@ struct report{
 };
 
 
-constexpr const ::Message::config<report_commands> report_config[] = {
+constexpr const config<report_commands> report_config[] = {
 	{report_commands::list, "list"},
 	{report_commands::device, "device"},
 	{report_commands::image, "image"},
@@ -54,23 +53,14 @@ constexpr const ::Message::config<report_commands> report_config[] = {
 	{report_commands::notify, "notify"},
 };
 
-inline constexpr ::Message::config<report_commands> const* get_config(report_commands t) noexcept
+inline constexpr auto get_report_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(report_config) / sizeof(report_config[0]); i++)
-	{
-		if(t == report_config[i].mtype) return &report_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, report_config);
 }
 
-inline constexpr ::Message::config<report_commands> const* get_report_config(const char* t) noexcept
+inline constexpr auto get_config(report_commands mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(report_config) / sizeof(report_config[0]); i++)
-	{
-//		if(std::strcmp(t, report_config[i].name) == 0) return &report_config[i];
-		if(is_equal(t, report_config[i].name)) return &report_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, report_config);
 }
 
 std::string report_message(report_commands command,

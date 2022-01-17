@@ -407,7 +407,7 @@ void process_user(rapidjson::Document const& doc,
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case user_commands::push_subscribe:
 			process_subscription(doc, ws, user, instance);
