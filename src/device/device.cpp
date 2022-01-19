@@ -318,15 +318,21 @@ void Device::update_endpoint(endpoint const& ep) noexcept
 	ep_ = ep;
 }
 
-void Device::add_app(std::string const& name, std::size_t size) noexcept
+void Device::add_app(std::string const& name, std::size_t size, const sha256_hash hash) noexcept
 {
 	auto it = std::find_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; });
 	if(it == apps_.end())
 	{
-		apps_.emplace_back(name, size);
+		apps_.emplace_back(name, size, hash);
 		return;
 	}
 	it->size = size;
+	std::memcpy(it->hash, hash, sizeof(sha256_hash));
+}
+
+void Device::clear_apps() noexcept
+{
+	apps_.clear();
 }
 
 void Device::delete_app(std::string const& name) noexcept

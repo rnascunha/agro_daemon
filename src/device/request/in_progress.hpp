@@ -14,15 +14,15 @@ struct request_in_progress
 {
 	request_in_progress(mesh_addr_t const&,
 			CoAP::Message::code,
-			type,
+			request_type,
 			Agro::User::user_id);
 
 	mesh_addr_t		addr;
 	CoAP::Message::code method;
-	type			request;
+	request_type			request;
 	Agro::User::user_id id;
 
-	bool is_equal(mesh_addr_t const&, CoAP::Message::code, type) const noexcept;
+	bool is_equal(mesh_addr_t const&, CoAP::Message::code, request_type) const noexcept;
 };
 
 class Request_in_Pogress_List
@@ -30,14 +30,14 @@ class Request_in_Pogress_List
 	public:
 		bool has(mesh_addr_t const&,
 				CoAP::Message::code,
-				type) const noexcept;
+				request_type) const noexcept;
 
 		bool add(mesh_addr_t const&,
 				CoAP::Message::code,
-				type, Agro::User::user_id) noexcept;
+				request_type, Agro::User::user_id) noexcept;
 		bool remove(mesh_addr_t const&,
 				CoAP::Message::code,
-				type) noexcept;
+				request_type) noexcept;
 	private:
 		std::vector<request_in_progress> list_;
 };

@@ -1,14 +1,10 @@
 #include "process.hpp"
 
-#include "rapidjson/document.h"
-
 #include "types.hpp"
 #include "user.hpp"
 #include "../device/message/process.hpp"
 #include "../sensor/message/process.hpp"
 #include "../notify/message/process.hpp"
-
-#include "../websocket/types.hpp"
 
 namespace Agro{
 namespace Message{
@@ -60,6 +56,29 @@ void process(std::string&& data,
 			break;
 	}
 }
+
+//Process& Process::install(::Message::type type, callback cp) noexcept
+//{
+//	list_cb_.emplace(type, cp);
+//	return *this;
+//}
+//
+//bool Process::exec(::Message::type type,
+//					rapidjson::Document const& doc,
+//					websocket_ptr ws,
+//					instance& instance,
+//					User::Logged& user) noexcept
+//{
+//	auto cb = list_cb_.find(type);
+//	if(cb == list_cb_.end())
+//	{
+//		tt::warning("Type message not found.");
+//		return false;
+//	}
+//	cb->second(doc, ws, instance, user);
+//
+//	return true;
+//}
 
 }//Message
 }//Agro

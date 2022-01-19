@@ -20,7 +20,7 @@ static void process_rtc_time(Agro::Device::Device_List& device_list,
 static void get_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -45,7 +45,7 @@ static void get_rtc_response(
 static void update_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -81,7 +81,7 @@ static void process_fuse(Agro::Device::Device_List& device_list,
 static void get_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -105,7 +105,7 @@ static void get_fuse_response(
 static void update_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -205,25 +205,25 @@ static request_message const req_update_fuse = {
 };
 
 extern constexpr const request_config get_rtc = {
-	type::get_rtc,
+	request_type::get_rtc,
 	"get_rtc",
 	&req_get_rtc,
 	get_rtc_response
 };
 extern constexpr const request_config update_rtc = {
-	type::update_rtc,
+	request_type::update_rtc,
 	"update_rtc",
 	&req_update_rtc,
 	update_rtc_response
 };
 extern constexpr const request_config get_fuse = {
-	type::get_fuse,
+	request_type::get_fuse,
 	"get_fuse",
 	&req_get_fuse,
 	get_fuse_response
 };
 extern constexpr const request_config update_fuse = {
-	type::update_fuse,
+	request_type::update_fuse,
 	"update_fuse",
 	&req_update_fuse,
 	update_fuse_response

@@ -6,6 +6,7 @@
 #include "../../coap_engine.hpp"
 #include "../list.hpp"
 #include "../../app/app.hpp"
+#include "../helper.hpp"
 
 #define DEFAULT_BLOCK_SIZE		512
 
@@ -120,6 +121,31 @@ void get_app_handler(engine::message const& request,
 		.add_option(block2_op)
 		.add_option(uri_host)
 		.payload(buffer.data(), payload_len)
+		.serialize();
+}
+
+void post_app_handler(engine::message const& request,
+					engine::response& response, void*,
+					instance& instance) noexcept
+{
+	CoAP::Message::Option::option op;
+	Agro::Device::Device* dev;
+	if(!instance.process_device_request(request, &dev, op))
+	{
+		//Missing host... nothing to do
+		//(reality is that without host message wouldn't even get here)
+		return;
+	}
+
+	::read_packet_app_list(*dev, request.payload, request.payload_len);
+
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+					std::make_shared<std::string>(Message::device_apps_to_json(*dev)));
+
+	CoAP::Message::Option::node host_op{op};
+	response
+		.code(CoAP::Message::code::changed)
+		.add_option(host_op)
 		.serialize();
 }
 

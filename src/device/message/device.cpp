@@ -709,8 +709,12 @@ static void make_app(rapidjson::Value& data, app const& app, Allocator& alloc) n
 {
 	data.SetObject();
 
-	data.AddMember("name", rapidjson::Value(app.name.c_str(), alloc).Move(), alloc);
+	data.AddMember("name", rapidjson::Value(app.name.data(), app.name.size(), alloc).Move(), alloc);
 	data.AddMember("size", app.size, alloc);
+
+	rapidjson::Value hash;
+	::Message::make_array(hash, app.hash, sizeof(sha256_hash), alloc);
+	data.AddMember("hash", hash, alloc);
 }
 
 template<typename Allocator>

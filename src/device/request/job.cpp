@@ -20,7 +20,7 @@ static void process_jobs(Agro::Device::Device_List& device_list,
 static void send_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -43,7 +43,7 @@ static void send_job_response(
 static void get_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -66,7 +66,7 @@ static void get_job_response(
 static void delete_job_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const&,
 		CoAP::Transmission::status_t,
@@ -177,19 +177,19 @@ static request_message const req_del_job = {
 };
 
 extern constexpr const request_config send_job = {
-	type::send_job,
+	request_type::send_job,
 	"send_job",
 	&req_send_job,
 	send_job_response
 };
 extern constexpr const request_config get_job = {
-	type::get_job,
+	request_type::get_job,
 	"get_job",
 	&req_get_job,
 	get_job_response
 };
 extern constexpr const request_config delete_job = {
-	type::delete_job,
+	request_type::delete_job,
 	"del_job",
 	&req_del_job,
 	delete_job_response

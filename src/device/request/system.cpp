@@ -28,7 +28,7 @@ static void process_uptime(Agro::instance& instance,
 static void update_uptime_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -55,13 +55,13 @@ static request_message const req_reset = {
 };
 
 extern constexpr const request_config uptime = {
-	type::uptime,
+	request_type::uptime,
 	"uptime",
 	&req_uptime,
 	update_uptime_response
 };
 extern constexpr const request_config reset = {
-	type::reset,
+	request_type::reset,
 	"reset",
 	&req_reset
 };
@@ -69,7 +69,7 @@ extern constexpr const request_config reset = {
 static void reset_reason_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -104,7 +104,7 @@ static request_message const req_reset_reason = {
 };
 
 extern constexpr const request_config reset_reason = {
-	type::reset_reason,
+	request_type::reset_reason,
 	"reset_reason",
 	&req_reset_reason,
 	reset_reason_response

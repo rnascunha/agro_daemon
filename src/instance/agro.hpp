@@ -146,14 +146,14 @@ class instance{
 		 */
 		bool has_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				Device::Request::type) const noexcept;
+				Device::Request::request_type) const noexcept;
 		bool add_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				Device::Request::type,
+				Device::Request::request_type,
 				User::user_id) noexcept;
 		bool remove_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				Device::Request::type) noexcept;
+				Device::Request::request_type) noexcept;
 
 		/**
 		 * Sensor

@@ -105,7 +105,9 @@ class Device{
 		int update_ac_load(unsigned index, bool value) noexcept;
 		void update_uptime(int64_t) noexcept;
 		void update_rtc_time(value_time) noexcept;
-		void add_app(std::string const&, std::size_t) noexcept;
+
+		void add_app(std::string const&, std::size_t, const sha256_hash) noexcept;
+		void clear_apps() noexcept;
 		void delete_app(std::string const&) noexcept;
 
 		void update_endpoint(endpoint const& ep) noexcept;

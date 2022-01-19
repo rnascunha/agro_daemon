@@ -12,6 +12,9 @@ namespace Message{
 
 std::string stringify(rapidjson::Document const&) noexcept;
 
+template<typename Allocator>
+void make_array(rapidjson::Value&, const std::uint8_t*, std::size_t, Allocator&) noexcept;
+
 template<typename Message, typename Allocator>
 bool add_device(rapidjson::Value&, Message const&, Allocator&) noexcept;
 template<typename Allocator>

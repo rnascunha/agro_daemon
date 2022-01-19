@@ -33,7 +33,7 @@ static void request_cb(void const* trans,
 		Agro::instance& instance) noexcept
 {
 	auto const* t = static_cast<engine::transaction_t const*>(trans);
-	auto req = static_cast<type>(reinterpret_cast<std::uintptr_t>(request));
+	auto req = static_cast<request_type>(reinterpret_cast<std::uintptr_t>(request));
 
 	CoAP::Message::Option::option op;
 	if(!CoAP::Message::Option::get_option(t->request(), op, CoAP::Message::Option::code::uri_host))
@@ -54,7 +54,7 @@ static void request_cb(void const* trans,
 	{
 		CoAP::Debug::print_message_string(*response);
 		engine::endpoint const ep = t->endpoint();
-		request_config const* config = get_requests_config(req);
+		request_config const* config = get_config(req);
 		if(!config)
 		{
 			goto end;
@@ -150,7 +150,7 @@ static void process_custom_request(rapidjson::Document const& d,
 static void send_request(
 		const char* mac,
 		engine::endpoint const& ep,
-		type request_type,
+		request_type request_type,
 		request_message const& msg,
 		Agro::websocket_ptr ws,
 		Agro::instance& instance,
@@ -284,7 +284,7 @@ void process_request(rapidjson::Document const& doc,
 
 	request_message const* req = config->message;
 	request_message custom_req;
-	if(config->mtype == type::custom)
+	if(config->type == request_type::custom)
 	{
 		std::error_code ec;
 		process_custom_request(doc, custom_req, ec);
@@ -302,10 +302,10 @@ void process_request(rapidjson::Document const& doc,
 	/**
 	 * Checking if already have a request to the same device
 	 */
-	if(config->mtype != type::custom &&
+	if(config->type != request_type::custom &&
 		config->message->mtype != CoAP::Message::type::nonconfirmable)
 	{
-		if(!instance.add_request_in_progress(dev->mac(), req->method, config->mtype, user.id()))
+		if(!instance.add_request_in_progress(dev->mac(), req->method, config->type, user.id()))
 		{
 			ws->write(instance.make_report(Agro::Message::report_type::warning,
 							dev->mac(), "Request in progress", make_coap_path(req->options), user.id()));
@@ -316,7 +316,7 @@ void process_request(rapidjson::Document const& doc,
 	CoAP::Error ecc;
 	send_request(data["device"].GetString(),
 			dev->get_endpoint(),
-			config->mtype,
+			config->type,
 			*req,
 			ws,
 			instance,
@@ -329,12 +329,12 @@ void process_request(rapidjson::Document const& doc,
 	if(ecc)
 	{
 		tt::error("CoAP send error! [%d/%m]", ecc.value(), ecc.message());
-		if(config->mtype != type::custom)
+		if(config->type != request_type::custom)
 		{
 			/**
 			 * Removing request from in progress...
 			 */
-			instance.remove_request_in_progress(dev->mac(), req->method, config->mtype);
+			instance.remove_request_in_progress(dev->mac(), req->method, config->type);
 		}
 		switch(static_cast<CoAP::errc>(ecc.value()))
 		{

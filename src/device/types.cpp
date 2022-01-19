@@ -1,5 +1,6 @@
 #include "types.hpp"
 #include "helper.hpp"
+
 #include <cstring>
 #include <cstdio>
 #include <chrono>
@@ -78,4 +79,10 @@ std::string mesh_addr_t::to_string() const noexcept
 {
 	char buf[18];
 	return to_string(buf, 18);
+}
+
+app::app(std::string const& app_name, std::size_t app_size, const sha256_hash app_hash)
+		: name(app_name), size(app_size)
+{
+	std::memcpy(hash, app_hash, sizeof(sha256_hash));
 }

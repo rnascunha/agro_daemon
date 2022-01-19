@@ -26,12 +26,12 @@ class App_Path{
 };
 
 struct App{
-	int id;
-	std::string name;
-	User::user_id uploader;
-	std::string description;
-	unsigned int time;
-	sha256_hash	hash;
+	int 			id;
+	std::string 	name;
+	User::user_id 	uploader;
+	std::string 	description;
+	unsigned int 	time;
+	sha256_hash		hash;
 };
 
 bool calculate_app_hash(App_Path const& app_path,

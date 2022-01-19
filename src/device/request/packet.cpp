@@ -9,7 +9,7 @@ namespace Request{
 static void packet_response(
 		engine::endpoint const& ep,
 		mesh_addr_t const& host,
-		type req,
+		request_type req,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -20,7 +20,7 @@ static void packet_response(
 	switch(req)
 	{
 		break;
-		case type::sensors: {
+		case request_type::sensors: {
 			std::error_code ec;
 			Resource::process_sensors_data(*dev,
 					instance,
@@ -29,7 +29,7 @@ static void packet_response(
 					ec);
 		}
 		break;
-		case type::board: {
+		case request_type::board: {
 			std::error_code ec;
 			Resource::process_board(*dev,
 					instance,
@@ -38,7 +38,7 @@ static void packet_response(
 					ec);
 		}
 		break;
-		case type::config: {
+		case request_type::config: {
 			std::error_code ec;
 			Resource::process_config(*dev,
 					instance,
@@ -47,7 +47,7 @@ static void packet_response(
 					ec);
 		}
 		break;
-		case type::full_config: {
+		case request_type::full_config: {
 			std::error_code ec;
 			Resource::process_full_config(*dev,
 					instance,
@@ -56,7 +56,7 @@ static void packet_response(
 					ec);
 		}
 		break;
-		case type::route: {
+		case request_type::route: {
 			std::error_code ec;
 			Resource::process_route(*dev,
 					instance,
@@ -85,31 +85,31 @@ REQUIRE_PACKET(config,net);
 REQUIRE_PACKET(full_config,net);
 
 extern constexpr const request_config packet_sensors = {
-	type::sensors,
+	request_type::sensors,
 	"sensors",
 	&req_sensors,
 	packet_response
 };
 extern constexpr const request_config packet_board = {
-	type::board,
+	request_type::board,
 	"board",
 	&req_board,
 	packet_response
 };
 extern constexpr const request_config packet_route = {
-	type::route,
+	request_type::route,
 	"route",
 	&req_route,
 	packet_response
 };
 extern constexpr const request_config packet_config = {
-	type::config,
+	request_type::config,
 	"config",
 	&req_config,
 	packet_response
 };
 extern constexpr const request_config packet_full_config = {
-	type::full_config,
+	request_type::full_config,
 	"full_config",
 	&req_full_config,
 	packet_response

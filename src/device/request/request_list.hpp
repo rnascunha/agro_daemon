@@ -5,7 +5,7 @@ namespace Agro{
 namespace Device{
 namespace Request{
 
-enum class type{
+enum class request_type{
 	custom,
 	ac_load1_on,
 	ac_load1_off,

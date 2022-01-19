@@ -5,6 +5,7 @@
 #include <vector>
 #include <system_error>
 
+#include "../helper/sha256.hpp"
 #include "resources/types.hpp"
 #include "../error.hpp"
 
@@ -60,12 +61,13 @@ struct job{
 	std::uint8_t	active;
 };
 
-struct app{
-	app(std::string const& app_name, std::size_t app_size)
-		: name(app_name), size(app_size){}
+struct app
+{
+	app(std::string const& app_name, std::size_t app_size, const sha256_hash hash);
 
 	std::string name;
 	std::size_t size;
+	sha256_hash	hash;
 };
 
 #endif /* AGRO_MESH_DEVICE_TYPES_HPP__ */

@@ -55,7 +55,7 @@ static void process_update_ota(CoAP::Message::message const& request,
 static void get_ota_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -71,7 +71,7 @@ static void get_ota_response(
 static void update_ota_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -129,12 +129,12 @@ static request_message const req_update_ota = {
 };
 
 extern constexpr const request_config get_ota = {
-		type::get_ota,
+		request_type::get_ota,
 		"get_ota_version",
 		&req_get_ota,
 		get_ota_response};
 extern constexpr const request_config update_ota = {
-		type::update_ota,
+		request_type::update_ota,
 		"update_ota",
 		&req_update_ota,
 		update_ota_response};
