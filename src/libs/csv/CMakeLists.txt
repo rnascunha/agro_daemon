@@ -13,8 +13,6 @@ endif()
 set(DIR_SRC		./)
 set(MAIN_SRC	${DIR_SRC}/writer.cpp ${DIR_SRC}/fwriter.cpp ${DIR_SRC}/swriter.cpp)
 
-include_directories(${DIR_SRC}/include)
-
 add_library(${PROJECT_NAME}	${MAIN_SRC})
 if(DEFINED WITH_EXAMPLES)
 	if(${WITH_EXAMPLES} EQUAL 1)
@@ -26,3 +24,5 @@ if(DEFINED WITH_EXAMPLES)
 		endforeach()
 	endif()
 endif()
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${DIR_SRC}/include)

@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project (agro_daemon)
+project (agro_daemon VERSION 1.0)
 
 function(print_vars)	
 	message("USE_SSL: " ${USE_SSL})
@@ -226,7 +226,6 @@ add_definitions(-DCOAP_TE_PORT_C_STANDARD=1
 				-DCOAP_TE_JSON_HELPER=1)
 
 add_subdirectory(third/coap-te)
-include_directories(third/coap-te/src)		
 
 ###########################
 # My async
@@ -239,14 +238,11 @@ include_directories(third/my_async/include)
 ############################
 
 add_subdirectory(third/pusha)
-include_directories(third/pusha/include 
-					third/pusha/include_cpp)
 
 ############################
 # csv_export
 ############################
 add_subdirectory(${SRC_DIR}/libs/csv)
-include_directories(${SRC_DIR}/libs/csv/include)
 
 ###########################
 # Adding files 
@@ -404,11 +400,11 @@ target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES}
 										csv_export
 										${CMAKE_THREAD_LIBS_INIT})
 
-#if(WIN32)
-#	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
-#else()
-#	target_link_libraries(${PROJECT_NAME} pthread)
-#endif()
+if(WIN32)
+	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
+else()
+	target_link_libraries(${PROJECT_NAME} pthread)
+endif()
 
 ################
 #tools
@@ -427,7 +423,7 @@ set_target_properties(add_user PROPERTIES
 target_link_libraries(add_user OpenSSL::SSL
 								${SQLite3_LIBRARIES})
 
-#### add db
+##### add db
 add_executable(init_db tools/init_db.cpp 
 						${LIBS_DIR}/sqlite3/sqlite3.cpp
 						${SRC_DIR}/error.cpp
@@ -441,39 +437,26 @@ set_target_properties(init_db PROPERTIES
 
 target_link_libraries(init_db ${SQLite3_LIBRARIES} 
 								pusha 
+								coap-te			#just necessary because of includes dependencies
 								${CMAKE_THREAD_LIBS_INIT})
 
-#### add user group
-#add_executable(add_user_group tools/add_user_group.cpp 
-#						${SRC_DIR}/error.cpp
-#						${DB_SRC}
-#						${DEVICE_SRC}
-#						${MESSAGE_SRC}
-#						${USER_DIR}/user.cpp
-#						${USER_DIR}/group.cpp
-#						${USER_DIR}/list.cpp
-#						${USER_DIR}/policy.cpp
-#						${HELPER_SRC})
-#
-#set_target_properties(add_user_group PROPERTIES
-#    CXX_STANDARD 17
-#    CXX_STANDARD_REQUIRED ON
-#    CXX_EXTENSIONS ON
-#)
-#
-#target_link_libraries(add_user_group OpenSSL::SSL)
-#target_link_libraries(add_user_group ${SQLite3_LIBRARIES})
-#target_link_libraries(add_user_group pusha)
+########################################
+# Installing
+########################################
+install(TARGETS agro_daemon init_db DESTINATION bin)
+install(FILES db/scheme.sql DESTINATION bin)
 
-#add_executable(db_test tools/db_test.cpp 
-#						${DB_DIR}/sqlite3.cpp
-#						${SRC_DIR}/error.cpp)
-#
-#set_target_properties(db_test PROPERTIES
-#    CXX_STANDARD 17
-#    CXX_STANDARD_REQUIRED ON
-#    CXX_EXTENSIONS ON
-#)
-#
-#target_link_libraries(db_test ${SQLite3_LIBRARIES})
-
+#########################################
+# Packing // https://cmake.org/cmake/help/latest/module/CPack.html
+#########################################
+#include(InstallRequiredSystemLibraries)
+#set(CPACK_PACKAGE_NAME			"Agro Project Daemon")
+set(CPACK_PACKAGE_VENDOR		"xeds corp")
+set(CPACK_PACKAGE_DESCRIPTION	"Agro Project Daemon. Responsable to connect the field devices to the interface")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Agro Project central controller")
+set(CPACK_PACKAGE_HOMEPAGE_URL 	"https://rnascunha.github.io/agro")
+set(CPACK_RESOURCE_FILE_README 	"${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+#set(CPACK_PACKAGE_VERSION_MAJOR "${agro_daemon_VERSION_MAJOR}")
+#set(CPACK_PACKAGE_VERSION_MINOR "${agro_daemon_VERSION_MINOR}")
+include(CPack)
