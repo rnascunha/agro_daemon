@@ -20,8 +20,7 @@ static void custom_response(
 }
 
 extern constexpr const request_config custom = {
-		request_type::custom,
-		"custom",
+		{request_type::custom, "custom"},
 		{},
 		custom_response
 };

@@ -674,18 +674,24 @@ static void make_job(rapidjson::Value& data, job const& jo, Allocator& alloc) no
 	timei.AddMember("hour", jo.time_before.hour, alloc);
 	timei.AddMember("minute", jo.time_before.minute, alloc);
 
-	data.AddMember("time_init", timei, alloc);
+	data.AddMember("begin", timei, alloc);
 
 	rapidjson::Value timee;
 	timee.SetObject();
 	timee.AddMember("hour", jo.time_after.hour, alloc);
 	timee.AddMember("minute", jo.time_after.minute, alloc);
 
-	data.AddMember("time_end", timee, alloc);
+	data.AddMember("end", timee, alloc);
 
-	data.AddMember("dow", jo.dow, alloc);
+	data.AddMember("dow", static_cast<std::uint8_t>(jo.day_of_week), alloc);
 	data.AddMember("priority", jo.priority, alloc);
-	data.AddMember("active", jo.active, alloc);
+
+	data.AddMember("exec", rapidjson::Value(
+								jo.app_name.data(),
+								jo.app_name.size(),
+								alloc).Move(),
+					alloc);
+	data.AddMember("arg", jo.argument, alloc);
 }
 
 template<typename Allocator>
@@ -701,7 +707,7 @@ static void make_jobs(rapidjson::Value& data, Device const& dev, Allocator& allo
 
 		array.PushBack(j, alloc);
 	}
-	data.AddMember("job", array, alloc);
+	data.AddMember("jobs", array, alloc);
 }
 
 template<typename Allocator>

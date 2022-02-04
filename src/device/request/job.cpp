@@ -12,6 +12,11 @@ static void process_jobs(Agro::Device::Device_List& device_list,
 		Agro::websocket_ptr ws) noexcept
 {
 	auto* dev = device_list[host];
+	if(!dev)
+	{
+		tt::error("[job] Device '%s' not found", host.to_string().c_str());
+		return;
+	}
 	dev->jobs(data, size);
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Message::device_jobs_to_json(*dev)));
@@ -30,10 +35,9 @@ static void send_job_response(
 	if(CoAP::Message::is_error(response.mcode))
 	{
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Update JOB error[" << response.payload_len << "]: " << p << "\n";
-//		ws->write_all(
-//				::Message::make_info(::Message::info::error, host, p.c_str())
-//		);
+		tt::error("[send job] Error sending jobs [%s]", p.c_str());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+							host, p, "PUT job", ws->user().id()));
 		return;
 	}
 	process_jobs(instance.device_list(), host,
@@ -53,14 +57,13 @@ static void get_job_response(
 	if(CoAP::Message::is_error(response.mcode))
 	{
 		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Get JOB error[" << response.payload_len << "]: " << p << "\n";
-//		ws->write_all(
-//				::Message::make_info(::Message::info::error, host, p.c_str())
-//		);
+		tt::error("[get job] Error sending jobs [%s]", p.c_str());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+							host, p, "GET job", ws->user().id()));
 		return;
 	}
 	process_jobs(instance.device_list(), host,
-			static_cast<std::uint8_t const*>(response.payload), response.payload_len, ws);
+				static_cast<std::uint8_t const*>(response.payload), response.payload_len, ws);
 }
 
 static void delete_job_response(
@@ -83,74 +86,97 @@ static std::size_t send_job_payload(
 		instance&,
 		std::error_code& ec)
 {
-	if(doc.HasMember("payload") && doc["payload"].IsArray())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		std::size_t offset = 0;
-		rapidjson::Value const& sch_arr = doc["payload"];
-		for(auto const& sch : sch_arr.GetArray())
-		{
-			std::uint8_t pay[7];
-
-			if(sch.HasMember("init") && sch["init"].IsObject())
-			{
-				rapidjson::Value const& init = sch["init"];
-				if(init.HasMember("hour") && init["hour"].IsUint() &&
-					init.HasMember("minute") && init["minute"].IsUint())
-				{
-					pay[0] = static_cast<std::uint8_t>(init["hour"].GetUint());
-					pay[1] = static_cast<std::uint8_t>(init["minute"].GetUint());
-				} else {
-					ec = make_error_code(Error::ill_formed);
-					return 0;
-				}
-			}
-			else return 0;
-			if(sch.HasMember("end") && sch["end"].IsObject())
-			{
-				rapidjson::Value const& end = sch["end"];
-				if(end.HasMember("hour") && end["hour"].IsUint() &&
-					end.HasMember("minute") && end["minute"].IsUint())
-				{
-					pay[2] = static_cast<std::uint8_t>(end["hour"].GetUint());
-					pay[3] = static_cast<std::uint8_t>(end["minute"].GetUint());
-				} else {
-					ec = make_error_code(Error::ill_formed);
-					return 0;
-				}
-			}
-			else {
-				ec = make_error_code(Error::ill_formed);
-				return 0;
-			}
-			if(sch.HasMember("dow") && sch["dow"].IsUint())
-			{
-				pay[4] = sch["dow"].GetUint();
-			} else {
-				ec = make_error_code(Error::ill_formed);
-				return 0;
-			}
-			if(sch.HasMember("priority") && sch["priority"].IsUint())
-			{
-				pay[5] = sch["priority"].GetUint();
-			} else {
-				ec = make_error_code(Error::ill_formed);
-				return 0;
-			}
-			if(sch.HasMember("active") && sch["active"].IsUint())
-			{
-				pay[6] = sch["active"].GetUint();
-			} else {
-				ec = make_error_code(Error::ill_formed);
-				return 0;
-			}
-
-			std::memcpy(static_cast<std::uint8_t*>(buf) + offset, pay, 7);
-			offset += 7;
-		}
-		return offset;
+		ec = make_error_code(Error::missing_field);
+		return 0;
 	}
-	ec = make_error_code(Error::ill_formed);
-	return 0;
+	auto const& data = doc["data"].GetObject();
+
+	if(!data.HasMember("jobs") || !data["jobs"].IsArray())
+	{
+		ec = make_error_code(Error::missing_field);
+		return 0;
+	}
+
+	std::size_t offset = 0;
+	for(auto const& job : data["jobs"].GetArray())
+	{
+		if(!job.IsObject())
+		{
+			continue;
+		}
+
+		if(!job.HasMember("begin") || !job["begin"].IsObject())
+		{
+			continue;
+		}
+		auto const& begin = job["begin"].GetObject();
+
+		if((!begin.HasMember("hour") || !begin["hour"].IsUint())
+			|| (!begin.HasMember("minute") || !begin["minute"].IsUint()))
+		{
+			continue;
+		}
+
+		if(!job.HasMember("end") || !job["end"].IsObject())
+		{
+			continue;
+		}
+		auto const& end = job["end"].GetObject();
+
+		if((!end.HasMember("hour") || !end["hour"].IsUint())
+			|| (!end.HasMember("minute") || !end["minute"].IsUint()))
+		{
+			continue;
+		}
+
+		if(!job.HasMember("dow") || !job["dow"].IsUint())
+		{
+			continue;
+		}
+
+		if(!job.HasMember("priority") || !job["priority"].IsUint())
+		{
+			continue;
+		}
+
+		if(!job.HasMember("exec") || !job["exec"].IsString())
+		{
+			continue;
+		}
+
+		if(!job.HasMember("arg") || !job["arg"].IsInt())
+		{
+			continue;
+		}
+
+		/**
+		 * Scheduler
+		 */
+		job_packet packet;
+		packet.be_time_hour = begin["hour"].GetUint();
+		packet.be_time_minute = begin["minute"].GetUint();
+		packet.af_time_hour = end["hour"].GetUint();
+		packet.af_time_minute = end["minute"].GetUint();
+		packet.day_of_week = static_cast<dow>(job["dow"].GetUint());
+		packet.priority = job["priority"].GetUint();
+
+		std::memcpy(static_cast<std::uint8_t*>(buf) + offset, &packet, sizeof(packet));
+		offset += sizeof(packet);
+
+		/**
+		 * Executor
+		 */
+		job_packet_executor packet_exec;
+		packet_exec.arg = job["arg"].GetInt();
+		std::strncpy(packet_exec.exec, job["exec"].GetString(), app_name_max_size);
+
+		std::memcpy(static_cast<std::uint8_t*>(buf) + offset, &packet_exec, sizeof(job_packet_executor));
+		offset += sizeof(job_packet_executor);
+	}
+
+	return offset;
 }
 
 static request_message const req_send_job = {
@@ -177,20 +203,17 @@ static request_message const req_del_job = {
 };
 
 extern constexpr const request_config send_job = {
-	request_type::send_job,
-	"send_job",
+	{request_type::send_job, "send_job"},
 	&req_send_job,
 	send_job_response
 };
 extern constexpr const request_config get_job = {
-	request_type::get_job,
-	"get_job",
+	{request_type::get_job, "get_job"},
 	&req_get_job,
 	get_job_response
 };
 extern constexpr const request_config delete_job = {
-	request_type::delete_job,
-	"del_job",
+	{request_type::delete_job, "del_job"},
 	&req_del_job,
 	delete_job_response
 };

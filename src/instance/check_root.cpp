@@ -5,8 +5,8 @@
 #include "../user/policy.hpp"
 #include "../helper/time_helper.hpp"
 
-static constexpr const int interval_check = 5; //seconds
-static const std::uint32_t time_invalidate_node = 11000; //milliseconds
+static constexpr const int interval_check = 45; //seconds
+static const std::uint32_t time_invalidate_node = 60000; //milliseconds
 
 namespace Agro{
 

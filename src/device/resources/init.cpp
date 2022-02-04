@@ -74,6 +74,12 @@ void init(engine& coap_engine,
 				std::bind(put_report_handler,
 						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
 						std::ref(instance)));
+	vresource.emplace_back("job",
+				"title='Job info'",
+				nullptr,
+				std::bind(post_job_handler,
+						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+						std::ref(instance)));
 
 	for(auto& res : vresource)
 	{

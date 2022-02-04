@@ -279,25 +279,21 @@ static request_message const req_delete_app = {
 };
 
 extern constexpr const request_config get_app = {
-		request_type::get_app,
-		"get_app",
+		{request_type::get_app, "get_app"},
 		&req_get_app,
 		get_app_response};
 extern constexpr const request_config send_app = {
-		request_type::send_app,
-		"send_app",
+		{request_type::send_app, "send_app"},
 		&req_send_app,
 		send_app_response};
 
 extern constexpr const request_config execute_app = {
-		request_type::run_app,
-		"execute_app",
+		{request_type::run_app, "execute_app"},
 		&req_execute_app,
 		exec_app_response};
 
 extern constexpr const request_config delete_app = {
-		request_type::delete_app,
-		"delete_app",
+		{request_type::delete_app, "delete_app"},
 		&req_delete_app,
 		delete_app_response};
 

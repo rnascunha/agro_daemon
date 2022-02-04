@@ -164,7 +164,9 @@ void Device::jobs(std::uint8_t const* jobs, std::size_t size) noexcept
 	std::size_t offset = 0;
 	while(size)
 	{
-		jobs_.emplace_back(jobs + offset);
+		jobs_.emplace_back(
+				reinterpret_cast<job_packet const*>(jobs + offset),
+				reinterpret_cast<job_packet_executor const*>(jobs + offset + sizeof(job_packet)));
 		size -= job::packet_size;
 		offset += job::packet_size;
 	}

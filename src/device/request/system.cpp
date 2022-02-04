@@ -55,14 +55,12 @@ static request_message const req_reset = {
 };
 
 extern constexpr const request_config uptime = {
-	request_type::uptime,
-	"uptime",
+	{request_type::uptime, "uptime"},
 	&req_uptime,
 	update_uptime_response
 };
 extern constexpr const request_config reset = {
-	request_type::reset,
-	"reset",
+	{request_type::reset, "reset"},
 	&req_reset
 };
 
@@ -104,8 +102,7 @@ static request_message const req_reset_reason = {
 };
 
 extern constexpr const request_config reset_reason = {
-	request_type::reset_reason,
-	"reset_reason",
+	{request_type::reset_reason, "reset_reason"},
 	&req_reset_reason,
 	reset_reason_response
 };

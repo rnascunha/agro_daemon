@@ -16,8 +16,7 @@ static request_message const req_waive_root = {
 };
 
 extern constexpr const request_config waive_root = {
-	request_type::waive_root,
-	"waive_root",
+	{request_type::waive_root, "waive_root"},
 	&req_waive_root,
 };
 

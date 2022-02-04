@@ -4,7 +4,7 @@
 #include <system_error>
 
 enum class Error{
-	ill_formed = 0,
+	ill_formed = 1,
 	invalid_value,
 	value_too_small,
 	missing_field,

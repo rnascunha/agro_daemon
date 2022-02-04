@@ -50,6 +50,9 @@ void put_report_handler(engine::message const& request,
 void put_sensors_data_handler(engine::message const& request,
 					engine::response& response, void*,
 					Agro::instance& instance) noexcept;
+void post_job_handler(engine::message const& request,
+					engine::response& response, void*,
+					instance& instance) noexcept;
 
 }//Resource
 }//Device

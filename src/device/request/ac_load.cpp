@@ -71,38 +71,32 @@ AC_LOAD(ac3_on, 3, "1");
 AC_LOAD(ac3_off, 3, "0");
 
 extern constexpr const request_config ac1_on = {
-	request_type::ac_load1_on,
-	"ac1_on",
+	{request_type::ac_load1_on, "ac1_on"},
 	&req_ac1_on,
 	ac_load_response
 };
 extern constexpr const request_config ac1_off = {
-	request_type::ac_load1_off,
-	"ac1_off",
+	{request_type::ac_load1_off, "ac1_off"},
 	&req_ac1_off,
 	ac_load_response
 };
 extern constexpr const request_config ac2_on = {
-	request_type::ac_load2_on,
-	"ac2_on",
+	{request_type::ac_load2_on, "ac2_on"},
 	&req_ac2_on,
 	ac_load_response
 };
 extern constexpr const request_config ac2_off = {
-	request_type::ac_load2_off,
-	"ac2_off",
+	{request_type::ac_load2_off, "ac2_off"},
 	&req_ac2_off,
 	ac_load_response
 };
 extern constexpr const request_config ac3_on = {
-	request_type::ac_load3_on,
-	"ac3_on",
+	{request_type::ac_load3_on, "ac3_on"},
 	&req_ac3_on,
 	ac_load_response
 };
 extern constexpr const request_config ac3_off = {
-	request_type::ac_load3_off,
-	"ac3_off",
+	{request_type::ac_load3_off, "ac3_off"},
 	&req_ac3_off,
 	ac_load_response
 };

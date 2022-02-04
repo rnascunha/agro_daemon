@@ -218,10 +218,11 @@ include_directories(${RAPIDJSON_ROOT})
 #########################
 # CoAP-te 
 #########################
-add_definitions(-DCOAP_TE_PORT_C_STANDARD=1
-				-DCOAP_TE_PORT_POSIX=1
+add_definitions(
+#				-DCOAP_TE_PORT_C_STANDARD=1
+#				-DCOAP_TE_PORT_POSIX=1
 				-DCOAP_TE_LOG_COLOR=1
-				-DCOAP_TE_LOG_LEVEL=5
+				-DCOAP_TE_LOG_LEVEL=4
 				-DCOAP_TE_USE_ERROR_MESSAGES=1
 				-DCOAP_TE_JSON_HELPER=1)
 
@@ -318,6 +319,7 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					${RESOURCE_DIR}/time.cpp
 					${RESOURCE_DIR}/ota.cpp
 					${RESOURCE_DIR}/app.cpp
+					${RESOURCE_DIR}/job.cpp
 					${RESOURCE_DIR}/info.cpp
 					${RESOURCE_DIR}/init.cpp
 					${RESOURCE_DIR}/process.cpp)					
