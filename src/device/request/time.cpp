@@ -162,8 +162,8 @@ static std::size_t update_fuse_payload(
 	return 0;
 }
 
-static CoAP::Message::content_format rtc_update_content = CoAP::Message::content_format::application_octet_stream;
-static CoAP::Message::content_format rtc_get_content = CoAP::Message::content_format::application_octet_stream;
+static constexpr const CoAP::Message::content_format rtc_update_content{CoAP::Message::content_format::application_octet_stream};
+static constexpr const CoAP::Message::accept rtc_get_content{CoAP::Message::accept::application_octet_stream};
 
 static request_message const req_update_rtc = {
 	CoAP::Message::code::put,
@@ -178,19 +178,19 @@ static request_message const req_update_rtc = {
 static request_message const req_get_rtc = {
 	CoAP::Message::code::get,
 	{
-		{rtc_get_content, true},
+		{rtc_get_content},
 		{CoAP::Message::Option::code::uri_path, "rtc"},
 	}
 };
 
-static constexpr const CoAP::Message::content_format fuse_get_content = CoAP::Message::content_format::application_octet_stream;
-static constexpr const CoAP::Message::content_format fuse_update_content = CoAP::Message::content_format::application_octet_stream;
+static constexpr const CoAP::Message::accept fuse_get_content{CoAP::Message::accept::application_octet_stream};
+static constexpr const CoAP::Message::content_format fuse_update_content{CoAP::Message::content_format::application_octet_stream};
 
 static request_message const req_get_fuse = {
 	CoAP::Message::code::get,
 	{
 		{CoAP::Message::Option::code::uri_path, "fuse"},
-		{fuse_get_content, true}
+		{fuse_get_content}
 	}
 };
 

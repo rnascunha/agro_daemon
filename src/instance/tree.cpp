@@ -53,10 +53,6 @@ void instance::check_device_state() noexcept
 				Notify::device_type::connect,
 				new_connected,
 				"connected");
-//		notify_all_policy(
-//				Authorization::rule::view_device,
-//				Notify::general_type::device_connect,
-//				Notify::Message::make_status_devices(new_connected, "connected"));
 	}
 
 	if(!new_disconnected.empty())
@@ -65,10 +61,6 @@ void instance::check_device_state() noexcept
 						Notify::device_type::disconnect,
 						new_disconnected,
 						"disconnected");
-//		notify_all_policy(
-//					Authorization::rule::view_device,
-//					Notify::general_type::device_disconnect,
-//					Notify::Message::make_status_devices(new_disconnected, "disconnected"));
 	}
 
 	unconnected_ = std::move(new_unconnected);

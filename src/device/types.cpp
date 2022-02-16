@@ -81,6 +81,12 @@ std::string mesh_addr_t::to_string() const noexcept
 	return to_string(buf, 18);
 }
 
+std::ostream& operator<< (std::ostream& stream, const mesh_addr_t& addr) noexcept
+{
+	stream << addr.to_string();
+	return stream;
+}
+
 app::app(std::string const& app_name, std::size_t app_size, const sha256_hash app_hash)
 		: name(app_name), size(app_size)
 {

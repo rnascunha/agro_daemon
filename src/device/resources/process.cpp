@@ -29,7 +29,7 @@ bool process_route(Agro::Device::Device& device,
 	if(instance.update_tree(device) || force_send)
 	{
 		instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
-			std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
+						std::make_shared<std::string>(Agro::Device::Message::device_route_to_json(device)));
 	}
 
 	return true;

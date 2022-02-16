@@ -1,6 +1,8 @@
 #include "tree.hpp"
 
+#if AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1
 #include <iostream> //for the print functions
+#endif /* AGRO_DEVICE_TREE_PRINT_FUNCTIONS */
 
 namespace Agro{
 namespace Device{
@@ -16,31 +18,41 @@ bool Tree::node::operator==(node const& rhs) const noexcept
 	return addr == rhs.addr;
 }
 
+bool Tree::node::operator!=(node const& rhs) const noexcept
+{
+	return !(*this == rhs);
+}
+
+void Tree::node::undo_branch() noexcept
+{
+	for(node* c = children; c; c = c->next)
+	{
+		c->undo_branch();
+	}
+	children = nullptr;
+	next = nullptr;
+	parent = nullptr;
+	layer = -1;
+}
+
 bool Tree::node::remove_child(mesh_addr_t const& caddr) noexcept
 {
-	if(!children) return false;
-	if(children->addr == caddr)
-	{
-		children->parent = nullptr;
-		node* next = children->next;
-		children->next = nullptr;
-		children->children = nullptr;
-		children = next;
-		return true;
-	}
-
-	node* before = children;
-	for(node* c = children->next; c; c = c->next)
+	node* before = nullptr;
+	for(node* c = children; c; before = c, c = c->next)
 	{
 		if(c->addr == caddr)
 		{
-			before->next = c->next;
-			c->parent = nullptr;
-			c->children = nullptr;
-			c->next = nullptr;
+			if(before)
+			{
+				before->next = c->next;
+			}
+			else
+			{
+				children = c->next;
+			}
+			c->undo_branch();
 			return true;
 		}
-		before = c;
 	}
 	return false;
 }
@@ -81,33 +93,61 @@ bool Tree::update(Device const& device) noexcept
 	node& dev = get_node(device.mac());
 	dev.layer = device.layer();
 
-	node& parent = get_node(dev.layer == 1 ? device.parent() : mac_ap_to_addr(device.parent()));
-	parent.layer = device.layer() - 1;
+	node& parent = get_node(dev.layer == 1 ? device.parent() : Tree::mac_ap_to_addr(device.parent()));
+	parent.layer = dev.layer - 1;
 
 	bool change = false;
 
-	update_endpoints(device);
-	change = add_child(parent, dev) || change;
+//	change = remove_descendent(dev, device.children_table()) || change;
 
+	/**
+	 * Update parent and children endpoint of device
+	 */
+
+	update_endpoints(device);
+	/**
+	 * Add device node as child of parent
+	 */
+	change = add_child(parent, dev) || change;
 	if(parent.layer == 0)
 	{
+		/**
+		 * If parent is a router (layer 0), add root as it parent (root is the daemon)
+		 */
 		change = add_child(root_, parent) || change;
 	}
 
-	if(parent.layer == 1)
-	{
-		change = add_endpoint(parent.addr, device.get_endpoint()) || change;
-	}
+	change = remove_descendent(dev, device.children_table()) || change;
+	change = add_descendent(dev, device.children_table()) || change;
 
-	change = add_remove_descendent(dev, device.children_table()) || change;
-	//Endpoints
-	if(device.layer() == 1)
+	manage_device_root_endpoint(dev, device.get_endpoint());
+
+	return change;
+}
+
+bool Tree::manage_device_root_endpoint(node const& node, endpoint const& ep) noexcept
+{
+	bool change = false;
+	if(node.parent && node.parent->layer == 1)
 	{
-		change = add_endpoint(device.mac(), device.get_endpoint()) || change;
+		/**
+		 * If parent is a device root (layer 1)
+		 */
+		change = add_endpoint(node.parent->addr, ep);
+	}
+	else if(node.layer == 1)
+	{
+		/**
+		 * If node is a device root (layer 1)
+		 */
+		return add_endpoint(node.addr, ep);
 	}
 	else
 	{
-		change = remove_endpoint(device.mac()) || change;
+		/**
+		 * Else, remove node as root
+		 */
+		change = remove_endpoint(node.addr);
 	}
 
 	return change;
@@ -141,16 +181,11 @@ bool Tree::remove_node(node& device, mesh_addr_t const& addr) noexcept
 			return true;
 		}
 		if(remove_node(*c, addr))
+		{
 			return true;
+		}
 	}
 	return false;
-}
-
-bool Tree::add_remove_descendent(node& device,
-				std::vector<mesh_addr_t> const& children) noexcept
-{
-	bool change = remove_descendent(device, children);
-	return add_descendent(device, children) || change;
 }
 
 bool Tree::remove_descendent(node& device,
@@ -187,6 +222,10 @@ bool Tree::add_descendent(node& device,
 		if(!device.is_descendent(c))
 		{
 			node& ch = get_node(c);
+			if(ch.parent)
+			{
+				ch.parent->remove_child(c);
+			}
 			add_child(device, ch);
 			change = true;
 		}
@@ -223,7 +262,7 @@ bool Tree::add_child(node& parent, node& child) noexcept
 	{
 		for(node* c = children; c; c = c->next)
 		{
-			if(c && *c == child)
+			if(*c == child)
 			{
 				break;
 			}
@@ -242,7 +281,6 @@ bool Tree::add_child(node& parent, node& child) noexcept
 std::vector<mesh_addr_t> Tree::unconnected() const noexcept
 {
 	std::vector<mesh_addr_t> un;
-
 	for(auto const& [addr, node] : nodes_)
 	{
 		if(!root_.is_descendent(addr))
@@ -314,6 +352,18 @@ void Tree::update_device_endpoint(std::vector<mesh_addr_t> const& list,
 	}
 }
 
+mesh_addr_t Tree::mac_ap_to_addr(mesh_addr_t const& addr) noexcept
+{
+	mesh_addr_t mac{addr};
+	mac.addr[5]--;
+
+	return mac;
+}
+
+#if AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1
+/**
+ * Print functions
+ */
 void Tree::print_endpoints() const noexcept
 {
 	for(auto const& [addr, ep] : endpoints_)
@@ -329,6 +379,17 @@ void Tree::print() const noexcept
 	print(root_, -1);
 }
 
+//void Tree::print() const noexcept
+//{
+//	for(auto const& [addr, node] : nodes_)
+//	{
+//		std::cout << (node.parent ? node.parent->layer : -2) << std::flush;
+//		std::cout << "|" << (node.parent ? node.parent->addr.to_string() : "null")  << std::flush;
+//		std::cout << " -> " << std::flush;
+//		std::cout << node.layer << "|" << node.addr << "\n";
+//	}
+//}
+
 void Tree::print_all() const noexcept
 {
 	std::cout << "Tree:\n";
@@ -337,21 +398,13 @@ void Tree::print_all() const noexcept
 	print_endpoints();
 }
 
-mesh_addr_t Tree::mac_ap_to_addr(mesh_addr_t const& addr) noexcept
-{
-	mesh_addr_t mac{addr};
-	mac.addr[5]--;
-
-	return mac;
-}
-
 void Tree::print(node const& node, int layer /* = -1 */) noexcept
 {
 	std::cout << layer << "|" << node.layer
-			<< "[" << node.addr.to_string() << "]: ";
+			<< "[" << node.addr << "]: ";
 	for(auto* c = node.children; c; c = c->next)
 	{
-		std::cout << c->addr.to_string();
+		std::cout << c->addr;
 		if(c->next) std::cout << ", ";
 	}
 	std::cout << "\n";
@@ -362,6 +415,7 @@ void Tree::print(node const& node, int layer /* = -1 */) noexcept
 		print(*c, layer);
 	}
 }
+#endif /* AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1 */
 
 }//Device
 }//Agro

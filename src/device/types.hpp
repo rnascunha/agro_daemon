@@ -37,6 +37,8 @@ struct mesh_addr_t{
 	std::string to_string() const noexcept;
 };
 
+std::ostream& operator<< (std::ostream& stream, const mesh_addr_t& addr) noexcept;
+
 using value_time = std::uint32_t;
 
 value_time get_time() noexcept;
