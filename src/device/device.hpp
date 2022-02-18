@@ -129,7 +129,7 @@ class Device{
 		std::uint8_t ch_config_ = 0;
 		std::uint8_t ch_conn_ = 0;
 
-		int layer_ = -1;
+		int layer_ = -2;
 		std::vector<mesh_addr_t> children_table_;
 
 		//Agro values

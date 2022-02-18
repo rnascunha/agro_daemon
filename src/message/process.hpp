@@ -18,33 +18,23 @@ void process(std::string&& str,
 		instance&,
 		User::Logged&) noexcept;
 
+//template<typename Websocket>
+//void process(std::string&& str,
+//		Websocket,
+//		instance&,
+//		User::Logged&) noexcept;
+
 void process_report(rapidjson::Document const&,
 		websocket_ptr ws,
 		instance& instance,
 		User::Logged& user) noexcept;
 
 void process_image(rapidjson::Document const&, websocket_ptr, instance&) noexcept;
-void process_app(rapidjson::Document const&, Agro::websocket_ptr, instance&) noexcept;
-
-//class Process{
-//	public:
-//		using callback = void(*)(rapidjson::Document const&,
-//									websocket_ptr,
-//									instance&,
-//									User::Logged&) noexcept;
-//
-//		Process& install(::Message::type, callback) noexcept;
-//		bool exec(::Message::type,
-//				rapidjson::Document const&,
-//				websocket_ptr,
-//				instance&,
-//				User::Logged&) noexcept;
-//	private:
-//		std::unordered_map<::Message::type, callback> list_cb_;
-//};
-
+void process_app(rapidjson::Document const&, websocket_ptr, instance&) noexcept;
 
 }//Message
 }//Agro
+
+//#include "impl/process_impl.hpp"
 
 #endif /* AGRO_MESH_MESSAGE_PROCESS_HPP__ */

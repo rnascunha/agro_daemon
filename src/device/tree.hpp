@@ -15,6 +15,9 @@ void check_root(mesh_addr_t const&) noexcept;
 
 class Tree{
 	public:
+		static constexpr const int undefined = -2;
+		static constexpr const int daemon = -1;
+
 		Tree(Device_List&);
 
 		void read_device_list() noexcept;
@@ -25,7 +28,7 @@ class Tree{
 			node(mesh_addr_t const&, int layer);
 
 			mesh_addr_t addr;
-			int			layer = -1;
+			int			layer = undefined;
 			node*		next = nullptr;
 			node* 		parent = nullptr;
 			node*		children = nullptr;
@@ -66,7 +69,7 @@ class Tree{
 
 		void print_all() const noexcept;
 
-		static void print(node const&, int layer = -1) noexcept;
+		static void print(node const&, int layer) noexcept;
 #endif /* AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1 */
 	private:
 		node& get_node(mesh_addr_t const&) noexcept;
@@ -90,6 +93,8 @@ class Tree{
 		void update_endpoints(Device const&) const noexcept;
 		void update_device_endpoint(mesh_addr_t const&, endpoint const&) const noexcept;
 		void update_device_endpoint(std::vector<mesh_addr_t> const&, endpoint const&) const noexcept;
+
+		bool bug_inconsistency_fix() noexcept;
 
 		Device_List&		dev_list_;
 		std::map<mesh_addr_t const, node>

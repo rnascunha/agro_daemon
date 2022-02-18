@@ -35,9 +35,9 @@ void Websocket<UseSSL>::get_app_file(
 		char buffer[1024];
 		do
 		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+			stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!base_type::stream_.is_message_done());
+		while(!stream_.is_message_done());
 		return;
 	}
 
@@ -59,9 +59,9 @@ void Websocket<UseSSL>::get_app_file(
 		char buffer[1024];
 		do
 		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+			stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!base_type::stream_.is_message_done());
+		while(!stream_.is_message_done());
 		return;
 	}
 
@@ -71,10 +71,10 @@ void Websocket<UseSSL>::get_app_file(
 	char buffer[1024];
 	do
 	{
-		std::size_t s = base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+		std::size_t s = stream_.read_some(boost::asio::buffer(buffer, 1024));
 		t.write(buffer, s);
 	}
-	while(!base_type::stream_.is_message_done());
+	while(!stream_.is_message_done());
 	t.close();
 
 	if(!share_->instance().add_app(name, user_.id()))
@@ -119,9 +119,9 @@ void Websocket<UseSSL>::get_image_file(
 		char buffer[1024];
 		do
 		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+			stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!base_type::stream_.is_message_done());
+		while(!stream_.is_message_done());
 		return;
 	}
 
@@ -142,9 +142,9 @@ void Websocket<UseSSL>::get_image_file(
 		char buffer[1024];
 		do
 		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+			stream_.read_some(boost::asio::buffer(buffer, 1024));
 		}
-		while(!base_type::stream_.is_message_done());
+		while(!stream_.is_message_done());
 		return;
 	}
 
@@ -154,10 +154,10 @@ void Websocket<UseSSL>::get_image_file(
 	char buffer[1024];
 	do
 	{
-		std::size_t s = base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+		std::size_t s = stream_.read_some(boost::asio::buffer(buffer, 1024));
 		t.write(buffer, s);
 	}
-	while(!base_type::stream_.is_message_done());
+	while(!stream_.is_message_done());
 	t.close();
 
 	if(!Agro::check_image(path))

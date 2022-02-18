@@ -3,6 +3,7 @@
 #if AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1
 #include <iostream> //for the print functions
 #endif /* AGRO_DEVICE_TREE_PRINT_FUNCTIONS */
+#include <iostream>
 
 namespace Agro{
 namespace Device{
@@ -32,7 +33,7 @@ void Tree::node::undo_branch() noexcept
 	children = nullptr;
 	next = nullptr;
 	parent = nullptr;
-	layer = -1;
+	layer = undefined;
 }
 
 bool Tree::node::remove_child(mesh_addr_t const& caddr) noexcept
@@ -78,7 +79,10 @@ Tree::tree_endpoint::tree_endpoint(mesh_addr_t const& addr_,
  *
  */
 Tree::Tree(Device_List& list)
-	: dev_list_{list}{}
+	: dev_list_{list}
+{
+	root_.layer = daemon;
+}
 
 void Tree::read_device_list() noexcept
 {
@@ -97,8 +101,6 @@ bool Tree::update(Device const& device) noexcept
 	parent.layer = dev.layer - 1;
 
 	bool change = false;
-
-//	change = remove_descendent(dev, device.children_table()) || change;
 
 	/**
 	 * Update parent and children endpoint of device
@@ -122,6 +124,44 @@ bool Tree::update(Device const& device) noexcept
 
 	manage_device_root_endpoint(dev, device.get_endpoint());
 
+	change = bug_inconsistency_fix() || change;
+
+	return change;
+}
+
+/**
+ *
+ */
+bool Tree::bug_inconsistency_fix() noexcept
+{
+	bool change = false;
+	/**
+	 * This loop will remove any incosistency between parent->children pointers...
+	 * And also remove any wrong endpoint (root device)
+	 * There is a bug to be found at code to remove this...
+	 */
+	for(auto& [addr, node] : nodes_)
+	{
+		/**
+		 * Parent-child inconsistency
+		 */
+		if(node.children && node.children->parent)
+		{
+			if(*node.children->parent != node)
+			{
+				change = true;
+				node.children = nullptr;
+			}
+		}
+		/**
+		 * Endpoint inconsistency
+		 */
+		if(node.layer != 1)
+		{
+			change = remove_endpoint(addr) || change;
+		}
+	}
+
 	return change;
 }
 
@@ -140,7 +180,7 @@ bool Tree::manage_device_root_endpoint(node const& node, endpoint const& ep) noe
 		/**
 		 * If node is a device root (layer 1)
 		 */
-		return add_endpoint(node.addr, ep);
+		change = add_endpoint(node.addr, ep);
 	}
 	else
 	{
@@ -376,7 +416,7 @@ void Tree::print_endpoints() const noexcept
 
 void Tree::print() const noexcept
 {
-	print(root_, -1);
+	print(root_, daemon);
 }
 
 //void Tree::print() const noexcept
@@ -398,7 +438,7 @@ void Tree::print_all() const noexcept
 	print_endpoints();
 }
 
-void Tree::print(node const& node, int layer /* = -1 */) noexcept
+void Tree::print(node const& node, int layer) noexcept
 {
 	std::cout << layer << "|" << node.layer
 			<< "[" << node.addr << "]: ";
