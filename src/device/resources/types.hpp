@@ -19,13 +19,13 @@ struct __attribute__((packed)) route{
 struct __attribute__((packed)) config{
 	mesh_addr_t		mac_ap;
 	mesh_addr_t		net_id;
-	uint8_t			channel_config:4;
-	uint8_t			channel_conn:4;
+	std::uint8_t	channel_config:4;
+	std::uint8_t	channel_conn:4;
 };
 
 struct __attribute__((packed)) full_config{
 	config			fconfig;
-	int8_t			rssi;
+	std::int8_t		rssi;
 	route			froute;
 };
 

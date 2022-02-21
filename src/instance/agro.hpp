@@ -133,8 +133,11 @@ class instance{
 				std::vector<Notify::sensor_temp_notify> const&) noexcept;
 
 		/**
-		 *
+		 * Device
 		 */
+		std::pair<Device::Device*, bool>
+		add_or_get_device(mesh_addr_t const&) noexcept;
+		void device_connected(std::vector<Device::Device const*> const&) noexcept;
 		bool process_device_request(engine::message const&,
 				Device::Device**,
 				CoAP::Message::Option::option&) noexcept;

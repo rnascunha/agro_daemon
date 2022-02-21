@@ -71,9 +71,19 @@ mesh_addr_t const& Device::parent() const noexcept
 	return parent_;
 }
 
+void Device::parent(mesh_addr_t const& addr) noexcept
+{
+	parent_ = addr;
+}
+
 mesh_addr_t const& Device::mac_ap() const noexcept
 {
 	return mac_ap_;
+}
+
+void Device::mac_ap(mesh_addr_t const& addr) noexcept
+{
+	mac_ap_ = addr;
 }
 
 mesh_addr_t const& Device::net_id() const noexcept
@@ -81,9 +91,22 @@ mesh_addr_t const& Device::net_id() const noexcept
 	return net_id_;
 }
 
+void Device::net_id(mesh_addr_t const& nid) noexcept
+{
+	net_id_ = nid;
+}
+
+/**
+ * Endpoint
+ */
 endpoint const& Device::get_endpoint() const noexcept
 {
 	return ep_;
+}
+
+void Device::update_endpoint(endpoint const& ep) noexcept
+{
+	ep_ = ep;
 }
 
 std::string Device::name() const noexcept
@@ -106,9 +129,20 @@ std::uint8_t Device::channel() const noexcept
 	return ch_conn_;
 }
 
+void Device::channel(uint8_t ch_cfg, uint8_t ch) noexcept
+{
+	ch_config_ = ch_cfg;
+	ch_conn_ = ch;
+}
+
 int Device::layer() const noexcept
 {
 	return layer_;
+}
+
+void Device::layer(int nlayer) noexcept
+{
+	layer_ = nlayer;
 }
 
 std::vector<mesh_addr_t> const& Device::children_table() const noexcept
@@ -126,6 +160,12 @@ std::string const& Device::hardware_version() const noexcept
 	return hw_version_;
 }
 
+void Device::version(std::string const& fw, std::string const hw) noexcept
+{
+	fw_version_ = fw;
+	hw_version_ = hw;
+}
+
 bool Device::has_rtc() const noexcept
 {
 	return has_rtc_;
@@ -136,9 +176,20 @@ bool Device::has_temperature_sensor() const noexcept
 	return has_sensor_temp_;
 }
 
+void Device::has_config(bool rtc, bool temp_sensor) noexcept
+{
+	has_rtc_ = rtc;
+	has_sensor_temp_ = temp_sensor;
+}
+
 std::uint32_t Device::last_packet_time() const noexcept
 {
 	return last_packet_time_;
+}
+
+void Device::update_last_packet_time() noexcept
+{
+	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
 }
 
 Sensor::Value<value_time> const& Device::rtc_time() const noexcept
@@ -207,82 +258,82 @@ bool Device::operator==(Device const& rhs) const noexcept
 	return mac_ == rhs.mac_;
 }
 
-void Device::update(endpoint const& ep, Resource::config const& cfg, Net* net) noexcept
-{
-	process_packet(ep);
+//void Device::update(endpoint const& ep, Resource::config const& cfg, Net* net) noexcept
+//{
+//	process_packet(ep);
+//
+//	ch_config_ = cfg.channel_config;
+//	ch_conn_ = cfg.channel_conn;
+//	mac_ap_ = cfg.mac_ap;
+//	net_id_ = cfg.net_id;
+//	net_ = net;
+//}
 
-	ch_config_ = cfg.channel_config;
-	ch_conn_ = cfg.channel_conn;
-	mac_ap_ = cfg.mac_ap;
-	net_id_ = cfg.net_id;
-	net_ = net;
-}
+//void Device::update(endpoint const& ep, Resource::route const& route,
+//		const uint8_t* children, std::size_t children_size) noexcept
+//{
+//	process_packet(ep);
+//
+//	layer_ = static_cast<int>(ntohs(route.layer));
+//	parent_ = route.parent;
+//
+//	children_table_.clear();
+//	for(std::size_t i = 0; i < children_size; i += 6)
+//	{
+//		children_table_.emplace_back(children);
+//		children += 6;
+//	}
+//}
 
-void Device::update(endpoint const& ep, Resource::route const& route,
-		const uint8_t* children, std::size_t children_size) noexcept
-{
-	process_packet(ep);
+//void Device::update(endpoint const& ep, Resource::full_config const& cfg, Net* net,
+//		const uint8_t* children, std::size_t children_size) noexcept
+//{
+//	process_packet(ep);
+//
+//	ch_config_ = cfg.fconfig.channel_config;
+//	ch_conn_ = cfg.fconfig.channel_conn;
+//	mac_ap_ = cfg.fconfig.mac_ap;
+//	net_id_ = cfg.fconfig.net_id;
+//	net_ = net;
+//
+//	layer_ = static_cast<int>(ntohs(cfg.froute.layer));
+//	parent_ = cfg.froute.parent;
+//
+//	children_table_.clear();
+//	for(std::size_t i = 0; i < children_size; i += 6)
+//	{
+//		children_table_.emplace_back(children);
+//		children += 6;
+//	}
+//}
 
-	layer_ = static_cast<int>(ntohs(route.layer));
-	parent_ = route.parent;
-
-	children_table_.clear();
-	for(std::size_t i = 0; i < children_size; i += 6)
-	{
-		children_table_.emplace_back(children);
-		children += 6;
-	}
-}
-
-void Device::update(endpoint const& ep, Resource::full_config const& cfg, Net* net,
-		const uint8_t* children, std::size_t children_size) noexcept
-{
-	process_packet(ep);
-
-	ch_config_ = cfg.fconfig.channel_config;
-	ch_conn_ = cfg.fconfig.channel_conn;
-	mac_ap_ = cfg.fconfig.mac_ap;
-	net_id_ = cfg.fconfig.net_id;
-	net_ = net;
-
-	layer_ = static_cast<int>(ntohs(cfg.froute.layer));
-	parent_ = cfg.froute.parent;
-
-	children_table_.clear();
-	for(std::size_t i = 0; i < children_size; i += 6)
-	{
-		children_table_.emplace_back(children);
-		children += 6;
-	}
-}
-
-void Device::update(endpoint const& ep, Resource::board_config const& cfg,
-		const char* version, std::size_t version_len) noexcept
-{
-	process_packet(ep);
-
-	has_rtc_ = cfg.has_rtc;
-	has_sensor_temp_ = cfg.has_temp_sensor;
-
-	std::string str{static_cast<const char*>(version), version_len};
-	std::string::size_type pos = str.find("|");
-	if(pos != std::string::npos)
-	{
-		fw_version_ = str.substr(0, pos);
-		hw_version_ = str.substr(pos + 1);
-	}
-	else
-	{
-		fw_version_ = {static_cast<const char*>(version), version_len};
-		hw_version_ = "";
-	}
-}
+//void Device::update(endpoint const& ep, Resource::board_config const& cfg,
+//		const char* version, std::size_t version_len) noexcept
+//{
+//	process_packet(ep);
+//
+//	has_rtc_ = cfg.has_rtc;
+//	has_sensor_temp_ = cfg.has_temp_sensor;
+//
+//	std::string str{static_cast<const char*>(version), version_len};
+//	std::string::size_type pos = str.find("|");
+//	if(pos != std::string::npos)
+//	{
+//		fw_version_ = str.substr(0, pos);
+//		hw_version_ = str.substr(pos + 1);
+//	}
+//	else
+//	{
+//		fw_version_ = {static_cast<const char*>(version), version_len};
+//		hw_version_ = "";
+//	}
+//}
 
 bool Device::update_sensor(unsigned type, unsigned index,
 				value_time time, Sensor::sensor_value const& value,
 				bool add_change /* = false */) noexcept
 {
-	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
+//	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
 	return slist_.add(type, index, time, value, add_change);
 }
 
@@ -315,11 +366,9 @@ void Device::update_rtc_time(value_time time) noexcept
 	rtc_time_.update(time);
 }
 
-void Device::update_endpoint(endpoint const& ep) noexcept
-{
-	ep_ = ep;
-}
-
+/**
+ * Apps
+ */
 void Device::add_app(std::string const& name, std::size_t size, const sha256_hash hash) noexcept
 {
 	auto it = std::find_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; });
@@ -342,11 +391,11 @@ void Device::delete_app(std::string const& name) noexcept
 	apps_.erase(std::remove_if(apps_.begin(), apps_.end(), [&name](app const& v){ return v.name == name; }), apps_.end());
 }
 
-void Device::process_packet(endpoint const& ep) noexcept
-{
-	update_endpoint(ep);
-	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
-}
+//void Device::process_packet(endpoint const& ep) noexcept
+//{
+//	update_endpoint(ep);
+//	last_packet_time_ = static_cast<std::uint32_t>(time_epoch_miliseconds());
+//}
 
 }//Device
 }//Agro

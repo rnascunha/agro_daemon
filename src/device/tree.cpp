@@ -3,7 +3,6 @@
 #if AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1
 #include <iostream> //for the print functions
 #endif /* AGRO_DEVICE_TREE_PRINT_FUNCTIONS */
-#include <iostream>
 
 namespace Agro{
 namespace Device{
@@ -97,7 +96,7 @@ bool Tree::update(Device const& device) noexcept
 	node& dev = get_node(device.mac());
 	dev.layer = device.layer();
 
-	node& parent = get_node(dev.layer == 1 ? device.parent() : Tree::mac_ap_to_addr(device.parent()));
+	node& parent = get_node(device.parent());
 	parent.layer = dev.layer - 1;
 
 	bool change = false;
@@ -390,14 +389,6 @@ void Tree::update_device_endpoint(std::vector<mesh_addr_t> const& list,
 	{
 		update_device_endpoint(a, ep);
 	}
-}
-
-mesh_addr_t Tree::mac_ap_to_addr(mesh_addr_t const& addr) noexcept
-{
-	mesh_addr_t mac{addr};
-	mac.addr[5]--;
-
-	return mac;
 }
 
 #if AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1

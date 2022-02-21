@@ -69,14 +69,20 @@ void read_packet_app_list(Agro::Device::Device& device,
 {
 	device.clear_apps();
 
-//	std::cout << "read packet [" << size << " / " << sizeof(app_packet) << "]\n";
 	const std::uint8_t* data8 = static_cast<uint8_t const*>(data);
 	for(std::size_t i = 0; i < size; i += sizeof(app_packet))
 	{
 		const app_packet* mapp = reinterpret_cast<const app_packet*>(data8);
 
-//		std::cout << "app[" << mapp->name << " / " << mapp->size << "]\n";
 		device.add_app(mapp->name, mapp->size, mapp->hash);
 		data8 += sizeof(app_packet);
 	}
+}
+
+mesh_addr_t mac_ap_to_addr(mesh_addr_t const& addr) noexcept
+{
+	mesh_addr_t mac{addr};
+	mac.addr[5]--;
+
+	return mac;
 }

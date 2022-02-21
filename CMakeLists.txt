@@ -1,15 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 project (agro_daemon VERSION 1.0)
 
-function(print_vars)	
-	message("USE_SSL: " ${USE_SSL})
-	message("BOOST_ROOT: " ${BOOST_ROOT})
-	message("RAPIDJSON_ROOT: " ${RAPIDJSON_ROOT})
-	message("ARGH_ROOT: " ${ARGH_ROOT})
-	message("OPENSSL_ROOT: " ${OPENSSL_ROOT})
-	message("KEEPALIVE_OLD: " ${KEEPALIVE_OLD})
-endfunction()
-
 #------------DEFINING VARS-----------------
 
 set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
@@ -18,37 +9,22 @@ set(ARGH_ROOT 			third/argh)
 set(USE_SSL				0)
 set(TT_LEVEL			type::debug)
 
-#print_vars()
-
 if(DEFINED WITH_SSL)
 	if(${WITH_SSL} EQUAL 1)
 		set(USE_SSL 1)
 	endif()
-	unset(WITH_SSL CACHE)
 endif()
 
 #
 # PATHs
 #
 
-if(DEFINED BOOST_PATH)
-	set(BOOST_ROOT ${BOOST_PATH})
-	unset(BOOST_PATH CACHE)
-endif()
-
 if(DEFINED RAPIDJSON_PATH)
 	set(RAPIDJSON_ROOT ${RAPIDJSON_PATH})
-	unset(RAPIDJSON_PATH CACHE)
 endif()
 
 if(DEFINED ARGH_PATH)
 	set(ARGH_ROOT ${ARGH_PATH})
-	unset(ARGH_ROOT CACHE)
-endif()
-
-if(DEFINED OPENSSL_PATH)
-	set(OPENSSL_ROOT_DIR ${OPENSSL_PATH})
-	unset(OPENSSL_PATH CACHE)
 endif()
 
 if(DEFINED VERBOSE)
@@ -67,23 +43,6 @@ if(DEFINED VERBOSE)
   endif()
   unset(VERBOSE CACHE)
 endif()
-
-#This flag works only on Windows OS. There is 2 implementations (that I call OLD or NEW).
-#You can force the implementation with the -DCONFIG_KEEPALIVE_OLD=<0|1>, but if not defined MSVC will 
-#use the NEW implementation, otherwise the OLD. This was defined by some tests (and no better
-#defintion)
-if(DEFINED CONFIG_KEEPALIVE_OLD)
-	set(KEEPALIVE_OLD ${CONFIG_KEEPALIVE_OLD})
-else()
-	if(MSVC)
-		set(KEEPALIVE_OLD 0)
-	else()
-		set(KEEPALIVE_OLD 1)
-	endif()
-endif()
-unset(CONFIG_KEEPALIVE_OLD CACHE)
-
-#print_vars()
 
 #------------END DEFINING VARS-----------------
 
@@ -107,36 +66,10 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
-if(WIN32)
-    macro(get_WIN32_WINNT version)
-        if(CMAKE_SYSTEM_VERSION)
-            set(ver ${CMAKE_SYSTEM_VERSION})
-            string(REGEX MATCH "^([0-9]+).([0-9])" ver ${ver})
-            string(REGEX MATCH "^([0-9]+)" verMajor ${ver})
-            # Check for Windows 10, b/c we'll need to convert to hex 'A'.
-            if("${verMajor}" MATCHES "10")
-                set(verMajor "A")
-                string(REGEX REPLACE "^([0-9]+)" ${verMajor} ver ${ver})
-            endif()
-            # Remove all remaining '.' characters.
-            string(REPLACE "." "" ver ${ver})
-            # Prepend each digit with a zero.
-            string(REGEX REPLACE "([0-9A-Z])" "0\\1" ver ${ver})
-            set(${version} "0x${ver}")
-        endif()
-    endmacro()
-
-    get_WIN32_WINNT(ver)
-    add_definitions(-D_WIN32_WINNT=${ver})
-        message("WIN32: " ${ver})
-endif()
-
 message(STATUS "Compiler: " ${CMAKE_C_COMPILER} " | " ${CMAKE_CXX_COMPILER} " " ${CMAKE_CXX_COMPILER_ID} " " ${CMAKE_CXX_COMPILER_VERSION})
 
 add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignored at POSIX
-				-DJSON_MESSAGES 
 				-DUSE_SSL=${USE_SSL}
-				-DKEEPALIVE_OLD=${KEEPALIVE_OLD}
 				-DTT_LEVEL=${TT_LEVEL})
 
 ###############################
@@ -193,10 +126,6 @@ if(SQLite3_FOUND)
 	include_directories(${SQLite3_INCLUDE_DIRS})
 endif()
 
-################################
-
-set(SRC_DIR ./src)
-
 ##########################
 # argh
 ##########################
@@ -239,6 +168,10 @@ include_directories(third/my_async/include)
 ############################
 
 add_subdirectory(third/pusha)
+
+################################
+
+set(SRC_DIR ./src)
 
 ############################
 # csv_export

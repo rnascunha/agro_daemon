@@ -61,8 +61,6 @@ class Tree{
 		get_endpoint() noexcept;
 		bool uncheck_endpoint(mesh_addr_t const&) noexcept;
 
-		static mesh_addr_t mac_ap_to_addr(mesh_addr_t const&) noexcept;
-
 #if AGRO_DEVICE_TREE_PRINT_FUNCTIONS == 1
 		void print_endpoints() const noexcept;
 		void print() const noexcept;

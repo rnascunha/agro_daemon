@@ -1,7 +1,46 @@
 #include "agro.hpp"
 #include "tt/tt.hpp"
+#include <sstream>
 
 namespace Agro{
+
+std::pair<Device::Device*, bool>
+		instance::add_or_get_device(mesh_addr_t const& mac) noexcept
+{
+	std::pair<Device::Device*, bool> ret{nullptr, false};
+	ret.first = device_list_[mac];
+	if(! (ret.first))
+	{
+		//Device does's exists
+		ret.second = true;
+		Device::device_id id;
+		db_.add_device(mac, id);
+		ret.first = device_list_.add(Device::Device{id, mac});
+	}
+
+	return ret;
+}
+
+void instance::device_connected(std::vector<Device::Device const*> const& list) noexcept
+{
+	if(!list.size()) return;
+
+	std::stringstream ss;
+	ss << "New device added: ";
+
+	bool flag = false;
+	for(auto const* device : list)
+	{
+		tt::status("New device connected [%s]", device->mac().to_string().c_str());
+		db_.set_device_state(*device, true);
+
+		if(flag) ss << ", ";
+		else flag = true;
+
+		ss << device->mac();
+	}
+	notify_all_policy(Authorization::rule::view_device, ss.str());
+}
 
 bool instance::process_device_request(engine::message const& request,
 		Device::Device** dev,
@@ -24,20 +63,11 @@ bool instance::process_device_request(engine::message const& request,
 		return false;
 	}
 
-	*dev = device_list_[host];
-	if(!(*dev))
+	auto ret = add_or_get_device(host);
+	*dev = ret.first;
+	if(ret.second)
 	{
-		//Device does's exists
-		Device::device_id id;
-		db_.add_device(host, id);
-		*dev = device_list_.add(Device::Device{id, host});
-		tt::status("New device connected [%s]", host.to_string().c_str());
-
-		db_.set_device_state(**dev, true);
-
-		std::string msg = "New device added: ";
-		msg += host.to_string();
-		notify_all_policy(Authorization::rule::view_device, msg);
+		device_connected({*dev});
 	}
 
 	return true;
