@@ -1,8 +1,9 @@
 #ifndef AGRO_DAEMON_USER_GROUP_HPP__
 #define AGRO_DAEMON_USER_GROUP_HPP__
 
-#include "user.hpp"
+#include "info.hpp"
 #include <vector>
+#include <string>
 
 namespace Agro{
 namespace User{

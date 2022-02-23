@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <memory>
+#include "helper.hpp"
 
 //https://stackoverflow.com/a/16166149
 #ifdef _WIN32
@@ -199,24 +200,7 @@ User::Info DB::get_user(User::user_id id) noexcept
 
 User::Info DB::get_user(std::string const& username) noexcept
 {
-	sqlite3::statement res;
-	if(db_.prepare_bind("SELECT userid,name,status,email,telegram_chat_id FROM user WHERE username = ?",
-			res, username) != SQLITE_OK)
-	{
-		return User::Info{};
-	}
-
-	if(res.step() != SQLITE_ROW)
-	{
-		return User::Info{};
-	}
-
-	return User::Info{
-		username,
-		res.text(1),
-		static_cast<User::Info::status>(res.integer(2)),
-		res.text(3),
-		res.text(4)};
+	return DB_Helper::get_user(db_, username);
 }
 
 bool DB::get_root_password(std::vector<unsigned char>& salt,
@@ -275,29 +259,7 @@ int DB::add_user(std::string const& username,
 			User::user_id& id,
 			User::Info::status status /* = User::Info::status::active */) noexcept
 {
-	id = User::invalid_id;
-	sqlite3::statement res;
-	int rc = db_.prepare_bind(
-			"INSERT INTO user(username,password,name,status,email,salt,telegram_chat_id) VALUES(?,?,?,?,?,?,?)",
-			res,
-			username,
-			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
-			name,
-			static_cast<int>(status),
-			email,
-			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH},
-			telegram_chat_id);
-	if(rc != SQLITE_OK)
-	{
-		return rc;
-	}
-
-	rc = res.step();
-	if(rc == SQLITE_DONE)
-	{
-		id = db_.last_insert_rowid();
-	}
-	return rc;
+	return DB_Helper::add_user(db_, username, password, salt, name, email, telegram_chat_id, id, status);
 }
 
 int DB::edit_user(User::user_id id,
@@ -419,16 +381,7 @@ int DB::add_user_group(std::string const& name,
 
 int DB::add_user_to_group(Agro::User::group_id gid, Agro::User::user_id uid) noexcept
 {
-	sqlite3::statement res;
-	int rc = db_.prepare_bind(
-			"INSERT INTO user_user_group(user_groupid, userid) VALUES(?,?)",
-			res, gid, uid);
-	if(rc != SQLITE_OK)
-	{
-		return rc;
-	}
-
-	return res.step();
+	return DB_Helper::add_user_to_group(db_, uid, gid);
 }
 
 void DB::add_users_to_group(User::group_id gid, std::vector<User::user_id> const& members) noexcept
@@ -447,10 +400,7 @@ int DB::set_user_to_groups(User::user_id uid, std::vector<User::group_id> const&
 		return rc;
 	}
 
-	for(auto const& gid : gid_list)
-	{
-		add_user_to_group(gid, uid);
-	}
+	DB_Helper::add_user_to_groups(db_, uid, gid_list);
 
 	return SQLITE_DONE;
 }

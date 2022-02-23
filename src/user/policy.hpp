@@ -5,6 +5,15 @@
 #include "group.hpp"
 
 namespace Agro{
+namespace User{
+
+class Logged;
+class User;
+
+}//User
+}//Agro
+
+namespace Agro{
 namespace Authorization{
 
 static constexpr const int permission_any = -1;

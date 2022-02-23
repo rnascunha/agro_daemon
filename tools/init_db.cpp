@@ -1,26 +1,24 @@
 #include "../src/libs/sqlite3/sqlite3.hpp"
 
+#include <cstring>
+
 #include <iostream>
 #include <fstream>
 #include <system_error>
-#include "pusha.hpp"
+#include <filesystem>
 
-#include <openssl/evp.h>
-#include <openssl/rand.h>
+#include "pusha.hpp"
 
 #include "../src/helper/enum_ops.hpp"
 
-#include "../src/user/authenticate_params.h"
 #include "../src/user/password.hpp"
 
 #include "../src/user/policy.hpp"
-
 #include "../src/sensor/sensor_type_list.hpp"
+#include "../src/notify/libs/smtp/types.hpp"
 
-#include "../src/notify/libs/smtp/client.hpp"
-//#include "../src/notify/libs/mail.hpp"
-
-#define SQL_FILE		"scheme.sql"
+constexpr const char* default_scheme = "../db/scheme.sql";
+constexpr const char* default_db = "agro.db";
 
 struct group{
 	int							id;
@@ -61,7 +59,7 @@ static const group groups[] = {
 		{4, "op_get", "Can view/get operations on devices", rule::all_device | rule::get_resource},
 		{5, "op_put", "Can view/put operations on devices", rule::all_device | rule::put_resource},
 		{6, "op_post", "Can view/post operations on devices", rule::all_device | rule::post_resource},
-		{6, "op_delete", "Can view/delete operations on devices", rule::all_device | rule::delete_resource},
+		{7, "op_delete", "Can view/delete operations on devices", rule::all_device | rule::delete_resource},
 };
 
 static const Agro::Sensor::sensor_description sensors[] = {
@@ -90,41 +88,101 @@ static const Agro::Sensor::sensor_description sensors[] = {
 
 static void usage(const char* program) noexcept
 {
-	std::cout << "\t" << program << " <database_name>\n";
+	std::cout << R"(Create 'agro_daemon' app database.
+Usage:
+	)" << program << R"( -h|[-f] [-s <sql_scheme>] [<output_file>])
+Where:
+	-h
+		This help message.
+	-s <sql_scheme>
+		Define the SQL scheme that the database will be created.
+		Default: )" << default_scheme << R"(
+	-f
+		If <output_file> exists, remove it.
+	[<output_file>]
+		File output name database will be created. 
+		Default: )" << default_db << "\n";
 }
 
 int main(int argc, char** argv)
 {
 	using xeds::sqlite3;
 
-	if(argc != 2)
+	bool force = false, set_output = false;
+	const char* output = default_db;
+	const char* scheme = default_scheme;
+
+	for(int i = 1; i != argc; ++i)
 	{
-		std::cerr << "Error! Wrong number of argumetns!\n";
-		usage(argv[0]);
-		return 1;
+		//Checking help option
+		if(strcmp("-h", argv[i]) == 0)
+		{
+			usage(argv[0]);
+			return EXIT_SUCCESS;
+		}
+		//Checking scheme option
+		if(strcmp("-s", argv[i]) == 0)
+		{
+			++i;
+			if(i == argc)
+			{
+				std::cerr << "- Scheme file not defined! Quitting!\n";
+				return EXIT_FAILURE;
+			}
+			scheme = argv[i];
+			continue;
+		}
+		//Checking if force
+		if(strcmp("-f", argv[i]) == 0)
+		{
+			force = true;
+			continue;
+		}
+		output = argv[i];
+		set_output = true;
 	}
 
-	if(std::filesystem::exists(argv[1]))
+	//Checking if scheme file exists
+	if(!std::filesystem::is_regular_file(scheme))
 	{
-		std::cerr << "File already exists! Quitting...\n";
-		return 1;
+		std::cerr << "- Scheme file '" << scheme << "' not found! Quitting!\n";
+		return EXIT_FAILURE;
 	}
+
+	if(std::filesystem::is_regular_file(output))
+	{
+		if(!force)
+		{
+			std::cerr << "- File '" << output << "' already exists! Quitting...\n";
+			return EXIT_FAILURE;
+		}
+		std::filesystem::remove(output);
+	}
+	if(!set_output)
+	{
+		std::cout << "> Output file not defined. Using '" << output << "'\n";
+	}
+
+	/**
+	 * End parameter check
+	 */
 
 	std::error_code ec;
-	sqlite3 db{argv[1], ec};
+	sqlite3 db{output, ec};
 
 	if(ec)
 	{
-		std::cerr << "Error opening db '" << argv[1] << "'. [" << ec.message() << "]\n";
-		return 1;
+		std::filesystem::remove(output);
+		std::cerr << "- Error opening db '" << output << "'. [" << ec.message() << "]\n";
+		return EXIT_FAILURE;
 	}
 
-	std::ifstream ifs{SQL_FILE};
+	std::ifstream ifs{scheme};
 	if(!ifs)
 	{
-		std::filesystem::remove(argv[1]);
-		std::cerr << "Error opening scheme file\n";
-		return 1;
+		std::filesystem::remove(output);
+		std::cerr << "- Error opening scheme file. [" << scheme << "]\n";
+		return EXIT_FAILURE;
 	}
 	char buffer[8192];
 	std::size_t size = ifs.readsome(buffer, 8192);
@@ -132,17 +190,17 @@ int main(int argc, char** argv)
 	int rc = db.exec(buffer);
 	if(rc != SQLITE_OK)
 	{
-		std::filesystem::remove(argv[1]);
-		std::cerr << "Error initiating database! [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
+		std::filesystem::remove(output);
+		std::cerr << "- Error initiating database! [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
 		return 1;
 	}
 
 	pusha::key ec_key = pusha::key::generate(ec);
 	if(ec)
 	{
-		std::filesystem::remove(argv[1]);
-		std::cerr << "Error generating notify key! [" << ec.message() << "\n";
-		return 1;
+		std::filesystem::remove(output);
+		std::cerr << "- Error generating notify key! [" << ec.message() << "\n";
+		return EXIT_FAILURE;
 	}
 
 	std::string name,
@@ -193,13 +251,6 @@ int main(int argc, char** argv)
 
 		std::cout << "SMTP password: ";
 		std::getline(std::cin, smtp_server.password);
-
-//		if(!mail_factory::is_valid(smtp_server))
-//		{
-//			std::filesystem::remove(argv[1]);
-//			std::cerr << "Invalid SMTP parameters\n";
-//			return 1;
-//		}
 	}
 
 	do{
@@ -217,9 +268,9 @@ int main(int argc, char** argv)
 
 	if(!Agro::User::create_password(root_password, salt, password))
 	{
-		std::filesystem::remove(argv[1]);
-		std::cerr << "Error generation 'root' password!\n";
-		return 1;
+		std::filesystem::remove(output);
+		std::cerr << "- Error generation 'root' password!\n";
+		return EXIT_FAILURE;
 	}
 
 	sqlite3::statement res;
@@ -236,17 +287,17 @@ int main(int argc, char** argv)
 			smtp_server.server, smtp_server.port, smtp_server.user, smtp_server.password);
 	if(rc != SQLITE_OK)
 	{
-		std::filesystem::remove(argv[1]);
-		std::cerr << "Error preparing 'DB' instance data [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
-		return 1;
+		std::filesystem::remove(output);
+		std::cerr << "- Error preparing 'DB' instance data [" << rc << " / " << sqlite3_errstr(rc) << "]\n";
+		return EXIT_FAILURE;
 	}
 
 	rc = res.step();
 	if(rc != SQLITE_DONE)
 	{
-		std::filesystem::remove(argv[1]);
-		std::cerr << "Error recording data to 'DB'. [" << rc << "]\n";
-		return 1;
+		std::filesystem::remove(output);
+		std::cerr << "- Error recording data to 'DB'. [" << rc << "]\n";
+		return EXIT_FAILURE;
 	}
 
 	/**
@@ -259,13 +310,13 @@ int main(int argc, char** argv)
 					res, group.name, group.description);
 		if(rc != SQLITE_OK)
 		{
-			std::cerr << "Error preparing to insert group '" << group.name << "' [" << rc << "]\n";
+			std::cerr << "- Error preparing to insert group '" << group.name << "' [" << rc << "]\n";
 			continue;
 		}
 		rc = res.step();
 		if(rc != SQLITE_DONE)
 		{
-			std::cerr << "Error inserting group '" << group.name << "' [" << rc << "]\n";
+			std::cerr << "- Error inserting group '" << group.name << "' [" << rc << "]\n";
 		}
 
 		res.finalize();
@@ -309,7 +360,8 @@ int main(int argc, char** argv)
 	 */
 	for(auto const& sensor : sensors)
 	{
-		rc = db.prepare_bind("INSERT INTO sensor_type(name, long_name, type, unit, unit_name, description,add_change) "
+		rc = db.prepare_bind("INSERT INTO sensor_type(name, long_name, type, "
+				"unit, unit_name, description,add_change) "
 				"VALUES(?,?,?,?,?,?,?)",
 				res,
 				sensor.name, sensor.long_name,
@@ -331,5 +383,5 @@ int main(int argc, char** argv)
 		res.clear_bidings();
 	}
 
-	return 0;
+	return EXIT_SUCCESS;
 }

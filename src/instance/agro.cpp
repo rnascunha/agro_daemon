@@ -23,12 +23,14 @@ instance::instance(boost::asio::io_context& ioc,
 			std::string const& ssl_key,
 			std::string const& ssl_cert,
 #endif /**/
-			std::error_code& ec)
-	: image_{images_path}, app_{apps_path},
-	  ioc_{ioc},
-	  db_{std::move(db)},
-	  coap_engine_{udp_conn{}, CoAP::Message::message_id{CoAP::random_generator()}},
-	  notify_{std::move(notify)}
+			std::error_code& ec,
+			configure config /* = configure{} */)
+	:	configure_{config},
+		image_{configure_.images_path}, app_{configure_.apps_path},
+		ioc_{ioc},
+		db_{std::move(db)},
+		coap_engine_{udp_conn{}, CoAP::Message::message_id{CoAP::random_generator()}},
+		notify_{std::move(notify)}
 {
 	if(!db_.read_user_all_db(users_))
 	{
@@ -58,7 +60,7 @@ instance::instance(boost::asio::io_context& ioc,
 
 	boost::system::error_code ecb;
 #if USE_SSL == 0
-	make_listener<Agro::websocket>(ioc, epl, share_, ecb);
+	make_listener<websocket>(ioc, epl, share_, ecb);
 #else /* USE_SSL == 0 */
 
 	load_certificate(ctx_, ssl_cert, ssl_key, ecb);

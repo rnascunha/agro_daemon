@@ -2,6 +2,7 @@
 #define AGRO_DAEMON_NOTIFY_MAIL_HPP__
 
 #include "smtp/client.hpp"
+#include "smtp/types.hpp"
 
 class mail_factory{
 	public:

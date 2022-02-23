@@ -157,12 +157,6 @@ add_definitions(
 
 add_subdirectory(third/coap-te)
 
-###########################
-# My async
-###########################
-
-include_directories(third/my_async/include)
-
 ############################
 # pusha
 ############################
@@ -259,6 +253,7 @@ set(RESOURCE_SRC	${RESOURCE_DIR}/route.cpp
 					
 set(USER_DIR		${SRC_DIR}/user)
 set(USER_SRC		${USER_DIR}/user.cpp
+					${USER_DIR}/info.cpp
 					${USER_DIR}/group.cpp
 					${USER_DIR}/list.cpp
 					${USER_DIR}/policy.cpp
@@ -274,7 +269,8 @@ set(DB_SRC			${DB_DIR}/db.cpp
 					${DB_DIR}/image.cpp
 					${DB_DIR}/app.cpp
 					${DB_DIR}/notify.cpp
-					${DB_DIR}/report.cpp)
+					${DB_DIR}/report.cpp
+					${DB_DIR}/helper.cpp)
 					
 set(HELPER_DIR		${SRC_DIR}/helper)
 set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
@@ -347,7 +343,11 @@ endif()
 #### add user
 add_executable(add_user tools/add_user.cpp 
 						${LIBS_DIR}/sqlite3/sqlite3.cpp
-						${SRC_DIR}/error.cpp)
+						${SRC_DIR}/error.cpp
+						${DB_DIR}/helper.cpp
+						${USER_DIR}/info.cpp
+						${USER_DIR}/group.cpp
+						${USER_DIR}/password.cpp)
 
 set_target_properties(add_user PROPERTIES
     CXX_STANDARD 17
@@ -355,7 +355,7 @@ set_target_properties(add_user PROPERTIES
     CXX_EXTENSIONS ON
 )
 
-target_link_libraries(add_user OpenSSL::SSL
+target_link_libraries(add_user PUBLIC OpenSSL::SSL
 								${SQLite3_LIBRARIES})
 
 ##### add db
@@ -371,9 +371,7 @@ set_target_properties(init_db PROPERTIES
 )
 
 target_link_libraries(init_db ${SQLite3_LIBRARIES} 
-								pusha 
-								coap-te			#just necessary because of includes dependencies
-								${CMAKE_THREAD_LIBS_INIT})
+								pusha)
 
 ########################################
 # Installing
@@ -384,8 +382,8 @@ install(FILES db/scheme.sql DESTINATION bin)
 #########################################
 # Packing // https://cmake.org/cmake/help/latest/module/CPack.html
 #########################################
-#include(InstallRequiredSystemLibraries)
-#set(CPACK_PACKAGE_NAME			"Agro Project Daemon")
+include(InstallRequiredSystemLibraries)
+set(CPACK_PACKAGE_NAME			"Agro Project Daemon")
 set(CPACK_PACKAGE_VENDOR		"xeds corp")
 set(CPACK_PACKAGE_DESCRIPTION	"Agro Project Daemon. Responsable to connect the field devices to the interface")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Agro Project central controller")

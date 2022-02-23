@@ -15,11 +15,11 @@ inline constexpr bool is_equal(const char* first, const char* second) noexcept
 	return first == second;
 }
 
-template<typename Config, std::size_t size>
+template<typename Config, std::size_t Size>
 constexpr const Config* get_config(const char* name,
-                    const Config(&config)[size]) noexcept
+                    const Config(&config)[Size]) noexcept
 {
-    for(std::size_t i = 0; i < size; i++)
+    for(std::size_t i = 0; i < Size; i++)
     {
         if(std::strcmp(name, config[i].name) == 0)
             return &config[i];
@@ -27,11 +27,11 @@ constexpr const Config* get_config(const char* name,
     return nullptr;
 }
 
-template<typename Type, typename Config, std::size_t size>
+template<typename Type, typename Config, std::size_t Size>
 constexpr const Config* get_config(Type type,
-                    const Config(&config)[size]) noexcept
+                    const Config(&config)[Size]) noexcept
 {
-    for(std::size_t i = 0; i < size; i++)
+    for(std::size_t i = 0; i < Size; i++)
     {
         if(type == config[i].type)
             return &config[i];

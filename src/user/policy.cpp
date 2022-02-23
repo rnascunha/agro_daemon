@@ -1,6 +1,7 @@
 #include "policy.hpp"
 #include "../helper/enum_ops.hpp"
 #include <algorithm>
+#include "user.hpp"
 
 namespace Agro{
 namespace Authorization{

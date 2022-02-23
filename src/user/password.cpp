@@ -6,6 +6,11 @@
 namespace Agro{
 namespace User{
 
+bool validate_password(std::string const& password) noexcept
+{
+	return password.length() >= 6;
+}
+
 void generate_salt(salt_password salt) noexcept
 {
 	RAND_bytes(salt, USER_AUTH_SALT_LENGTH);

@@ -99,43 +99,6 @@ int main(int argc, char** argv)
 	n3->enable(enable);
 	noti_fac.add("mail", std::move(n3));
 
-//	/**
-//	 * Adding push notification
-//	 */
-//	pusha::key notify_priv_key = get_notify_key(args.notify_priv_key, db);
-//	if(notify_priv_key.check())
-//	{
-//		tt::status("Adding 'push notification' notify support");
-//		auto n = std::make_unique<Agro::Notify::push>(ioc, std::move(notify_priv_key), subscriber);
-//		n->enable(true);
-//		noti_fac.add("push", std::move(n));
-//	}
-//
-//	/**
-//	 * Adding telegram bot notification
-//	 */
-//	std::string notify_telegram_token = get_telegram_bot_token(args.telegram_bot_token, db);
-//	if(!notify_telegram_token.empty())
-//	{
-//		tt::status("Adding 'telegram bot' notify support");
-//		auto n = std::make_unique<Agro::Notify::telegram>(ioc, notify_telegram_token);
-//		n->enable(true);
-//		noti_fac.add("telegram", std::move(n));
-//	}
-//
-//	/**
-//	 * Adding mail support
-//	 */
-//	SMTP::server mail_server;
-//	if(get_smtp_server_info(mail_server, db))
-//	{
-//		tt::status("Adding 'mail' notify support");
-//		auto n = std::make_unique<Agro::Notify::mail>(ioc, mail_server, "Agro Telemetry");
-//		n->enable(true);
-//		noti_fac.add("mail", std::move(n));
-//
-//	}
-
 	Agro::instance instance{ioc,
 		std::move(db),
 		std::move(noti_fac),
