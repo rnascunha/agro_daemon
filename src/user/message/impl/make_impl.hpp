@@ -19,10 +19,14 @@ void user_info(rapidjson::Value& user, User const& iuser, Allocator& alloc) noex
 				rapidjson::Value(iuser.info().name().data(), iuser.info().name().size(), alloc).Move(),
 				alloc);
 	user.AddMember("email",
-					rapidjson::Value(iuser.info().email().data(), iuser.info().email().size(), alloc).Move(),
+					rapidjson::Value(iuser.info().email().data(),
+									iuser.info().email().size(),
+									alloc).Move(),
 					alloc);
 	user.AddMember("telegram_chat_id",
-				rapidjson::Value(iuser.info().telegram_chat_id().data(), iuser.info().telegram_chat_id().size(), alloc).Move(),
+				rapidjson::Value(iuser.info().telegram_chat_id().data(),
+								iuser.info().telegram_chat_id().size(),
+								alloc).Move(),
 				alloc);
 	user.AddMember("status", static_cast<int>(iuser.info().get_status()), alloc);
 }

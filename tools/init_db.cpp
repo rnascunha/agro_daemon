@@ -1,4 +1,4 @@
-#include "../src/libs/sqlite3/sqlite3.hpp"
+#include "sqlite3.hpp"
 
 #include <cstring>
 
@@ -15,7 +15,7 @@
 
 #include "../src/user/policy.hpp"
 #include "../src/sensor/sensor_type_list.hpp"
-#include "../src/notify/libs/smtp/types.hpp"
+#include "../src/libs/smtp/types.hpp"
 
 constexpr const char* default_scheme = "../db/scheme.sql";
 constexpr const char* default_db = "agro.db";

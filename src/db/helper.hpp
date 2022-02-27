@@ -6,7 +6,7 @@
 #include "../user/info.hpp"
 #include "../user/group.hpp"
 #include "../user/password.hpp"
-#include "../libs/sqlite3/sqlite3.hpp"
+#include "sqlite3.hpp"
 
 namespace Agro{
 namespace DB_Helper{

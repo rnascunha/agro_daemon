@@ -4,7 +4,7 @@
 #include "tt/tt.hpp"
 #include "user/user.hpp"
 #include "instance/agro.hpp"
-#include "notify/libs/smtp/client.hpp"
+#include "smtp/client.hpp"
 
 #if USE_SSL == 1
 #include "websocket/load_certificate.hpp"

@@ -170,7 +170,8 @@ static std::size_t send_job_payload(
 		 */
 		job_packet_executor packet_exec;
 		packet_exec.arg = job["arg"].GetInt();
-		std::strncpy(packet_exec.exec, job["exec"].GetString(), app_name_max_size);
+		std::memcpy(packet_exec.exec, job["exec"].GetString(), app_name_max_size);
+		packet_exec.exec[app_name_max_size - 1] = '\0';
 
 		std::memcpy(static_cast<std::uint8_t*>(buf) + offset, &packet_exec, sizeof(job_packet_executor));
 		offset += sizeof(job_packet_executor);

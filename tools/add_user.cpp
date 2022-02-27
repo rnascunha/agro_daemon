@@ -3,18 +3,13 @@
 #include <cstring>
 #include <string>
 
-#include "../src/libs/sqlite3/sqlite3.hpp"
+//#include "../src/libs/sqlite3/sqlite3.hpp"
+#include "sqlite3.hpp"
 
 #include "../src/user/info.hpp"
 #include "../src/user/group.hpp"
 #include "../src/user/password.hpp"
 #include "../src/db/helper.hpp"
-
-//#include <openssl/evp.h>
-//#include <openssl/rand.h>
-
-
-//#include "../src/user/authenticate_params.h"
 
 #include "../src/error.hpp"
 

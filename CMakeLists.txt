@@ -6,6 +6,7 @@ project (agro_daemon VERSION 1.0)
 set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
+set(TREE_TRUNKS_ROOT	third/tree_trunks/src/include/)
 set(USE_SSL				0)
 set(TT_LEVEL			type::debug)
 
@@ -55,12 +56,10 @@ endif()
 message("Builder type: " ${CMAKE_BUILD_TYPE}) 
 
 if(MSVC)
-	message(STATUS "MSVC build")
-	set(CMAKE_CXX_FLAGS "/W4 /std:c++17 /EHsc /bigobj")
+	set(CMAKE_CXX_FLAGS "/W4 /std:c++17 /EHsc")# /bigobj")
 	set(CMAKE_CXX_FLAGS_RELEASE "/O2")
 	add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
 else()
-	message(STATUS "NO MSVC build")
 	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -71,6 +70,9 @@ message(STATUS "Compiler: " ${CMAKE_C_COMPILER} " | " ${CMAKE_CXX_COMPILER} " " 
 add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignored at POSIX
 				-DUSE_SSL=${USE_SSL}
 				-DTT_LEVEL=${TT_LEVEL})
+				
+string(TIMESTAMP TIME_NOW "%Y/%m/%d %H:%M:%SZ" UTC)
+add_definitions(-DCOMPILE_TIME=${TIME_NOW})
 
 ###############################
 
@@ -79,22 +81,16 @@ find_package(Threads REQUIRED)
 ###############################
 
 find_package(Boost COMPONENTS REQUIRED)
-if(Boost_FOUND)
-	include_directories(${Boost_INCLUDE_DIRS})
-endif()
+include_directories(${Boost_INCLUDE_DIRS})
 
 ###############################
 
 find_package(OpenSSL REQUIRED)
-if(OPENSSL_FOUND)
-	include_directories(${OPENSSL_INCLUDE_DIR})
-endif()
+include_directories(${OPENSSL_INCLUDE_DIR})
 
 ###############################
 find_package(Git REQUIRED)
 if(Git_FOUND)
-	message("Git found: ${GIT_EXECUTABLE}")
-	
 	execute_process(COMMAND
 		${GIT_EXECUTABLE} describe --always --dirty --abbrev=40
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
@@ -112,18 +108,7 @@ if(Git_FOUND)
 		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
 		OUTPUT_VARIABLE GIT_BRANCH
 		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-	configure_file("${CMAKE_SOURCE_DIR}/src/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)
-	
-	string(TIMESTAMP TIME_NOW "%Y/%m/%d %H:%M:%SZ" UTC)
-	add_definitions(-DCOMPILE_TIME=${TIME_NOW})	
-endif()
-
-################################
-
-find_package(SQLite3 REQUIRED)
-if(SQLite3_FOUND)
-	message(STATUS ${SQLite3_VERSION})
-	include_directories(${SQLite3_INCLUDE_DIRS})
+	configure_file("${CMAKE_SOURCE_DIR}/src/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)	
 endif()
 
 ##########################
@@ -136,7 +121,7 @@ include_directories(${ARGH_ROOT})
 # tree trunks
 ###########################
 
-include_directories(third/tree_trunks/src/include/)
+include_directories(${TREE_TRUNKS_ROOT})
 
 ###########################
 # rapidjson
@@ -168,9 +153,13 @@ add_subdirectory(third/pusha)
 set(SRC_DIR ./src)
 
 ############################
-# csv_export
+# internal libs
 ############################
-add_subdirectory(${SRC_DIR}/libs/csv)
+set(LIBS_DIR		${SRC_DIR}/libs)
+
+add_subdirectory(${LIBS_DIR}/sqlite3)
+add_subdirectory(${LIBS_DIR}/csv)
+add_subdirectory(${LIBS_DIR}/smtp)
 
 ###########################
 # Adding files 
@@ -194,7 +183,6 @@ set(MESSAGE_SRC		${MESSAGE_DIR}/make.cpp
 set(NOTIFY_DIR		${SRC_DIR}/notify)					
 set(NOTIFY_SRC		${NOTIFY_DIR}/libs/push_notify.cpp
 					${NOTIFY_DIR}/libs/telegram_bot.cpp
-					${NOTIFY_DIR}/libs/smtp/client.cpp
 					${NOTIFY_DIR}/libs/mail.cpp
 					${NOTIFY_DIR}/factory.cpp
 					${NOTIFY_DIR}/notify.cpp
@@ -277,7 +265,6 @@ set(HELPER_SRC		${HELPER_DIR}/sha256.cpp
 					${HELPER_DIR}/time_helper.cpp
 					${HELPER_DIR}/coap_helper.cpp)
 
-set(LIBS_DIR		${SRC_DIR}/libs)
 set(LIBS_SRC		${LIBS_DIR}/sqlite3/sqlite3.cpp)
 					
 set(INSTANCE_DIR	${SRC_DIR}/instance)
@@ -294,22 +281,22 @@ set(INSTANCE_SRC	${INSTANCE_DIR}/agro.cpp
 					${INSTANCE_DIR}/app.cpp
 					${INSTANCE_DIR}/authenticate.cpp)
 
-set(MAIN_SRC ${SRC_DIR}/main.cpp 
-			${SRC_DIR}/error.cpp
-			${SRC_DIR}/arguments.cpp
-			${INSTANCE_SRC}
-			${MESSAGE_SRC}
-			${DEVICE_SRC}
-			${SENSOR_SRC}
-			${RESOURCE_SRC}
-			${REQUEST_SRC}
-			${IMAGE_SRC}
-			${APP_SRC}
-			${NOTIFY_SRC}
-			${DB_SRC}
-			${USER_SRC}
-			${HELPER_SRC}
-			${LIBS_SRC})
+set(MAIN_SRC 		${SRC_DIR}/main.cpp 
+					${SRC_DIR}/error.cpp
+					${SRC_DIR}/arguments.cpp
+					${INSTANCE_SRC}
+					${MESSAGE_SRC}
+					${DEVICE_SRC}
+					${SENSOR_SRC}
+					${RESOURCE_SRC}
+					${REQUEST_SRC}
+					${IMAGE_SRC}
+					${APP_SRC}
+					${NOTIFY_SRC}
+					${DB_SRC}
+					${USER_SRC}
+					${HELPER_SRC}
+					${LIBS_SRC})
 			
 if(USE_SSL EQUAL 1)
 	list(APPEND MAIN_SRC ${SRC_DIR}/websocket/load_certificate.cpp)
@@ -320,21 +307,21 @@ add_executable(${PROJECT_NAME} ${MAIN_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS ON
+    CXX_EXTENSIONS OFF
 )
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES}
-										${SQLite3_LIBRARIES}
+#										${SQLite3_LIBRARIES}
+										sqlite3_wrapper
 										OpenSSL::SSL
 										coap-te
 										pusha
 										csv_export
+										smtp
 										${CMAKE_THREAD_LIBS_INIT})
 
 if(WIN32)
 	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
-else()
-	target_link_libraries(${PROJECT_NAME} pthread)
 endif()
 
 ################
@@ -352,26 +339,29 @@ add_executable(add_user tools/add_user.cpp
 set_target_properties(add_user PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS ON
+    CXX_EXTENSIONS OFF
 )
 
 target_link_libraries(add_user PUBLIC OpenSSL::SSL
-								${SQLite3_LIBRARIES})
+								#${SQLite3_LIBRARIES}
+								sqlite3_wrapper
+								)
 
 ##### add db
 add_executable(init_db tools/init_db.cpp 
-						${LIBS_DIR}/sqlite3/sqlite3.cpp
+#						${LIBS_DIR}/sqlite3/sqlite3.cpp
 						${SRC_DIR}/error.cpp
 						${USER_DIR}/password.cpp)
 
 set_target_properties(init_db PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS ON
+    CXX_EXTENSIONS OFF
 )
 
-target_link_libraries(init_db ${SQLite3_LIBRARIES} 
-								pusha)
+target_link_libraries(init_db #${SQLite3_LIBRARIES} 
+								pusha
+								sqlite3_wrapper)
 
 ########################################
 # Installing
@@ -379,9 +369,9 @@ target_link_libraries(init_db ${SQLite3_LIBRARIES}
 install(TARGETS agro_daemon init_db DESTINATION bin)
 install(FILES db/scheme.sql DESTINATION bin)
 
-#########################################
-# Packing // https://cmake.org/cmake/help/latest/module/CPack.html
-#########################################
+##########################################
+## Packing // https://cmake.org/cmake/help/latest/module/CPack.html
+##########################################
 include(InstallRequiredSystemLibraries)
 set(CPACK_PACKAGE_NAME			"Agro Project Daemon")
 set(CPACK_PACKAGE_VENDOR		"xeds corp")
