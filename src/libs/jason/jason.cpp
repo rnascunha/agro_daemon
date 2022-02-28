@@ -1,6 +1,6 @@
 #include "jason.hpp"
 
-namespace Jason{
+namespace jason{
 
 bool parse(document& doc, const char* str) noexcept
 {

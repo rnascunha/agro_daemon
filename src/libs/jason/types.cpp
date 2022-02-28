@@ -1,6 +1,6 @@
 #include "jason.hpp"
 
-namespace Jason{
+namespace jason{
 
 bool has(object_t::type const& obj, key_type name) noexcept
 {
@@ -216,39 +216,4 @@ void set(document& doc, key_type key, object_t::type& data) noexcept
 	doc.AddMember(rapidjson::StringRef(key), data, doc.GetAllocator());
 }
 
-/**
- * Array
- */
-//template<>
-bool array_t::is(json_type const& value) noexcept
-{
-	return value.IsArray();
-}
-
-//template<>
-array_t::return_type array_t::get(json_type const& value) noexcept
-{
-	return array_t::return_type{value.GetArray()};
-}
-
-void set(document& doc, key_type key, array_t& data) noexcept
-{
-	doc.AddMember(rapidjson::StringRef(key), data.value, doc.GetAllocator());
-}
-
-void push_back(array_t& value, const char* data) noexcept
-{
-	value.value.PushBack(rapidjson::Value(data, value.alloc).Move(), value.alloc);
-}
-
-void push_back(array_t& value, const char* data, std::size_t size) noexcept
-{
-	value.value.PushBack(rapidjson::Value(data, size, value.alloc).Move(), value.alloc);
-}
-
-void push_back(array_t& value, std::string const& str) noexcept
-{
-	push_back(value, str.data(), str.size());
-}
-
-}//Jason
+}//jason

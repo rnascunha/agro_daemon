@@ -6,7 +6,7 @@
 #include "rapidjson/prettywriter.h"
 #include "meta.hpp"
 
-namespace Jason{
+namespace jason{
 
 template<typename T>
 constexpr void assert_type() noexcept
@@ -33,6 +33,15 @@ constexpr void assert_set_type() noexcept
 				integer64_t, unsigned_t, unsigned64_t,
 				float_t, double_t,
 				boolean_t, object_t, array_t>::value, "JSON set type not defined");
+}
+
+template<typename T>
+constexpr void assert_base_type() noexcept
+{
+	static_assert(has_type<T, integer_t::type,
+				integer64_t::type, unsigned_t::type, unsigned64_t::type,
+				float_t::type, double_t::type,
+				boolean_t::type, object_t::type, array_t::type>::value, "JSON base type not defined");
 }
 
 template<bool Pretty /* = false */>
@@ -223,12 +232,6 @@ void set(document& doc, key_type key, T data) noexcept
 	set(doc, key, data, doc.GetAllocator());
 }
 
-template<typename T>
-void push_back(array_t& value, T data) noexcept
-{
-	value.value.PushBack(data, value.alloc);
-}
-
-}//Jason
+}//jason
 
 #endif /* AGRO_DAEMON_LIB_JASON_IMPL_HPP__ */

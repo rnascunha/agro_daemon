@@ -14,7 +14,7 @@ endif()
 
 include_directories(${RAPIDJSON_ROOT})
 
-add_library(${PROJECT_NAME} jason.cpp types.cpp)
+add_library(${PROJECT_NAME} jason.cpp types.cpp array.cpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17

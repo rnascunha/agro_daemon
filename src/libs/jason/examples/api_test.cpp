@@ -1,4 +1,3 @@
-//#include "rapidjson/document.h"
 #include "jason.hpp"
 #include <iostream>
 
@@ -9,9 +8,9 @@ const char* str = "{\"a\":1,\"b\":\"teste\",\"c\":null,\"d\":1.1,\"e\":-1,\"f\":
 
 int main()
 {
-	Jason::document doc;
+	jason::document doc;
 
-	if(Jason::parse(doc, str) || !Jason::is_object(doc))
+	if(jason::parse(doc, str) || !jason::is_object(doc))
 	{
 		std::cerr << "Error parsing...\n";
 		return 1;
@@ -19,36 +18,36 @@ int main()
 
 	std::cout << "Parsed...\n";
 
-	using namespace Jason::literals;
+	using namespace jason::literals;
 	std::cout << std::boolalpha;
 
 	//Verify all true
 	std::cout << "\nAll should succeded:\n";
-	std::cout << "au: " << Jason::verify(doc, "a"_u) << "\n";
-	std::cout << "ai: " << Jason::verify(doc, "a"_i) << "\n";
-	std::cout << "an: " << Jason::verify(doc, "a"_n) << "\n";
-	std::cout << "b : " << Jason::verify(doc, "b"_s) << "\n";
-	std::cout << "c : " << Jason::verify(doc, "c"_null) << "\n";
-	std::cout << "df: " << Jason::verify(doc, "d"_f) << "\n";
-	std::cout << "dd: " << Jason::verify(doc, "d"_d) << "\n";
-	std::cout << "dn: " << Jason::verify(doc, "d"_n) << "\n";
-	std::cout << "ei: " << Jason::verify(doc, "e"_i) << "\n";
-	std::cout << "en: " << Jason::verify(doc, "e"_n) << "\n";
-	std::cout << "f : " << Jason::verify(doc, "f"_a) << "\n";
-	std::cout << "g : " << Jason::verify(doc, "g"_o) << "\n";
+	std::cout << "au: " << jason::verify(doc, "a"_u) << "\n";
+	std::cout << "ai: " << jason::verify(doc, "a"_i) << "\n";
+	std::cout << "an: " << jason::verify(doc, "a"_n) << "\n";
+	std::cout << "b : " << jason::verify(doc, "b"_s) << "\n";
+	std::cout << "c : " << jason::verify(doc, "c"_null) << "\n";
+	std::cout << "df: " << jason::verify(doc, "d"_f) << "\n";
+	std::cout << "dd: " << jason::verify(doc, "d"_d) << "\n";
+	std::cout << "dn: " << jason::verify(doc, "d"_n) << "\n";
+	std::cout << "ei: " << jason::verify(doc, "e"_i) << "\n";
+	std::cout << "en: " << jason::verify(doc, "e"_n) << "\n";
+	std::cout << "f : " << jason::verify(doc, "f"_a) << "\n";
+	std::cout << "g : " << jason::verify(doc, "g"_o) << "\n";
 
 	std::cout << "\nAll should fail:\n";
-	std::cout << "aa: " << Jason::verify(doc, "a"_a) << "\n";
-	std::cout << "af: " << Jason::verify(doc, "a"_f) << "\n";
-	std::cout << "ad: " << Jason::verify(doc, "a"_d) << "\n";
-	std::cout << "bo: " << Jason::verify(doc, "b"_o) << "\n";
-	std::cout << "ci: " << Jason::verify(doc, "c"_i) << "\n";
-	std::cout << "di: " << Jason::verify(doc, "d"_i) << "\n";
-	std::cout << "du: " << Jason::verify(doc, "d"_u) << "\n";
-	std::cout << "do: " << Jason::verify(doc, "d"_o) << "\n";
-	std::cout << "eu: " << Jason::verify(doc, "e"_u) << "\n";
-	std::cout << "fo: " << Jason::verify(doc, "f"_o) << "\n";
-	std::cout << "ga: " << Jason::verify(doc, "g"_a) << "\n";
+	std::cout << "aa: " << jason::verify(doc, "a"_a) << "\n";
+	std::cout << "af: " << jason::verify(doc, "a"_f) << "\n";
+	std::cout << "ad: " << jason::verify(doc, "a"_d) << "\n";
+	std::cout << "bo: " << jason::verify(doc, "b"_o) << "\n";
+	std::cout << "ci: " << jason::verify(doc, "c"_i) << "\n";
+	std::cout << "di: " << jason::verify(doc, "d"_i) << "\n";
+	std::cout << "du: " << jason::verify(doc, "d"_u) << "\n";
+	std::cout << "do: " << jason::verify(doc, "d"_o) << "\n";
+	std::cout << "eu: " << jason::verify(doc, "e"_u) << "\n";
+	std::cout << "fo: " << jason::verify(doc, "f"_o) << "\n";
+	std::cout << "ga: " << jason::verify(doc, "g"_a) << "\n";
 
 	std::cout << "\nVerifying all at same time (should succeded):\n";
 	std::cout << "All fields: " << verify(doc, "a"_u, "b"_s, "c"_null,
@@ -66,15 +65,15 @@ int main()
 
 	std::cout << "\nPrint values:\n";
 	{
-		auto v = Jason::get<Jason::string_t>(doc["b"]);
+		auto v = jason::get<jason::string_t>(doc["b"]);
 		std::cout << "b-s: " << (v ? *v : "no value") << "\n";
 	}
 	{
-		auto v = Jason::get_string(doc["b"]);
+		auto v = jason::get_string(doc["b"]);
 		std::cout << "b-s: " << (v ? *v : "no value") << "\n";
 	}
 	{
-		auto v = Jason::get_int(doc["a"]);
+		auto v = jason::get_int(doc["a"]);
 
 		std::cout << "a-i: ";
 		if(v) std::cout << *v;
@@ -82,7 +81,7 @@ int main()
 		std::cout << "\n";
 	}
 	{
-		auto v = Jason::get(doc, "a"_i);
+		auto v = jason::get(doc, "a"_i);
 
 		std::cout << "a-i: ";
 		if(v) std::cout << *v;
@@ -90,7 +89,7 @@ int main()
 		std::cout << "\n";
 	}
 	{
-		auto v = Jason::get_double(doc["d"]);
+		auto v = jason::get_double(doc["d"]);
 
 		std::cout << "d-d: ";
 		if(v) std::cout << *v;
@@ -98,7 +97,7 @@ int main()
 		std::cout << "\n";
 	}
 	{
-		auto v = Jason::get(doc, "e"_u);
+		auto v = jason::get(doc, "e"_u);
 
 		std::cout << "e-u: ";
 		if(v) std::cout << *v;
@@ -106,7 +105,7 @@ int main()
 		std::cout << "\n";
 	}
 	{
-		auto const& v = Jason::get_array(doc["f"]);
+		auto const& v = jason::get_array(doc["f"]);
 
 		std::cout << "f-a: ";
 		if(v)
@@ -114,7 +113,7 @@ int main()
 			std::cout << "[";
 			for(auto const& a : *v)
 			{
-				auto e = Jason::get_int(a);
+				auto e = jason::get_int(a);
 				if(e) std::cout << *e << ", ";
 			}
 			std::cout << "]";
@@ -123,13 +122,13 @@ int main()
 		std::cout << "\n";
 	}
 	{
-		auto const& v = Jason::get(doc, "g"_o);
+		auto const& v = jason::get(doc, "g"_o);
 
 		std::cout << "g-o: ";
 		if(v)
 		{
 			std::cout << "doc[g][h]: ";
-			auto const& t = Jason::get_int((*v)["h"]);//Jason::get(*v, "h"_i);
+			auto const& t = jason::get_int((*v)["h"]);//jason::get(*v, "h"_i);
 			if(t)
 			{
 				std::cout << *t;
@@ -144,32 +143,93 @@ int main()
 	}
 
 	/**
+	 * Array access
+	 */
+	auto const& v = jason::get_array(doc["f"]);
+	if(v)
+	{
+		std::cout << "\nAccessing array[" << (*v).size() << "]:\n";
+		std::cout << (*v)[0_ii].value_or(-1) << " | ";
+		std::cout << (*v)[0_is].value_or("no a string") << " | ";
+		std::cout << (*v)[1_iu].value_or(-2) << " | ";
+		std::cout << (*v)[2_ii].value_or(-3) << " | ";
+		std::cout << (*v)[3_is].value_or("out of bound") << "\n";
+	}
+
+	/**
+	 * Creating array
+	 */
+	std::cout << "\nCreating and retriving array:\n";
+	jason::array_t narr{doc};
+	narr << 1 << 3 << -1 << 1.3 << "arr_str";
+	narr.push_back(11);
+	narr.push_back("1", 913, 13, -1);
+	std::vector<unsigned> vec{100, 99, 98, 97, 96}, vec2{95, 94, 93, 92};
+	narr.push(vec.begin(), vec.end());
+	narr.push(vec2);
+
+	for(auto const& a : narr)
+	{
+		if(jason::is_int(a))
+		{
+			auto i = jason::get_int(a);
+			std::cout << "i: " << *i << " | ";
+			continue;
+		}
+		if(jason::is_double(a))
+		{
+			auto i = jason::get_double(a);
+			std::cout << "d: " << *i << " | ";
+			continue;
+		}
+		if(jason::is_string(a))
+		{
+			auto i = jason::get_string(a);
+			std::cout << "s: " << *i << " | ";
+			continue;
+		}
+	}
+	std::cout << "\n";
+
+
+	/**
 	 * Setting
 	 */
-	Jason::set(doc, "i", "teste");
-	Jason::set(doc, "j", "teste1", 6);
-	Jason::set(doc, "k", std::string{"teste2"});
-	Jason::set(doc, "l", 10);
-	Jason::set(doc, "m", -13);
-	Jason::set(doc, "n", 1.34);
+	jason::set(doc, "i", "teste");
+	jason::set(doc, "j", "teste1", 6);
+	jason::set(doc, "k", std::string{"teste2"});
+	jason::set(doc, "l", 10);
+	jason::set(doc, "m", -13);
+	jason::set(doc, "n", 1.34);
 
-	Jason::object_t::type obj;
+	jason::object_t::type obj;
 	obj.SetObject();
 
-	Jason::set(obj, "aa", 1, doc.GetAllocator());
-	Jason::set(obj, "bb", -1.33, doc.GetAllocator());
-	Jason::set(obj, "cc", "obj_in_teste", doc.GetAllocator());
+	jason::set(obj, "aa", 1, doc.GetAllocator());
+	jason::set(obj, "bb", -1.33, doc.GetAllocator());
+	jason::set(obj, "cc", "obj_in_teste", doc.GetAllocator());
 
-	Jason::set(doc, "o", obj.GetObject());
+	jason::set(doc, "o", obj.GetObject());
 
-	Jason::array_t arr{doc};
+	jason::array_t arr{doc};
 
-	Jason::push_back(arr, 1);
-	Jason::push_back(arr, "My array");
-	Jason::set(doc, "p", arr.get());
+	jason::push_back(arr, 1);
+	jason::push_back(arr, "My array");
+	jason::push_back(arr, 3);
 
-	std::cout << "Stringifying:\n";
-	std::cout << Jason::stringify<true /* pretty outpyt */ >(doc) << "\n";
+	std::cout << "\nFor loop array[" << arr.size() << "]\n";
+	for(auto const& a : arr)
+	{
+		if(jason::is_int(a))
+			std::cout << "i: " << jason::get_int(a).value_or(0) << "\n";
+		if(jason::is_string(a))
+			std::cout << "s: " << jason::get_string(a).value_or("no value") << "\n";
+	}
+
+	jason::set(doc, "p", arr);
+
+	std::cout << "\nStringifying:\n";
+	std::cout << jason::stringify<true /* pretty outpyt */ >(doc) << "\n";
 
 	return 0;
 }

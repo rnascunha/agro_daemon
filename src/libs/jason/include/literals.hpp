@@ -3,7 +3,7 @@
 
 #include "jason.hpp"
 
-namespace Jason{
+namespace jason{
 namespace literals{
 
 constexpr field<string_t> operator "" _s(const char* key, std::size_t) noexcept
@@ -66,7 +66,18 @@ constexpr field<array_t> operator "" _a(const char* key, std::size_t) noexcept
 	return field<array_t>{key};
 }
 
+constexpr index<string_t> operator "" _is(index_t idx) noexcept{ return index<string_t>{idx}; }
+constexpr index<integer_t> operator "" _ii(index_t idx) noexcept{ return index<integer_t>{idx}; }
+constexpr index<integer64_t> operator "" _ii64(index_t idx) noexcept{ return index<integer64_t>{idx}; }
+constexpr index<unsigned_t> operator "" _iu(index_t idx) noexcept{ return index<unsigned_t>{idx}; }
+constexpr index<unsigned64_t> operator "" _iu64(index_t idx) noexcept{ return index<unsigned64_t>{idx};}
+constexpr index<float_t> operator "" _if(index_t idx) noexcept{ return index<float_t>{idx}; }
+constexpr index<double_t> operator "" _id(index_t idx) noexcept{ return index<double_t>{idx}; }
+constexpr index<boolean_t> operator "" _ib(index_t idx) noexcept{ return index<boolean_t>{idx}; }
+constexpr index<object_t> operator "" _io(index_t idx) noexcept{ return index<object_t>{idx}; }
+constexpr index<array_t> operator "" _ia(index_t idx) noexcept{ return index<array_t>{idx}; }
+
 }//literals
-}//Jason
+}//jason
 
 #endif /* AGRO_DAEMON_LIB_JASON_LITERALS_HPP__ */
