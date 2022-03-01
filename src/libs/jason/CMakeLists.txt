@@ -14,7 +14,7 @@ endif()
 
 include_directories(${RAPIDJSON_ROOT})
 
-add_library(${PROJECT_NAME} jason.cpp types.cpp array.cpp)
+add_library(${PROJECT_NAME} jason.cpp types.cpp array.cpp object.cpp)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17
@@ -28,5 +28,8 @@ if(DEFINED WITH_EXAMPLES)
 	if(${WITH_EXAMPLES} EQUAL 1)
 		add_executable(api_test examples/api_test.cpp)
 		target_link_libraries(api_test PUBLIC ${PROJECT_NAME})
+		
+		add_executable(array_doc examples/array_doc.cpp)
+		target_link_libraries(array_doc PUBLIC ${PROJECT_NAME})
 	endif()
 endif()

@@ -45,7 +45,7 @@ constexpr void assert_base_type() noexcept
 }
 
 template<bool Pretty /* = false */>
-std::string stringify(rapidjson::Document const& doc) noexcept
+std::string stringify(json_type const& doc) noexcept
 {
 	rapidjson::StringBuffer sb;
 	if constexpr(Pretty)
@@ -62,6 +62,14 @@ std::string stringify(rapidjson::Document const& doc) noexcept
 	return sb.GetString();
 }
 
+//template<bool Pretty /* = false */, typename T>
+//std::string
+//stringify(T const& doc) noexcept
+//{
+//	static_assert(has_type<T, object_t, array_t, object_ref_t, array_ref_t>::value);
+//	return stringify<Pretty>(doc.native());
+//}
+
 template<typename T>
 bool is(json_type const& value) noexcept
 {
@@ -71,24 +79,23 @@ bool is(json_type const& value) noexcept
 }
 
 template<typename T>
-bool verify(object_t::type const& value, field<T> const& field) noexcept
+bool verify(object_t const& value, field<T> const& field) noexcept
 {
 	assert_type<T>();
 
-	if(!is_object(value)) return false;
 	if(!has(value, field.key)) return false;
 	return is<T>(value[field.key]);
 }
 
 template<typename Arg, typename... Args>
-bool verify(object_t::type const& value, field<Arg> const& arg, Args&& ...args) noexcept
+bool verify(object_t const& value, field<Arg> const& arg, Args&& ...args) noexcept
 {
 	if(!verify(value, arg)) return false;
 	return verify(value, std::forward<Args>(args)...);
 }
 
 template<typename T>
-bool operator&&(object_t::type const& value, field<T> const& field) noexcept
+bool operator&&(object_t const& value, field<T> const& field) noexcept
 {
 	return verify(value, field);
 }
@@ -113,7 +120,7 @@ get(json_type const& value) noexcept
 
 template<typename T, bool Verify /* = true */>
 std::optional<typename T::return_type>
-get(object_t::type const& value, field<T> const& field) noexcept
+get(object_t const& value, field<T> const& field) noexcept
 {
 	assert_get_type<T>();
 
@@ -187,49 +194,6 @@ template<bool Verify /* = true */>
 std::optional<array_t::return_type> get_array(json_type const& value) noexcept
 {
 	return get<array_t, Verify>(value);
-}
-
-/**
- * Set
- */
-template<typename Allocator>
-void set(object_t::type& value, key_type key, const char* str, Allocator& alloc) noexcept
-{
-	value.AddMember(rapidjson::StringRef(key),
-				rapidjson::StringRef(str),
-				alloc);
-}
-
-template<typename Allocator>
-void set(object_t::type& value, key_type key, const char* str, std::size_t size, Allocator& alloc) noexcept
-{
-	value.AddMember(rapidjson::StringRef(key),
-					rapidjson::StringRef(str, size),
-					alloc);
-}
-
-template<typename Allocator>
-void set(object_t::type& value, key_type key, std::string const& str, Allocator& alloc) noexcept
-{
-	set(value, key, str.data(), str.size(), alloc);
-}
-
-template<typename T, typename Allocator>
-void set(object_t::type& value, key_type key, T data, Allocator& alloc) noexcept
-{
-	value.AddMember(rapidjson::StringRef(key), data, alloc);
-}
-
-template<typename T, typename Allocator>
-void set(object_t::type& value, key_type key, object_t::type& data, Allocator& alloc) noexcept
-{
-	value.AddMember(rapidjson::StringRef(key), data, alloc);
-}
-
-template<typename T>
-void set(document& doc, key_type key, T data) noexcept
-{
-	set(doc, key, data, doc.GetAllocator());
 }
 
 }//jason

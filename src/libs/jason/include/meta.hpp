@@ -30,6 +30,16 @@ struct is_container<
             decltype(std::declval<T>().cend())>>
             : std::true_type {};
 
+template<typename T, typename _ = void>
+struct has_native : std::false_type {};
+
+template<typename T>
+struct has_native<
+        T,
+        std::void_t<
+            decltype(std::declval<T>().native())>>
+            : std::true_type {};
+
 //struct fixed_string{
 //    template<std::size_t N>
 //    constexpr fixed_string(const char (&str)[N])

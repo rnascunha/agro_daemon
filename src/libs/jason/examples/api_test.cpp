@@ -4,19 +4,21 @@
 #include <optional>
 #include <string>
 
-const char* str = "{\"a\":1,\"b\":\"teste\",\"c\":null,\"d\":1.1,\"e\":-1,\"f\":[1,2,3],\"g\":{\"h\":1}}";
+constexpr const char* str = "{\"a\":1,\"b\":\"teste\",\"c\":null,\"d\":1.1,\"e\":-1,\"f\":[1,2,3],\"g\":{\"h\":1}}";
 
 int main()
 {
-	jason::document doc;
+	jason::document base;
 
-	if(jason::parse(doc, str) || !jason::is_object(doc))
+	if(jason::parse(base, str) || !jason::is_object(base))
 	{
 		std::cerr << "Error parsing...\n";
 		return 1;
 	}
 
 	std::cout << "Parsed...\n";
+
+	jason::object_t doc{std::move(base)};
 
 	using namespace jason::literals;
 	std::cout << std::boolalpha;
@@ -149,18 +151,19 @@ int main()
 	if(v)
 	{
 		std::cout << "\nAccessing array[" << (*v).size() << "]:\n";
-		std::cout << (*v)[0_ii].value_or(-1) << " | ";
-		std::cout << (*v)[0_is].value_or("no a string") << " | ";
-		std::cout << (*v)[1_iu].value_or(-2) << " | ";
-		std::cout << (*v)[2_ii].value_or(-3) << " | ";
-		std::cout << (*v)[3_is].value_or("out of bound") << "\n";
+		std::cout << (*v)[0_i].value_or(-1) << " | ";
+		std::cout << (*v)[0_s].value_or("no a string") << " | ";
+		std::cout << (*v)[1_u].value_or(-2) << " | ";
+		std::cout << (*v)[2_i].value_or(-3) << " | ";
+		std::cout << (*v)[3_s].value_or("out of bound") << "\n";
 	}
 
 	/**
 	 * Creating array
 	 */
 	std::cout << "\nCreating and retriving array:\n";
-	jason::array_t narr{doc};
+//	jason::array_t narr{doc};
+	jason::array_t narr{doc.allocator()};
 	narr << 1 << 3 << -1 << 1.3 << "arr_str";
 	narr.push_back(11);
 	narr.push_back("1", 913, 13, -1);
@@ -202,16 +205,19 @@ int main()
 	jason::set(doc, "m", -13);
 	jason::set(doc, "n", 1.34);
 
-	jason::object_t::type obj;
-	obj.SetObject();
+	std::cout << "1\n";
 
-	jason::set(obj, "aa", 1, doc.GetAllocator());
-	jason::set(obj, "bb", -1.33, doc.GetAllocator());
-	jason::set(obj, "cc", "obj_in_teste", doc.GetAllocator());
+//	jason::object_t obj{doc};
+	jason::object_t obj{doc.allocator()};
 
-	jason::set(doc, "o", obj.GetObject());
+	jason::set(obj, "aa", 1);
+	jason::set(obj, "bb", -1.33);
+	jason::set(obj, "cc", "obj_in_teste");
 
-	jason::array_t arr{doc};
+	jason::set(doc, "o", obj);
+
+//	jason::array_t arr{doc};
+	jason::array_t arr{doc.allocator()};
 
 	jason::push_back(arr, 1);
 	jason::push_back(arr, "My array");
@@ -227,6 +233,15 @@ int main()
 	}
 
 	jason::set(doc, "p", arr);
+	doc.set("q", 10);
+	doc.set("r", "jjj");
+
+	jason::array_t arr2{doc.allocator()};
+	arr2 << "1" << 2 << 1.3;
+	doc.set("s", arr2);
+
+//	using namespace jason;
+	doc = {"t", 1};
 
 	std::cout << "\nStringifying:\n";
 	std::cout << jason::stringify<true /* pretty outpyt */ >(doc) << "\n";

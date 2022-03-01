@@ -2,12 +2,14 @@
 #define AGRO_DAEMON_LIB_JASON_HPP__
 
 #include "rapidjson/document.h"
-//types
-#include <cstdint>
+
+#include <cstdint> //types
 
 #include <optional>
 #include <functional>
 #include <string>
+
+#include "meta.hpp"
 
 namespace jason{
 
@@ -33,7 +35,90 @@ using unsigned64_t = base_t<std::uint64_t>;
 using float_t = base_t<float>;
 using double_t = base_t<double>;
 using boolean_t = base_t<bool>;
-using object_t = base_t<rapidjson::Value, rapidjson::Value::ConstObject>;
+
+template<typename T>
+struct field{
+	using type = T;
+	key_type key;
+
+	constexpr field(key_type k) : key{k}{}
+};
+
+class object_ref_t{
+	public:
+		using native_type = rapidjson::Value::ConstObject;
+		using const_iterator = rapidjson::Value::Object::ConstMemberIterator;
+
+		object_ref_t(rapidjson::Value::ConstObject&& value_) : value_{value_}{}
+
+		bool has(key_type) const noexcept;
+
+		json_type const& operator[](key_type index) const noexcept;
+		template<typename T>
+		std::optional<typename T::return_type> operator[](field<T> const& idx) const noexcept;
+
+		native_type const& native() const noexcept{ return value_; }
+	private:
+		native_type value_;
+};
+
+//template<typename T>
+//struct value{
+//	value(key_type k, T t)
+//		: key{k}, v{t}{}
+//
+//	key_type key;
+//	T v;
+//};
+
+class object_t{
+	public:
+		using type = object_t;
+		using native_type = rapidjson::Value;
+		using return_type = object_ref_t;
+		using alloc_type = rapidjson::Value::AllocatorType;
+		using iterator = rapidjson::Value::Object::MemberIterator;
+		using const_iterator = rapidjson::Value::Object::ConstMemberIterator;
+
+		object_t(alloc_type& alloc_) : alloc_{&alloc_}{ value_.SetObject(); }
+		object_t(document& doc) : object_t{doc.GetAllocator()}{}
+		object_t(document&& doc)
+		{
+			if(object_t::is(doc))
+			{
+				value_.Swap(doc);
+				alloc_ = &doc.GetAllocator();
+			}
+		}
+
+		bool has(key_type) const noexcept;
+
+		template<typename T>
+		void set(key_type, T&&) noexcept;
+
+//		template<typename T>
+//		object_t& operator=(value<T>&& t) noexcept
+//		{
+//			set(t.key, std::forward<T>(t.v));
+//			return *this;
+//		}
+
+		json_type& operator[](key_type key) noexcept;
+		json_type const& operator[](key_type key) const noexcept;
+		template<typename T>
+		std::optional<typename T::return_type> operator[](field<T> const& idx) const noexcept;
+
+		native_type& native() noexcept{ return value_; }
+		native_type const& native() const noexcept{ return value_; }
+
+		alloc_type& allocator() noexcept{ return *alloc_; }
+
+		static bool is(json_type const&) noexcept;
+		static return_type get(json_type const& value) noexcept;
+	protected:
+		native_type value_;
+		alloc_type* alloc_;
+};
 
 using index_t = unsigned long long int;
 template<typename T>
@@ -60,7 +145,7 @@ class array_ref_t{
 
 		std::size_t size() const noexcept{ return value.Size(); }
 
-		rapidjson::Value const& operator[](unsigned index) const noexcept;
+		json_type const& operator[](unsigned index) const noexcept;
 		template<typename T>
 		std::optional<typename T::return_type> operator[](index<T> const& idx) const noexcept;
 
@@ -81,6 +166,14 @@ class array_t
 
 		array_t(alloc_type& alloc_) : alloc{&alloc_}{ value.SetArray(); }
 		array_t(document& doc) : array_t{doc.GetAllocator()}{}
+		array_t(document&& doc)
+		{
+			if(array_t::is(doc))
+			{
+				value.Swap(doc);
+				alloc = &doc.GetAllocator();
+			}
+		}
 
 		iterator begin() noexcept { return value.Begin(); }
 		iterator end() noexcept { return value.End(); }
@@ -100,8 +193,8 @@ class array_t
 		template<typename Container>
 		void push(Container const&) noexcept;
 
-		rapidjson::Value& operator[](unsigned index) noexcept;
-		rapidjson::Value const& operator[](unsigned index) const noexcept;
+		json_type& operator[](unsigned index) noexcept;
+		json_type const& operator[](unsigned index) const noexcept;
 		template<typename T>
 		std::optional<typename T::return_type> operator[](index<T> const& idx) const noexcept;
 
@@ -129,20 +222,17 @@ struct number_t{
 	static bool is(json_type const&) noexcept;
 };
 
-template<typename T>
-struct field{
-	using type = T;
-	key_type key;
-
-	constexpr field(key_type k) : key{k}{}
-};
-
 bool parse(document&, const char*) noexcept;
 bool parse(document&, const char*, std::size_t) noexcept;
 bool parse(document&, std::string const&) noexcept;
 
 template<bool Pretty = false>
-std::string stringify(rapidjson::Document const& doc) noexcept;
+std::string stringify(json_type const& doc) noexcept;
+template<bool Pretty = false, typename T, std::enable_if_t<has_native<T>::value, int> = 0>
+std::string stringify(T const& doc) noexcept
+{
+	return stringify<Pretty>(doc.native());
+}
 
 namespace literals{
 
@@ -159,24 +249,24 @@ constexpr field<null_t> operator "" _null(const char*, std::size_t) noexcept;
 constexpr field<object_t> operator "" _o(const char*, std::size_t) noexcept;
 constexpr field<array_t> operator "" _a(const char*, std::size_t) noexcept;
 
-constexpr index<string_t> operator "" _is(index_t) noexcept;
-constexpr index<integer_t> operator "" _ii(index_t) noexcept;
-constexpr index<integer64_t> operator "" _ii64(index_t) noexcept;
-constexpr index<unsigned_t> operator "" _iu(index_t) noexcept;
-constexpr index<unsigned64_t> operator "" _iu64(index_t) noexcept;
-constexpr index<float_t> operator "" _if(index_t) noexcept;
-constexpr index<double_t> operator "" _id(index_t) noexcept;
-constexpr index<boolean_t> operator "" _ib(index_t) noexcept;
-constexpr index<object_t> operator "" _io(index_t) noexcept;
-constexpr index<array_t> operator "" _ia(index_t) noexcept;
+constexpr index<string_t> operator "" _s(index_t) noexcept;
+constexpr index<integer_t> operator "" _i(index_t) noexcept;
+constexpr index<integer64_t> operator "" _i64(index_t) noexcept;
+constexpr index<unsigned_t> operator "" _u(index_t) noexcept;
+constexpr index<unsigned64_t> operator "" _u64(index_t) noexcept;
+constexpr index<float_t> operator "" _f(index_t) noexcept;
+constexpr index<double_t> operator "" _d(index_t) noexcept;
+constexpr index<boolean_t> operator "" _b(index_t) noexcept;
+constexpr index<object_t> operator "" _o(index_t) noexcept;
+constexpr index<array_t> operator "" _a(index_t) noexcept;
 
 }//literals
 
 /**
  * Verify
  */
-
-bool has(object_t::type const&, key_type) noexcept;
+bool has(object_ref_t const&, key_type) noexcept;
+bool has(object_t const&, key_type) noexcept;
 
 template<typename T>
 bool is(json_type const&) noexcept;
@@ -194,12 +284,12 @@ bool is_object(json_type const&) noexcept;
 bool is_array(json_type const&) noexcept;
 
 template<typename T>
-bool verify(object_t::type const&, field<T> const&) noexcept;
+bool verify(object_t const& value, field<T> const& field) noexcept;
 template<typename Arg, typename... Args>
-bool verify(object_t::type const&, field<Arg> const&, Args&& ...) noexcept;
+bool verify(object_t const& value, field<Arg> const& arg, Args&& ...args) noexcept;
 
 template<typename T>
-bool operator&&(object_t::type const&, field<T> const&) noexcept;
+bool operator&&(object_t const&, field<T> const&) noexcept;
 
 /**
  * get
@@ -207,7 +297,7 @@ bool operator&&(object_t::type const&, field<T> const&) noexcept;
 template<typename T, bool Verify = true>
 std::optional<typename T::return_type> get(json_type const&) noexcept;
 template<typename T, bool Verify = true>
-std::optional<typename T::return_type> get(object_t::type const&, field<T> const&) noexcept;
+std::optional<typename T::return_type> get(object_t const&, field<T> const&) noexcept;
 
 template<bool Verify = true>
 std::optional<string_t::return_type> get_string(json_type const&) noexcept;
@@ -233,26 +323,14 @@ std::optional<array_t::return_type> get_array(json_type const&) noexcept;
 /**
  * Set
  */
-void set(document&, key_type, const char*) noexcept;
-void set(document&, key_type, const char*, std::size_t) noexcept;
-void set(document&, key_type, std::string const&) noexcept;
+void set(object_t&, key_type, const char*) noexcept;
+void set(object_t&, key_type, const char*, std::size_t) noexcept;
+void set(object_t&, key_type, std::string const&) noexcept;
 
 template<typename T>
-void set(document&, key_type, T) noexcept;
-void set(document& doc, key_type key, object_t::type& data) noexcept;
-void set(document& doc, key_type key, array_t& data) noexcept;
-
-template<typename Allocator>
-void set(object_t::type&, key_type, const char*, Allocator&) noexcept;
-template<typename Allocator>
-void set(object_t::type&, key_type, const char*, std::size_t, Allocator&) noexcept;
-template<typename Allocator>
-void set(object_t::type&, key_type, std::string const&, Allocator&) noexcept;
-
-template<typename T, typename Allocator>
-void set(object_t::type&, key_type, T, Allocator&) noexcept;
-template<typename T, typename Allocator>
-void set(object_t::type&, key_type, object_t::type const&, Allocator&) noexcept;
+void set(object_t&, key_type, T) noexcept;
+void set(object_t&, key_type, object_t&) noexcept;
+void set(object_t&, key_type, array_t&) noexcept;
 
 /**
  * Array pushs
@@ -274,5 +352,6 @@ void push(array_t&, Container const&) noexcept;
 #include "literals.hpp"
 #include "impl/jason_impl.hpp"
 #include "impl/array_impl.hpp"
+#include "impl/object_impl.hpp"
 
 #endif /* AGRO_DAEMON_LIB_JASON_HPP__ */

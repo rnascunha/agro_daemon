@@ -32,17 +32,17 @@ void push_back(array_t& value, std::string const& str) noexcept
 	push_back(value, str.data(), str.size());
 }
 
-rapidjson::Value const& array_ref_t::operator[](unsigned index) const noexcept
+json_type const& array_ref_t::operator[](unsigned index) const noexcept
 {
 	return value[index];
 }
 
-rapidjson::Value& array_t::operator[](unsigned index) noexcept
+json_type& array_t::operator[](unsigned index) noexcept
 {
 	return value[index];
 }
 
-rapidjson::Value const& array_t::operator[](unsigned index) const noexcept
+json_type const& array_t::operator[](unsigned index) const noexcept
 {
 	return value[index];
 }

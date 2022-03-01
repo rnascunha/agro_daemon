@@ -2,9 +2,14 @@
 
 namespace jason{
 
-bool has(object_t::type const& obj, key_type name) noexcept
+bool has(object_t const& obj, key_type key) noexcept
 {
-	return obj.HasMember(name);
+	return obj.native().HasMember(key);
+}
+
+bool has(object_ref_t const& obj, key_type key) noexcept
+{
+	return obj.native().HasMember(key);
 }
 
 bool is_int(json_type const& value) noexcept
@@ -95,21 +100,6 @@ string_t::return_type string_t::get(json_type const& value) noexcept
 	return value.GetString();
 }
 
-void set(document& doc, key_type key, const char* str) noexcept
-{
-	set(doc, key, str, doc.GetAllocator());
-}
-
-void set(document& doc, key_type key, const char* str, std::size_t size) noexcept
-{
-	set(doc, key, str, size, doc.GetAllocator());
-}
-
-void set(document& doc, key_type key, std::string const& str) noexcept
-{
-	set(doc, key, str.data(), str.size());
-}
-
 /**
  * integer_t
  */
@@ -197,23 +187,6 @@ template<>
 boolean_t::return_type boolean_t::get(json_type const& value) noexcept
 {
 	return value.GetBool();
-}
-
-template<>
-bool object_t::is(json_type const& value) noexcept
-{
-	return value.IsObject();
-}
-
-template<>
-object_t::return_type object_t::get(json_type const& value) noexcept
-{
-	return object_t::return_type{value.GetObject()};
-}
-
-void set(document& doc, key_type key, object_t::type& data) noexcept
-{
-	doc.AddMember(rapidjson::StringRef(key), data, doc.GetAllocator());
 }
 
 }//jason
