@@ -47,11 +47,15 @@ struct field{
 class object_ref_t{
 	public:
 		using native_type = rapidjson::Value::ConstObject;
-		using const_iterator = rapidjson::Value::Object::ConstMemberIterator;
+		using iterator = rapidjson::Value::Object::MemberIterator;
+		using const_iterator = rapidjson::Value::Object::MemberIterator;
 
 		object_ref_t(rapidjson::Value::ConstObject&& value_) : value_{value_}{}
 
 		bool has(key_type) const noexcept;
+
+		auto begin() const noexcept{ return value_.MemberBegin(); }
+		auto end() const noexcept{ return value_.MemberEnd(); }
 
 		json_type const& operator[](key_type index) const noexcept;
 		template<typename T>
@@ -64,7 +68,7 @@ class object_ref_t{
 
 //template<typename T>
 //struct value{
-//	value(key_type k, T t)
+//	constexpr value(key_type k, T t)
 //		: key{k}, v{t}{}
 //
 //	key_type key;
@@ -95,6 +99,11 @@ class object_t{
 
 		template<typename T>
 		void set(key_type, T&&) noexcept;
+
+		auto begin() const noexcept{ return value_.MemberBegin(); }
+		auto end() const noexcept{ return value_.MemberEnd(); }
+		auto begin() noexcept{ return value_.MemberBegin(); }
+		auto end() noexcept{ return value_.MemberEnd(); }
 
 //		template<typename T>
 //		object_t& operator=(value<T>&& t) noexcept

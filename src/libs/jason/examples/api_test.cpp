@@ -241,7 +241,27 @@ int main()
 	doc.set("s", arr2);
 
 //	using namespace jason;
-	doc = {"t", 1};
+//	doc = jason::value{"t", 1};
+
+	std::cout << "\nIterate object:\n";
+	for(auto const& m : doc)
+	{
+		std::cout << *jason::get_string(m.name) << ": ";
+		if(jason::is_int(m.value))
+		{
+			std::cout << *jason::get_int(m.value);
+		}
+		else if(jason::is_string(m.value))
+		{
+			std::cout << *jason::get_string(m.value);
+		}
+		else if(jason::is_double(m.value))
+		{
+			std::cout << *jason::get_double(m.value);
+		}
+		else std::cout << "other type";
+		std::cout << "\n";
+	}
 
 	std::cout << "\nStringifying:\n";
 	std::cout << jason::stringify<true /* pretty outpyt */ >(doc) << "\n";
