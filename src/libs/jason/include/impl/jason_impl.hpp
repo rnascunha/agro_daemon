@@ -62,14 +62,6 @@ std::string stringify(json_type const& doc) noexcept
 	return sb.GetString();
 }
 
-//template<bool Pretty /* = false */, typename T>
-//std::string
-//stringify(T const& doc) noexcept
-//{
-//	static_assert(has_type<T, object_t, array_t, object_ref_t, array_ref_t>::value);
-//	return stringify<Pretty>(doc.native());
-//}
-
 template<typename T>
 bool is(json_type const& value) noexcept
 {
@@ -100,7 +92,7 @@ bool operator&&(object_t const& value, field<T> const& field) noexcept
 	return verify(value, field);
 }
 
-template<typename T, bool Verify = true>
+template<typename T, bool Verify /* = true */>
 std::optional<typename T::return_type>
 get(json_type const& value) noexcept
 {

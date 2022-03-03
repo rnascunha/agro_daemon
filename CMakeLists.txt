@@ -6,7 +6,7 @@ project (agro_daemon VERSION 1.0)
 set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
-set(TREE_TRUNKS_ROOT	third/tree_trunks/src/include/)
+set(TREE_TRUNKS_ROOT	third/tree_trunks)
 set(USE_SSL				0)
 set(TT_LEVEL			type::debug)
 
@@ -56,11 +56,11 @@ endif()
 message("Builder type: " ${CMAKE_BUILD_TYPE}) 
 
 if(MSVC)
-	set(CMAKE_CXX_FLAGS "/W4 /std:c++17 /EHsc")# /bigobj")
+	set(CMAKE_CXX_FLAGS "/W4 /EHsc")
 	set(CMAKE_CXX_FLAGS_RELEASE "/O2")
 	add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
 else()
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter")
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -pedantic")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
@@ -121,7 +121,8 @@ include_directories(${ARGH_ROOT})
 # tree trunks
 ###########################
 
-include_directories(${TREE_TRUNKS_ROOT})
+#add_subdirectory(${TREE_TRUNKS_ROOT})
+include_directories(${TREE_TRUNKS_ROOT}/include)
 
 ###########################
 # rapidjson
@@ -311,7 +312,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 
 target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES}
-#										${SQLite3_LIBRARIES}
 										sqlite3_wrapper
 										OpenSSL::SSL
 										coap-te
@@ -343,13 +343,11 @@ set_target_properties(add_user PROPERTIES
 )
 
 target_link_libraries(add_user PUBLIC OpenSSL::SSL
-								#${SQLite3_LIBRARIES}
 								sqlite3_wrapper
 								)
 
 ##### add db
 add_executable(init_db tools/init_db.cpp 
-#						${LIBS_DIR}/sqlite3/sqlite3.cpp
 						${SRC_DIR}/error.cpp
 						${USER_DIR}/password.cpp)
 
@@ -359,7 +357,7 @@ set_target_properties(init_db PROPERTIES
     CXX_EXTENSIONS OFF
 )
 
-target_link_libraries(init_db #${SQLite3_LIBRARIES} 
+target_link_libraries(init_db 
 								pusha
 								sqlite3_wrapper)
 

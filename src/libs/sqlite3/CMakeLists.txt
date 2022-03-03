@@ -10,7 +10,7 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
-#find_package(SQLite3)
+find_package(SQLite3)
 if(NOT SQLite3_FOUND)
 # Didn't find SQLite3 packet. 
 # We are going to have compile ourselves...

@@ -5,7 +5,7 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS "/W4 /std:c++17 /EHsc")
 	set(CMAKE_CXX_FLAGS_RELEASE "/O2")
 else()
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -std=c++17")	#-fmax-errors=5 
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -std=c++17")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
