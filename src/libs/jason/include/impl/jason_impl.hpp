@@ -75,7 +75,7 @@ bool verify(object_t const& value, field<T> const& field) noexcept
 {
 	assert_type<T>();
 
-	if(!has(value, field.key)) return false;
+	if(!value.has(field.key)) return false;
 	return is<T>(value[field.key]);
 }
 

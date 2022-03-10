@@ -12,39 +12,34 @@ array_t::return_type array_t::get(json_type const& value) noexcept
 	return array_ref_t{value.GetArray()};
 }
 
-void set(document& doc, key_type key, array_t& data) noexcept
+void array_t::push_back(const char* data) noexcept
 {
-	doc.AddMember(rapidjson::StringRef(key), data.native(), doc.GetAllocator());
+	value_.PushBack(rapidjson::Value(data, *alloc_).Move(), *alloc_);
 }
 
-void push_back(array_t& value, const char* data) noexcept
+void array_t::push_back(const char* data, std::size_t size) noexcept
 {
-	value.native().PushBack(rapidjson::Value(data, value.allocator()).Move(), value.allocator());
+	value_.PushBack(rapidjson::Value(data, size, *alloc_).Move(), *alloc_);
 }
 
-void push_back(array_t& value, const char* data, std::size_t size) noexcept
+void array_t::push_back(std::string const& str) noexcept
 {
-	value.native().PushBack(rapidjson::Value(data, size, value.allocator()).Move(), value.allocator());
-}
-
-void push_back(array_t& value, std::string const& str) noexcept
-{
-	push_back(value, str.data(), str.size());
+	push_back(str.data(), str.size());
 }
 
 json_type const& array_ref_t::operator[](unsigned index) const noexcept
 {
-	return value[index];
+	return value_[index];
 }
 
 json_type& array_t::operator[](unsigned index) noexcept
 {
-	return value[index];
+	return value_[index];
 }
 
 json_type const& array_t::operator[](unsigned index) const noexcept
 {
-	return value[index];
+	return value_[index];
 }
 
 }//jason

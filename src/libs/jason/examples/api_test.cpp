@@ -198,30 +198,26 @@ int main()
 	/**
 	 * Setting
 	 */
-	jason::set(doc, "i", "teste");
-	jason::set(doc, "j", "teste1", 6);
-	jason::set(doc, "k", std::string{"teste2"});
-	jason::set(doc, "l", 10);
-	jason::set(doc, "m", -13);
-	jason::set(doc, "n", 1.34);
+	doc.set("i", "teste");
+	doc.set("j", "teste1", 6);
+	doc.set("k", std::string{"teste2"});
+	doc.set("l", 10);
+	doc.set("m", -13);
+	doc.set("n", 1.34);
 
-	std::cout << "1\n";
-
-//	jason::object_t obj{doc};
 	jason::object_t obj{doc.allocator()};
 
-	jason::set(obj, "aa", 1);
-	jason::set(obj, "bb", -1.33);
-	jason::set(obj, "cc", "obj_in_teste");
+	doc.set("aa", 1);
+	doc.set("bb", -1.33);
+	doc.set("cc", "obj_in_teste");
 
-	jason::set(doc, "o", obj);
+	doc.set("o", obj);
 
-//	jason::array_t arr{doc};
 	jason::array_t arr{doc.allocator()};
 
-	jason::push_back(arr, 1);
-	jason::push_back(arr, "My array");
-	jason::push_back(arr, 3);
+	arr.push_back(1);
+	arr.push_back("My array");
+	arr.push_back(3);
 
 	std::cout << "\nFor loop array[" << arr.size() << "]\n";
 	for(auto const& a : arr)
@@ -232,16 +228,13 @@ int main()
 			std::cout << "s: " << jason::get_string(a).value_or("no value") << "\n";
 	}
 
-	jason::set(doc, "p", arr);
+	doc.set("p", arr);
 	doc.set("q", 10);
 	doc.set("r", "jjj");
 
 	jason::array_t arr2{doc.allocator()};
 	arr2 << "1" << 2 << 1.3;
 	doc.set("s", arr2);
-
-//	using namespace jason;
-//	doc = jason::value{"t", 1};
 
 	std::cout << "\nIterate object:\n";
 	for(auto const& m : doc)

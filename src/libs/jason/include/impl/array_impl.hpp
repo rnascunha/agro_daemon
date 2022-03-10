@@ -5,60 +5,44 @@
 
 namespace jason{
 
-
 template<typename T>
-void push_back(array_t& value, T data) noexcept
+void array_t::push_back(T data) noexcept
 {
 	assert_base_type<T>();
-	value.native().PushBack(data, value.allocator());
+	value_.PushBack(data, *alloc_);
 }
 
 template<typename T, typename... Ts>
-void push_back(array_t& arr, T&& t, Ts&&... ts) noexcept
+void array_t::push_back(T&& t, Ts&&... ts) noexcept
 {
-	push_back(arr, t);
-	push_back(arr, std::forward<Ts>(ts)...);
-}
-
-template<typename... Ts>
-void push_back(array_t& arr, Ts&&... ts) noexcept
-{
-	push_back(arr, std::forward<Ts>(ts)...);
-}
-
-template<typename InputFwIter>
-void push(array_t& arr, InputFwIter begin, InputFwIter end) noexcept
-{
-	for(InputFwIter i = begin; i != end; ++i)
-	{
-		push_back(arr, *i);
-	}
-}
-
-template<typename Container>
-void push(array_t& arr, Container const& container) noexcept
-{
-	static_assert(is_container<Container>::value, "Is not a contaienr");
-
-	push(arr, container.cbegin(), container.cend());
+	push_back(t);
+	push_back(std::forward<Ts>(ts)...);
 }
 
 template<typename ...Ts>
 void array_t::push_back(Ts&&... ts) noexcept
 {
-	jason::push_back(*this, std::forward<Ts>(ts)...);
+//	jason::push_back(*this, std::forward<Ts>(ts)...);
+	push_back(std::forward<Ts>(ts)...);
 }
 
-template<typename InputIter>
-void array_t::push(InputIter begin, InputIter end) noexcept
+template<typename InputFwIter>
+void array_t::push(InputFwIter begin, InputFwIter end) noexcept
 {
-	jason::push(*this, begin, end);
+//	jason::push(*this, begin, end);
+	for(InputFwIter i = begin; i != end; ++i)
+	{
+		push_back(*i);
+	}
 }
 
 template<typename Container>
 void array_t::push(Container const& container) noexcept
 {
-	jason::push(*this, container);
+//	jason::push(*this, container);
+	static_assert(is_container<Container>::value, "Is not a contaienr");
+
+	push(container.cbegin(), container.cend());
 }
 
 template<typename T>
@@ -67,7 +51,7 @@ std::optional<typename T::return_type> array_ref_t::operator[](index<T> const& i
 	assert_get_type<T>();
 
 	if(idx.i >= size()) return std::nullopt;
-	return get<T>(value[idx.i]);
+	return get<T>(value_[idx.i]);
 }
 
 template<typename T>
@@ -76,13 +60,14 @@ std::optional<typename T::return_type> array_t::operator[](index<T> const& idx) 
 	assert_get_type<T>();
 
 	if(idx.i >= size()) return std::nullopt;
-	return jason::get<T>(value[idx.i]);
+	return jason::get<T>(value_[idx.i]);
 }
 
 template<typename T>
 array_t& array_t::operator<<(T t) noexcept
 {
 	push_back(t);
+
 	return *this;
 }
 

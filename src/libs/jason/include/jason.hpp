@@ -50,7 +50,7 @@ class object_ref_t{
 		using iterator = rapidjson::Value::Object::MemberIterator;
 		using const_iterator = rapidjson::Value::Object::MemberIterator;
 
-		object_ref_t(rapidjson::Value::ConstObject&& value_) : value_{value_}{}
+		object_ref_t(native_type&& value_) : value_{value_}{}
 
 		bool has(key_type) const noexcept;
 
@@ -66,14 +66,7 @@ class object_ref_t{
 		native_type value_;
 };
 
-//template<typename T>
-//struct value{
-//	constexpr value(key_type k, T t)
-//		: key{k}, v{t}{}
-//
-//	key_type key;
-//	T v;
-//};
+class array_t;
 
 class object_t{
 	public:
@@ -88,29 +81,26 @@ class object_t{
 		object_t(document& doc) : object_t{doc.GetAllocator()}{}
 		object_t(document&& doc)
 		{
-			if(object_t::is(doc))
-			{
-				value_.Swap(doc);
-				alloc_ = &doc.GetAllocator();
-			}
+			if(object_t::is(doc)) value_.Swap(doc);
+			else value_.SetObject();
+			alloc_ = &doc.GetAllocator();
 		}
 
 		bool has(key_type) const noexcept;
 
+		void set(key_type, const char*) noexcept;
+		void set(key_type, const char*, std::size_t) noexcept;
+		void set(key_type, std::string const&) noexcept;
+
 		template<typename T>
-		void set(key_type, T&&) noexcept;
+		void set(key_type, T) noexcept;
+		void set(key_type, object_t&) noexcept;
+		void set(key_type, array_t&) noexcept;
 
 		auto begin() const noexcept{ return value_.MemberBegin(); }
 		auto end() const noexcept{ return value_.MemberEnd(); }
 		auto begin() noexcept{ return value_.MemberBegin(); }
 		auto end() noexcept{ return value_.MemberEnd(); }
-
-//		template<typename T>
-//		object_t& operator=(value<T>&& t) noexcept
-//		{
-//			set(t.key, std::forward<T>(t.v));
-//			return *this;
-//		}
 
 		json_type& operator[](key_type key) noexcept;
 		json_type const& operator[](key_type key) const noexcept;
@@ -125,8 +115,22 @@ class object_t{
 		static bool is(json_type const&) noexcept;
 		static return_type get(json_type const& value) noexcept;
 	protected:
+		object_t(){}
+
 		native_type value_;
-		alloc_type* alloc_;
+		alloc_type* alloc_ = nullptr;
+};
+
+class object_doc : public object_t{
+	public:
+		object_doc()
+		{
+			doc_.SetObject();
+			value_.Swap(doc_);
+			alloc_ = &doc_.GetAllocator();
+		}
+	private:
+		document doc_{};
 };
 
 using index_t = unsigned long long int;
@@ -144,23 +148,23 @@ class array_ref_t{
 		using native_type = rapidjson::Value::ConstArray;
 		using const_iterator = rapidjson::Value::Array::ConstValueIterator;
 
-		array_ref_t(rapidjson::Value::ConstArray&& value) : value{std::move(value)}{}
+		array_ref_t(native_type&& value) : value_{std::move(value)}{}
 
-		const_iterator begin() const noexcept { return value.Begin(); }
-		const_iterator end() const noexcept { return value.End(); }
+		const_iterator begin() const noexcept { return value_.Begin(); }
+		const_iterator end() const noexcept { return value_.End(); }
 
-		const_iterator cbegin() const noexcept { return value.Begin(); }
-		const_iterator cend() const noexcept { return value.End(); }
+		const_iterator cbegin() const noexcept { return value_.Begin(); }
+		const_iterator cend() const noexcept { return value_.End(); }
 
-		std::size_t size() const noexcept{ return value.Size(); }
+		std::size_t size() const noexcept{ return value_.Size(); }
 
 		json_type const& operator[](unsigned index) const noexcept;
 		template<typename T>
 		std::optional<typename T::return_type> operator[](index<T> const& idx) const noexcept;
 
-		native_type const& native() const noexcept{ return value; }
+		native_type const& native() const noexcept{ return value_; }
 	private:
-		native_type value;
+		native_type value_;
 };
 
 class array_t
@@ -173,27 +177,33 @@ class array_t
 		using iterator = rapidjson::Value::Array::ValueIterator;
 		using const_iterator = rapidjson::Value::Array::ConstValueIterator;
 
-		array_t(alloc_type& alloc_) : alloc{&alloc_}{ value.SetArray(); }
+		array_t(alloc_type& alloc) : alloc_{&alloc}{ value_.SetArray(); }
 		array_t(document& doc) : array_t{doc.GetAllocator()}{}
 		array_t(document&& doc)
 		{
-			if(array_t::is(doc))
-			{
-				value.Swap(doc);
-				alloc = &doc.GetAllocator();
-			}
+			if(array_t::is(doc)) value_.Swap(doc);
+			else value_.SetArray();
+			alloc_ = &doc.GetAllocator();
 		}
 
-		iterator begin() noexcept { return value.Begin(); }
-		iterator end() noexcept { return value.End(); }
-		const_iterator begin() const noexcept { return value.Begin(); }
-		const_iterator end() const noexcept { return value.End(); }
+		iterator begin() noexcept { return value_.Begin(); }
+		iterator end() noexcept { return value_.End(); }
+		const_iterator begin() const noexcept { return value_.Begin(); }
+		const_iterator end() const noexcept { return value_.End(); }
 
-		const_iterator cbegin() const noexcept { return value.Begin(); }
-		const_iterator cend() const noexcept { return value.End(); }
+		const_iterator cbegin() const noexcept { return value_.Begin(); }
+		const_iterator cend() const noexcept { return value_.End(); }
 
-		std::size_t size() const noexcept{ return value.Size(); }
+		std::size_t size() const noexcept{ return value_.Size(); }
 
+		void push_back(const char*) noexcept;
+		void push_back(const char*, std::size_t) noexcept;
+		void push_back(std::string const&) noexcept;
+
+		template<typename T>
+		void push_back(T t) noexcept;
+		template<typename T, typename... Ts>
+		void push_back(T&& t, Ts&&... ts) noexcept;
 		template<typename ...Ts>
 		void push_back(Ts&&...) noexcept;
 
@@ -210,17 +220,31 @@ class array_t
 		template<typename T>
 		array_t& operator<<(T t) noexcept;
 
-		native_type& native() noexcept{ return value; }
-		native_type const& native() const noexcept{ return value; }
+		native_type& native() noexcept{ return value_; }
+		native_type const& native() const noexcept{ return value_; }
 
-		alloc_type& allocator() noexcept{ return *alloc; }
+		alloc_type& allocator() noexcept{ return *alloc_; }
 
 		static bool is(json_type const&) noexcept;
-		static return_type get(json_type const& value) noexcept;
+		static return_type get(json_type const& value_) noexcept;
 
+	protected:
+		array_t(){}
+
+		alloc_type* alloc_ = nullptr;
+		native_type value_;
+};
+
+class array_doc : public array_t{
+	public:
+		array_doc()
+		{
+			doc_.SetArray();
+			value_.Swap(doc_);
+			alloc_ = &doc_.GetAllocator();
+		}
 	private:
-		alloc_type* alloc = nullptr;
-		native_type value;
+		document doc_{};
 };
 
 struct null_t{
@@ -274,9 +298,6 @@ constexpr index<array_t> operator "" _a(index_t) noexcept;
 /**
  * Verify
  */
-bool has(object_ref_t const&, key_type) noexcept;
-bool has(object_t const&, key_type) noexcept;
-
 template<typename T>
 bool is(json_type const&) noexcept;
 bool is_string(json_type const&) noexcept;
@@ -328,33 +349,6 @@ template<bool Verify = true>
 std::optional<object_t::return_type> get_object(json_type const&) noexcept;
 template<bool Verify = true>
 std::optional<array_t::return_type> get_array(json_type const&) noexcept;
-
-/**
- * Set
- */
-void set(object_t&, key_type, const char*) noexcept;
-void set(object_t&, key_type, const char*, std::size_t) noexcept;
-void set(object_t&, key_type, std::string const&) noexcept;
-
-template<typename T>
-void set(object_t&, key_type, T) noexcept;
-void set(object_t&, key_type, object_t&) noexcept;
-void set(object_t&, key_type, array_t&) noexcept;
-
-/**
- * Array pushs
- */
-void push_back(array_t&, const char*) noexcept;
-void push_back(array_t&, const char*, std::size_t) noexcept;
-void push_back(array_t&, std::string const&) noexcept;
-
-template<typename... Ts>
-void push_back(array_t&, Ts&&...) noexcept;
-
-template<typename InputIter>
-void push(array_t&, InputIter, InputIter) noexcept;
-template<typename Container>
-void push(array_t&, Container const&) noexcept;
 
 }//jason
 

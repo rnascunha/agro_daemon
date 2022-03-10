@@ -5,10 +5,9 @@
 int main()
 {
 	using namespace jason;
-	array_doc doc;
+	object_doc doc;
 
-	doc.push_back(1, "teste", 1.3);
-	doc << "jason" << -13 << "44";
+	doc.set("key", 1);
 
 	std::cout << stringify(doc) << "\n";
 

@@ -5,20 +5,17 @@
 
 namespace jason{
 
+template<typename T>
+struct is_type_object : has_type<std::remove_cv_t<std::remove_reference_t<T>>, object_t, object_ref_t>{};
+
 /**
  * Set
  */
 template<typename T>
-void set(object_t& value, key_type key, T data) noexcept
+void object_t::set(key_type key, T data) noexcept
 {
 	assert_base_type<T>();
-	value.native().AddMember(rapidjson::StringRef(key), data, value.allocator());
-}
-
-template<typename T>
-void object_t::set(key_type key, T&& value) noexcept
-{
-	jason::set(*this, key, std::forward<T>(value));
+	value_.AddMember(rapidjson::StringRef(key), data, *alloc_);
 }
 
 }//jason

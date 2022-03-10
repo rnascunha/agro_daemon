@@ -14,12 +14,12 @@ object_t::return_type object_t::get(json_type const& value) noexcept
 
 bool object_ref_t::has(key_type key) const noexcept
 {
-	return jason::has(*this, key);
+	return value_.HasMember(key);
 }
 
 bool object_t::has(key_type key) const noexcept
 {
-	return jason::has(*this, key);
+	return value_.HasMember(key);
 }
 
 json_type const& object_ref_t::operator[](key_type key) const noexcept
@@ -49,33 +49,33 @@ std::optional<typename T::return_type> object_t::operator[](field<T> const& key)
 	return get(*this, key);
 }
 
-void set(object_t& value, key_type key, const char* str) noexcept
+void object_t::set(key_type key, const char* str) noexcept
 {
-	value.native().AddMember(rapidjson::StringRef(key),
+	value_.AddMember(rapidjson::StringRef(key),
 				rapidjson::StringRef(str),
-				value.allocator());
+				*alloc_);
 }
 
-void set(object_t& value, key_type key, const char* str, std::size_t size) noexcept
+void object_t::set(key_type key, const char* str, std::size_t size) noexcept
 {
-	value.native().AddMember(rapidjson::StringRef(key),
+	value_.AddMember(rapidjson::StringRef(key),
 					rapidjson::StringRef(str, size),
-					value.allocator());
+					*alloc_);
 }
 
-void set(object_t& value, key_type key, std::string const& str) noexcept
+void object_t::set(key_type key, std::string const& str) noexcept
 {
-	set(value, key, str.data(), str.size());
+	set(key, str.data(), str.size());
 }
 
-void set(object_t& value, key_type key, object_t& data) noexcept
+void object_t::set(key_type key, object_t& data) noexcept
 {
-	value.native().AddMember(rapidjson::StringRef(key), data.native(), value.allocator());
+	value_.AddMember(rapidjson::StringRef(key), data.native(), *alloc_);
 }
 
-void set(object_t& value, key_type key, array_t& data) noexcept
+void object_t::set(key_type key, array_t& data) noexcept
 {
-	value.native().AddMember(rapidjson::StringRef(key), data.native(), value.allocator());
+	value_.AddMember(rapidjson::StringRef(key), data.native(), *alloc_);
 }
 
 }//jason

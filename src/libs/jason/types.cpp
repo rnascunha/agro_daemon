@@ -2,16 +2,6 @@
 
 namespace jason{
 
-bool has(object_t const& obj, key_type key) noexcept
-{
-	return obj.native().HasMember(key);
-}
-
-bool has(object_ref_t const& obj, key_type key) noexcept
-{
-	return obj.native().HasMember(key);
-}
-
 bool is_int(json_type const& value) noexcept
 {
 	return value.IsInt();
