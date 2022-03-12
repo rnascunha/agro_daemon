@@ -11,7 +11,7 @@ int main()
 
 	document doc;
 	if(!parse(doc, json_str.data(), json_str.size())
-			&& !jason::is_object(doc))
+			|| !jason::is_object(doc))
 	{
 		std::cerr << "Error parsing data... Quitting!\n";
 		return EXIT_FAILURE;

@@ -10,7 +10,7 @@ int main()
 {
 	jason::document base;
 
-	if(jason::parse(base, str) || !jason::is_object(base))
+	if(!jason::parse(base, str) || !jason::is_object(base))
 	{
 		std::cerr << "Error parsing...\n";
 		return 1;

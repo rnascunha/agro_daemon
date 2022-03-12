@@ -42,4 +42,11 @@ json_type const& array_t::operator[](unsigned index) const noexcept
 	return value_[index];
 }
 
+void array_t::swap(document& doc) noexcept
+{
+	if(array_t::is(doc)) value_.Swap(doc);
+	else value_.SetArray();
+	alloc_ = &doc.GetAllocator();
+}
+
 }//jason

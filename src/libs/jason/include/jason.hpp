@@ -79,12 +79,7 @@ class object_t{
 
 		object_t(alloc_type& alloc_) : alloc_{&alloc_}{ value_.SetObject(); }
 		object_t(document& doc) : object_t{doc.GetAllocator()}{}
-		object_t(document&& doc)
-		{
-			if(object_t::is(doc)) value_.Swap(doc);
-			else value_.SetObject();
-			alloc_ = &doc.GetAllocator();
-		}
+		object_t(document&& doc){ swap(doc); }	//using swap because move doesn't work
 
 		bool has(key_type) const noexcept;
 
@@ -114,9 +109,10 @@ class object_t{
 
 		static bool is(json_type const&) noexcept;
 		static return_type get(json_type const& value) noexcept;
-	protected:
-		object_t(){}
 
+		object_t(){}
+		void swap(document& doc) noexcept;
+	protected:
 		native_type value_;
 		alloc_type* alloc_ = nullptr;
 };
@@ -129,6 +125,8 @@ class object_doc : public object_t{
 			value_.Swap(doc_);
 			alloc_ = &doc_.GetAllocator();
 		}
+
+		document& doc() noexcept{ return doc_; }
 	private:
 		document doc_{};
 };
@@ -179,12 +177,7 @@ class array_t
 
 		array_t(alloc_type& alloc) : alloc_{&alloc}{ value_.SetArray(); }
 		array_t(document& doc) : array_t{doc.GetAllocator()}{}
-		array_t(document&& doc)
-		{
-			if(array_t::is(doc)) value_.Swap(doc);
-			else value_.SetArray();
-			alloc_ = &doc.GetAllocator();
-		}
+		array_t(document&& doc){ swap(doc); }
 
 		iterator begin() noexcept { return value_.Begin(); }
 		iterator end() noexcept { return value_.End(); }
@@ -228,8 +221,9 @@ class array_t
 		static bool is(json_type const&) noexcept;
 		static return_type get(json_type const& value_) noexcept;
 
-	protected:
 		array_t(){}
+		void swap(document& doc) noexcept;
+	protected:
 
 		alloc_type* alloc_ = nullptr;
 		native_type value_;
@@ -243,6 +237,8 @@ class array_doc : public array_t{
 			value_.Swap(doc_);
 			alloc_ = &doc_.GetAllocator();
 		}
+
+		document& doc() noexcept{ return doc_; }
 	private:
 		document doc_{};
 };

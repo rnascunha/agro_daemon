@@ -105,8 +105,6 @@ integer_t::return_type integer_t::get(json_type const& value) noexcept
 	return value.GetInt();
 }
 
-
-
 template<>
 bool integer64_t::is(json_type const& value) noexcept
 {

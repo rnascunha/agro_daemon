@@ -18,6 +18,18 @@ void object_t::set(key_type key, T data) noexcept
 	value_.AddMember(rapidjson::StringRef(key), data, *alloc_);
 }
 
+template<typename T>
+std::optional<typename T::return_type> object_ref_t::operator[](field<T> const& key) const noexcept
+{
+	return jason::get<T>(*this, key);
+}
+
+template<typename T>
+std::optional<typename T::return_type> object_t::operator[](field<T> const& key) const noexcept
+{
+	return jason::get<T>(*this, key);
+}
+
 }//jason
 
 #endif /* JASON_OBJECT_HPP__ */

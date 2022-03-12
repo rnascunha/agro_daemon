@@ -147,7 +147,7 @@ std::optional<integer64_t::return_type> get_int64(json_type const& value) noexce
 }
 
 template<bool Verify /* = true */>
-std::optional<unsigned_t> get_uint(json_type const& value) noexcept
+std::optional<unsigned_t::return_type> get_uint(json_type const& value) noexcept
 {
 	return get<unsigned_t, Verify>(value);
 }

@@ -27,12 +27,6 @@ json_type const& object_ref_t::operator[](key_type key) const noexcept
 	return value_[key];
 }
 
-template<typename T>
-std::optional<typename T::return_type> object_ref_t::operator[](field<T> const& key) const noexcept
-{
-	return get(value_, key);
-}
-
 json_type& object_t::operator[](key_type key) noexcept
 {
 	return value_[key];
@@ -41,12 +35,6 @@ json_type& object_t::operator[](key_type key) noexcept
 json_type const& object_t::operator[](key_type key) const noexcept
 {
 	return value_[key];
-}
-
-template<typename T>
-std::optional<typename T::return_type> object_t::operator[](field<T> const& key) const noexcept
-{
-	return get(*this, key);
 }
 
 void object_t::set(key_type key, const char* str) noexcept
@@ -76,6 +64,13 @@ void object_t::set(key_type key, object_t& data) noexcept
 void object_t::set(key_type key, array_t& data) noexcept
 {
 	value_.AddMember(rapidjson::StringRef(key), data.native(), *alloc_);
+}
+
+void object_t::swap(document& doc) noexcept
+{
+	if(object_t::is(doc)) value_.Swap(doc);
+	else value_.SetObject();
+	alloc_ = &doc.GetAllocator();
 }
 
 }//jason

@@ -6,7 +6,7 @@ constexpr const char* str = "[1,-1,3,\"string\",7.4,-589,[1, \"teset\", 23, 2.3]
 int main()
 {
 	jason::document base;
-	if(jason::parse(base, str) || !jason::is_array(base))
+	if(!jason::parse(base, str) || !jason::is_array(base))
 	{
 		std::cerr << "Error parsing...\n";
 		return 1;
