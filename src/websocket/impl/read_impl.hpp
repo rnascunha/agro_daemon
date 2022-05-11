@@ -121,6 +121,8 @@ read_handler(std::string data) noexcept
 	 */
 	if(!check_authenticate(data))
 	{
+		tt::debug("User not authenticated!");
+
 		/**
 		 * Enters here onlty if user was not already athenticated. Check if
 		 * Athetication was succeceded.
@@ -134,7 +136,7 @@ read_handler(std::string data) noexcept
 		}
 	}
 	//User was already authenticated
-	else if(binary())
+	else if(stream_.got_binary())
 	{
 		/**
 		 * Data is of binary type. Can be a APP or a IMAGE

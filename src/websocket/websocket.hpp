@@ -151,6 +151,8 @@ class Websocket final :
 		bool check_authenticate(std::string const& data) noexcept;
 
 		void send_initial_data() noexcept;
+
+		void clear_read_buffer() noexcept;
 };
 
 #include "impl/websocket_base_impl.hpp"
