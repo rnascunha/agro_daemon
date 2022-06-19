@@ -3,7 +3,7 @@ project (agro_daemon VERSION 1.0)
 
 #------------DEFINING VARS-----------------
 
-set(BOOST_ROOT 			/home/rnascunha/toolchain/libs/boost_1_76_0/include)
+set(BOOST_ROOT 			/home/rnascunha/dev/toolchain/boost/boost_1_79_0/)
 set(RAPIDJSON_ROOT 		third/rapidjson/include)
 set(ARGH_ROOT 			third/argh)
 set(TREE_TRUNKS_ROOT	third/tree_trunks)

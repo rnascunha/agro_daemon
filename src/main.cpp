@@ -1,3 +1,7 @@
+/**
+ * Agro daemon main file
+ */
+
 #include <boost/asio.hpp>
 
 #include "arguments.hpp"
