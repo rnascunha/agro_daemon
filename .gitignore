@@ -3,6 +3,8 @@
 .project
 build/
 src/version.hpp
-/Debug/
+Debug/
+Release/
 .vs/
 out/
+third/
