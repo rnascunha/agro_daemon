@@ -2,11 +2,15 @@
 #define AGRO_DAEMON_OTA_TYPES_HPP__
 
 #include <cstdint>
+#include "../helper/packed.h"
 
 /**
  * Types copied from 'esp_app_format.h' of ESP-IDF
  */
 
+#ifdef _MSC_VER
+#pragma pack(push, 1)
+#endif /* _MSC_VER */
 /**
  * @brief ESP chip ID
  *
@@ -17,12 +21,16 @@ typedef enum {
     ESP_CHIP_ID_ESP32S3 = 0x0004, /*!< chip ID: ESP32-S3 */                                                            /**< ESP_CHIP_ID_ESP32S3 */
     ESP_CHIP_ID_ESP32C3 = 0x0005, /*!< chip ID: ESP32-C3 */                                                            /**< ESP_CHIP_ID_ESP32C3 */
     ESP_CHIP_ID_INVALID = 0xFFFF /*!< Invalid chip ID (we defined it to make sure the esp_chip_id_t is 2 bytes size) *//**< ESP_CHIP_ID_INVALID */
-} __attribute__((packed)) esp_chip_id_t;
+} PACKED esp_chip_id_t;
+
+#ifdef _MSC_VER
+#pragma pack(pop)
+#endif /* _MSC_VER */
 
 /**
  * @brief Main header of binary image
  */
-typedef struct {
+PACK(typedef struct {
     uint8_t magic;              /*!< Magic word ESP_IMAGE_HEADER_MAGIC */
     uint8_t segment_count;      /*!< Count of memory segments */
     uint8_t spi_mode;           /*!< flash read mode (esp_image_spi_mode_t as uint8_t) */
@@ -41,7 +49,7 @@ typedef struct {
                                  * is separate to secure boot and only used for detecting corruption.
                                  * For secure boot signed images, the signature
                                  * is appended after this (and the simple hash is included in the signed data). */
-} __attribute__((packed))  esp_image_header_t;
+}) esp_image_header_t;
 
 /**
  * @brief Header of binary image segment
