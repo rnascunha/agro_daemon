@@ -15,7 +15,7 @@ bool mail_factory::is_valid() const noexcept
 
 bool mail_factory::is_valid(SMTP::server const& server) noexcept
 {
-	return !server.server.empty()
+	return !server.addr.empty()
 			&& !server.port.empty()
 			&& !server.user.empty()
 			&& !server.password.empty();

@@ -57,7 +57,7 @@ int add_user(sqlite3& db,
 	rc = res.step();
 	if(rc == SQLITE_DONE)
 	{
-		id = db.last_insert_rowid();
+		id = static_cast<User::user_id>(db.last_insert_rowid());
 	}
 	return rc;
 }

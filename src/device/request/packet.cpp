@@ -84,27 +84,27 @@ REQUIRE_PACKET(route,net);
 REQUIRE_PACKET(config,net);
 REQUIRE_PACKET(full_config,net);
 
-extern constexpr const request_config packet_sensors = {
+const request_config packet_sensors = {
 	{request_type::sensors, "sensors"},
 	&req_sensors,
 	packet_response
 };
-extern constexpr const request_config packet_board = {
+const request_config packet_board = {
 	{request_type::board, "board"},
 	&req_board,
 	packet_response
 };
-extern constexpr const request_config packet_route = {
+const request_config packet_route = {
 	{request_type::route, "route"},
 	&req_route,
 	packet_response
 };
-extern constexpr const request_config packet_config = {
+const request_config packet_config = {
 	{request_type::config, "config"},
 	&req_config,
 	packet_response
 };
-extern constexpr const request_config packet_full_config = {
+const request_config packet_full_config = {
 	{request_type::full_config, "full_config"},
 	&req_full_config,
 	packet_response

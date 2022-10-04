@@ -64,7 +64,7 @@ int sqlite3::prepare(const char* sql_statment, int n_bytes, statement& res, cons
 
 int sqlite3::prepare(const std::string_view& sql_statment, statement& res, const char** tail /* = NULL */) noexcept
 {
-	return sqlite3_prepare_v2(db_, sql_statment.data(), sql_statment.size(), res.native_ptr(), tail);
+	return sqlite3_prepare_v2(db_, sql_statment.data(), static_cast<int>(sql_statment.size()), res.native_ptr(), tail);
 }
 
 int sqlite3::exec(const char* statement,
@@ -128,7 +128,7 @@ int sqlite3::statement::bind(int index,
 		std::string const& value,
 		destructor_type destructor/* = static_destructor */) noexcept
 {
-	return sqlite3_bind_text(stmt_, index, value.data(), value.size(), destructor);
+	return sqlite3_bind_text(stmt_, index, value.data(), static_cast<int>(value.size()), destructor);
 }
 
 int sqlite3::statement::bind(int index, const void* data, int size, destructor_type destructor /* = static_destructor */) noexcept
@@ -158,7 +158,7 @@ int sqlite3::statement::integer(int index) noexcept
 
 long sqlite3::statement::long_integer(int index) noexcept
 {
-	return sqlite3_column_int64(stmt_, index);
+	return static_cast<long>(sqlite3_column_int64(stmt_, index));
 }
 
 float sqlite3::statement::real(int index) noexcept

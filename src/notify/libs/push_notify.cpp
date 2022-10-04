@@ -102,7 +102,7 @@ void push_notify::receive_response()
 {
 	auto self = shared_from_this();
 	socket_.async_read_some(boost::asio::buffer(reply_, max_length),
-		[self](const boost::system::error_code& error, std::size_t length)
+		[self](const boost::system::error_code& error, std::size_t)
 		{
 			if (!error)
 			{
@@ -138,7 +138,7 @@ bool push_factory::notify(Agro::User::Subscription const& user,
 
 	if(!expiration)
 	{
-		expiration = std::time(NULL) + PUSH_DEFAULT_EXAPIRATION;
+		expiration = static_cast<unsigned>(std::time(NULL)) + PUSH_DEFAULT_EXAPIRATION;
 	}
 
 	if(!ttl)

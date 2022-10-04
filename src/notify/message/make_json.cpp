@@ -231,7 +231,7 @@ std::string make_public_key(std::string_view const& public_key) noexcept
 	data.SetObject();
 
 	data.AddMember("key",
-			rapidjson::Value(public_key.data(), public_key.size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(public_key.data(), static_cast<int>(public_key.size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 	::Message::add_data(doc, data);
 
@@ -299,7 +299,7 @@ std::string make_credential_list(Factory const& fac) noexcept
 		}
 		v.AddMember("enable", noti->enable(), doc.GetAllocator());
 
-		data.AddMember(rapidjson::Value(name.data(), name.size(), doc.GetAllocator()).Move(), v, doc.GetAllocator());
+		data.AddMember(rapidjson::Value(name.data(), static_cast<int>(name.size()), doc.GetAllocator()).Move(), v, doc.GetAllocator());
 	}
 
 	::Message::add_data(doc, data);

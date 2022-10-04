@@ -128,11 +128,11 @@ static request_message const req_update_ota = {
 	update_ota_payload
 };
 
-extern constexpr const request_config get_ota = {
+const request_config get_ota = {
 		{request_type::get_ota, "get_ota_version"},
 		&req_get_ota,
 		get_ota_response};
-extern constexpr const request_config update_ota = {
+const request_config update_ota = {
 		{request_type::update_ota, "update_ota"},
 		&req_update_ota,
 		update_ota_response};

@@ -104,7 +104,7 @@ void telegram_bot::receive_response()
 {
 	auto self = shared_from_this();
 	socket_.async_read_some(boost::asio::buffer(reply_, max_length),
-		[self](const boost::system::error_code& error, std::size_t length)
+		[self](const boost::system::error_code& error, std::size_t)
 		{
 			if (!error)
 			{

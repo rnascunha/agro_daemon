@@ -14,13 +14,16 @@ class AgroDaemonConan(ConanFile):
     default_options = {"shared": False, "fPIC": True, "ssl": False, "verbose": 4, "boost:header_only": True}
     generators = "cmake_find_package"
     requires = "argh/1.3.2", "sqlite3/[>3.0.0]", "boost/[>=1.70.0]", \
-                "openssl/1.1.1q", "rapidjson/cci.20220822", "tree_trunks/[>=0.1]@base/stable", \
+                "openssl/1.1.1q", "rapidjson/cci.20220822", "tree_trunks/0.1@base/stable", \
                 "coap-te/[>=0.1]@base/stable", "pusha/[>=0.1]@base/stable"
     exports = "LICENSE", "README.md", "URL.txt", "db/scheme.sql"
     exports_sources = "*.c", "*.cpp", "*.h", "*.hpp", "*.hpp.in", "*CMakeLists.txt", "*.cmake"
 
     def build_requirements(self):
-        if CMake.get_version() < Version("3.10"):
+        try:
+            if CMake.get_version() < Version("3.10"):
+                self.tool_requires("cmake/[>= 3.10]")
+        except BaseException as err:
             self.tool_requires("cmake/[>= 3.10]")
 
     def config_options(self):

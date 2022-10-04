@@ -4,6 +4,11 @@
 #include "../user/authenticate_params.h"
 #include "tt/tt.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 static bool check_authentice_package(
 		rapidjson::Value const& payload,
 		std::error_code& ec) noexcept;
@@ -215,8 +220,8 @@ static bool check_password(Agro::User::Logged& user,
 	}
 
 	unsigned char key[USER_AUTH_KEY_LENGTH] = {0};
-	if(!PKCS5_PBKDF2_HMAC(password, std::strlen(password),
-			salt.data(), salt.size(),
+	if(!PKCS5_PBKDF2_HMAC(password, static_cast<int>(std::strlen(password)),
+			salt.data(), static_cast<int>(salt.size()),
 			USER_AUTH_INTERATION_NUMBER, USER_AUTH_HASH_ALGORITHM,
 			USER_AUTH_KEY_LENGTH, key))
 	{

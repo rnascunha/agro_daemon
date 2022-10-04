@@ -8,6 +8,11 @@
 
 #include "coap-te-debug.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Device{
 namespace Request{
@@ -140,7 +145,7 @@ static void process_custom_request(rapidjson::Document const& d,
 			std::uint8_t* buftemp = static_cast<std::uint8_t*>(buf);
 			for (auto& v: payload.GetArray())
 			{
-				buftemp[i++] = v.GetUint();
+				buftemp[i++] = static_cast<uint8_t>(v.GetUint());
 			}
 			return i;
 		};

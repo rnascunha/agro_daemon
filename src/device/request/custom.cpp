@@ -19,7 +19,7 @@ static void custom_response(
 	ws->write(Message::device_custom_response(request, response, ep, status));
 }
 
-extern constexpr const request_config custom = {
+const request_config custom = {
 		{request_type::custom, "custom"},
 		{},
 		custom_response

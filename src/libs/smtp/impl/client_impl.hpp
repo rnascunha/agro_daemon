@@ -83,7 +83,7 @@ void Client<UsePipeline, TimeOut>::connect() noexcept
 {
 	using namespace std::placeholders;
 	boost::asio::ip::tcp::resolver::query qry{
-			server_.server,
+			server_.addr,
 			server_.port,
 			boost::asio::ip::resolver_query_base::numeric_service};
 	resolver_.async_resolve(qry,
@@ -203,8 +203,8 @@ void Client<UsePipeline, TimeOut>::on_receive_command(std::size_t index, const b
 		}
 		else
 		{
-			boost::system::error_code ec;
-			on_send_command(++index, ec);
+			boost::system::error_code ec_;
+			on_send_command(++index, ec_);
 		}
 	}
 	else
@@ -306,7 +306,7 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 	}
     else
     {
-		os << "ehlo " << server_.server << "\r\n";
+		os << "ehlo " << server_.addr << "\r\n";
 		comm_.emplace_back(os.str(), 220);
 		os.clear();
 		os.str("");

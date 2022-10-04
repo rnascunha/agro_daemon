@@ -7,7 +7,13 @@ namespace SMTP{
 
 struct server
 {
-    std::string server, port, user, password;
+    server() = default;
+    server(const server&) = default;
+    server(server&&) = default;
+    server& operator=(const server&) = default;
+
+    std::string addr, port, user, password;
+    
 };
 
 }//SMTP
