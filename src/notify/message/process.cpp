@@ -271,7 +271,7 @@ static void update_mail_credential(rapidjson::Value const& data,
 	}
 
 	SMTP::server nserver;
-	nserver.server = data["server"].GetString();
+	nserver.addr = data["server"].GetString();
 	nserver.port = data["port"].GetString();
 	nserver.user = data["user"].GetString();
 	nserver.password = data["password"].GetString();

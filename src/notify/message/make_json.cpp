@@ -245,7 +245,7 @@ static void make_mail_credential(rapidjson::Value& data, mail const& mfac, Alloc
 {
 	data.SetObject();
 
-	data.AddMember("server", STRING_TO_JVALUE(mfac.server().server), alloc);
+	data.AddMember("server", STRING_TO_JVALUE(mfac.server().addr), alloc);
 	data.AddMember("port", STRING_TO_JVALUE(mfac.server().port), alloc);
 	data.AddMember("user", STRING_TO_JVALUE(mfac.server().user), alloc);
 	data.AddMember("password", STRING_TO_JVALUE(mfac.server().password), alloc);

@@ -99,10 +99,10 @@ static void make_config_file(arguments const& args) noexcept
 
 #if USE_SSL == 1
 	doc.AddMember("key",
-				rapidjson::Value(args.key.data(), args.key.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(args.key.data(), static_cast<rapidjson::SizeType>(args.key.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	doc.AddMember("cert",
-					rapidjson::Value(args.cert.data(), args.cert.size(), doc.GetAllocator()).Move(),
+					rapidjson::Value(args.cert.data(), static_cast<rapidjson::SizeType>(args.cert.size()), doc.GetAllocator()).Move(),
 					doc.GetAllocator());
 #endif /* USE_SSL == 1 */
 

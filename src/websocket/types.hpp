@@ -8,9 +8,9 @@
 namespace Agro{
 
 #if USE_SSL == 0
-using websocket = Websocket<false>;
+using websocket = ::Websocket<false>;
 #else /* USE_SSL == 0 */
-using websocket = Websocket<true>;
+using websocket = ::Websocket<true>;
 #endif /* USE_SSL == 0 */
 
 using websocket_ptr = std::shared_ptr<websocket>;

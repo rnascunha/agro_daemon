@@ -276,7 +276,7 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 
     if constexpr(UsePipeline)
 	{
-		os << "ehlo " << server_.server << "\r\n";
+		os << "ehlo " << server_.addr << "\r\n";
 		os << "auth login\r\n";
 		os << base64_encode(server_.user) << "\r\n";
 		os << base64_encode(server_.password) << "\r\n";

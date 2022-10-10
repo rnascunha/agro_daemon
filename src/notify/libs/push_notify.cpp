@@ -1,3 +1,7 @@
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
+
 #include "push_notify.hpp"
 #include <iostream>
 

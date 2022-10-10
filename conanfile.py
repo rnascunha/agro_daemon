@@ -11,11 +11,11 @@ class AgroDaemonConan(ConanFile):
     topics = ("agro", "daemon", "project")
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False], "fPIC": [True, False], "ssl": [True, False], "verbose": [0, 1, 2, 3, 4, 5]}
-    default_options = {"shared": False, "fPIC": True, "ssl": False, "verbose": 4, "boost:header_only": True}
+    default_options = {"shared": False, "fPIC": True, "ssl": False, "verbose": 4, "boost:header_only": False}
     generators = "cmake_find_package"
     requires = "argh/1.3.2", "sqlite3/[>3.0.0]", "boost/[>=1.70.0]", \
                 "openssl/1.1.1q", "rapidjson/cci.20220822", "tree_trunks/0.1@base/stable", \
-                "coap-te/[>=0.1]@base/stable", "pusha/[>=0.1]@base/stable"
+                "coap-te/0.1@base/stable", "pusha/0.1@base/stable"
     exports = "LICENSE", "README.md", "URL.txt", "db/scheme.sql"
     exports_sources = "*.c", "*.cpp", "*.h", "*.hpp", "*.hpp.in", "*CMakeLists.txt", "*.cmake"
 

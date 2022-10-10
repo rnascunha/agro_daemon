@@ -104,4 +104,7 @@ struct app
 	sha256_hash	hash;
 };
 
+// #undef PACK
+// #undef PACKED
+
 #endif /* AGRO_MESH_DEVICE_TYPES_HPP__ */

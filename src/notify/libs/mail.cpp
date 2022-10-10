@@ -1,3 +1,7 @@
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
+
 #include "mail.hpp"
 
 using SMPT_Client = SMTP::Client<false, 10>;

@@ -36,6 +36,8 @@ PACK(struct board_config{
 	std::uint8_t	:6;
 });
 
+// #undef PACK
+
 }//Resource
 }//Device
 }//Agro

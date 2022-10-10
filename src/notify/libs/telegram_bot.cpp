@@ -1,3 +1,7 @@
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
+
 #include "telegram_bot.hpp"
 #include "pusha/helper.h"
 
