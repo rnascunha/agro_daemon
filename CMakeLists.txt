@@ -33,14 +33,14 @@ endif()
 if(MSVC)
 	set(CMAKE_CXX_FLAGS "/W4 /EHsc")
 	set(CMAKE_CXX_FLAGS_RELEASE "/O2")
-	# add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
+	add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
 else()
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-parameter -pedantic")
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Werror")
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
-add_definitions(-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignored at POSIX
+add_definitions(#-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Ignored at POSIX
 				-DUSE_SSL=${USE_SSL}
 				-DTT_LEVEL=${TT_LEVEL})
 				
