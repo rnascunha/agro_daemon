@@ -1,8 +1,3 @@
-//https://github.com/nlohmann/json/issues/506#issuecomment-286459077
-#ifdef _MSC_VER
-#define NOMINMAX
-#endif /* _MSC_VER */
-
 #include "auth_message.hpp"
 #include "rapidjson/document.h"
 #include "../../message/types.hpp"

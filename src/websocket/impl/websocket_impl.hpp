@@ -110,7 +110,7 @@ write_binary(binary_type type,
 
 	std::uint8_t t = static_cast<std::uint8_t>(type);
 	ss.write(reinterpret_cast<char const*>(&t), sizeof(t));
-	std::uint16_t size = name.size();
+	std::uint16_t size = static_cast<std::uint16_t>(name.size());
 	ss.write(reinterpret_cast<char const*>(&size), sizeof(size));
 	ss << name;
 	ss << data;

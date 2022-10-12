@@ -348,7 +348,7 @@ int Device::update_ac_load(unsigned index, bool value) noexcept
 		list.add(gpios_value);
 		return gpios_value;
 	}
-	int v = list[list.size() - 1].value,
+	int v = list[static_cast<unsigned>(list.size() - 1)].value,
 		nvalue = (v & ~(1UL << nindex)) | (value << nindex);
 //	list.add_change((v & ~(1UL << nindex)) | (value << nindex));
 	list.add(nvalue);
