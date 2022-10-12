@@ -138,7 +138,7 @@ static void process_custom_request(rapidjson::Document const& d,
 
 	if(data.HasMember("payload") && data["payload"].IsArray())
 	{
-		msg.payload = [&data](rapidjson::Document const&, void* buf, std::size_t size, instance&, std::error_code&){
+		msg.payload = [&data](rapidjson::Document const&, void* buf, std::size_t, instance&, std::error_code&){
 			rapidjson::Value const& payload = data["payload"];
 			std::size_t i = 0;
 

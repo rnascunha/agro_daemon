@@ -238,7 +238,7 @@ std::string make_public_key(std::string_view const& public_key) noexcept
 	return ::Message::stringify(doc);
 }
 
-#define STRING_TO_JVALUE(m)		rapidjson::Value(m.data(), m.size(), alloc).Move()
+#define STRING_TO_JVALUE(m)		rapidjson::Value(m.data(), static_cast<rapidjson::SizeType>(m.size()), alloc).Move()
 
 template<typename Allocator>
 static void make_mail_credential(rapidjson::Value& data, mail const& mfac, Allocator& alloc) noexcept
@@ -252,7 +252,7 @@ static void make_mail_credential(rapidjson::Value& data, mail const& mfac, Alloc
 }
 
 template<typename Allocator>
-static void make_push_credential(rapidjson::Value& data, push const& pfac, Allocator& alloc) noexcept
+static void make_push_credential(rapidjson::Value& data, push const&, Allocator&) noexcept
 {
 	data.SetObject();
 

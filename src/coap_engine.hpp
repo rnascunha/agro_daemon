@@ -5,6 +5,8 @@
 #include "coap-te.hpp"			//Convenient header
 #include "coap-te/transmission/transaction_list_vector.hpp"
 
+#undef inet_ntop
+
 #define BUFFER_LEN		1024
 
 using endpoint = CoAP::Port::POSIX::endpoint_ipv4;

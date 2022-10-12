@@ -8,7 +8,7 @@ namespace Request{
 
 static void custom_response(
 		engine::endpoint const& ep,
-		mesh_addr_t const& host,
+		mesh_addr_t const&,
 		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
