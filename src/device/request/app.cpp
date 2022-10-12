@@ -145,7 +145,7 @@ static void delete_app_response(
 static std::size_t delete_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code& ec) noexcept
 {
@@ -175,7 +175,7 @@ static std::size_t delete_app_payload(
 static std::size_t exec_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code& ec) noexcept
 {
@@ -209,7 +209,7 @@ static std::size_t exec_app_payload(
 static std::size_t send_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance& instance,
 		std::error_code& ec) noexcept
 {

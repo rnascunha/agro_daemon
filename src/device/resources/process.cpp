@@ -99,7 +99,7 @@ bool process_config(Agro::Device::Device& device,
 
 bool process_full_config(Agro::Device::Device& device,
 					Agro::instance& instance,
-					engine::endpoint const& ep,
+					engine::endpoint const&,
 					const void* payload, std::size_t payload_len,
 					std::error_code& ec) noexcept
 {
@@ -128,7 +128,7 @@ void process_sensors_data(Agro::Device::Device& device,
 					Agro::instance& instance,
 					engine::endpoint const& ep,
 					const void* payload, std::size_t payload_len,
-					std::error_code& ec) noexcept
+					std::error_code&) noexcept
 {
 	process_packet(device, ep);
 

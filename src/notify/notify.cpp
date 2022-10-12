@@ -118,7 +118,7 @@ Notify::sensor_container const& Notify::get_sensors() const noexcept
 }
 
 Notify::sensor_container_value const* Notify::get_device_sensors(
-				Device::device_id id, unsigned type, unsigned index) const noexcept
+				Device::device_id id, unsigned type, unsigned) const noexcept
 {
 	auto sen = sensor_type_.find(std::make_tuple(id, type, type));
 	if(sen == sensor_type_.end())

@@ -84,7 +84,7 @@ static void update_ota_response(
 static std::size_t update_ota_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance& instance,
 		std::error_code& ec)
 {

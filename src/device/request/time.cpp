@@ -128,7 +128,7 @@ static void update_fuse_response(
 
 static std::size_t rtc_update_payload(rapidjson::Document const&,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code&)
 {
@@ -141,7 +141,7 @@ static std::size_t rtc_update_payload(rapidjson::Document const&,
 static std::size_t update_fuse_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code& ec)
 {

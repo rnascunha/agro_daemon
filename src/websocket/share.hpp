@@ -47,7 +47,7 @@ class share{
 			}
 		}
 
-		void exec_to_all(std::function<void(void)> func) noexcept
+		void exec_to_all(std::function<void(void)>) noexcept
 		{
 			std::vector<std::weak_ptr<Session>> v;
 			{

@@ -240,7 +240,7 @@ static void send_sensor_list(Agro::websocket_ptr ws,
 	ws->write(make_sensor_list(user.user()->notify()));
 }
 
-static void send_credential_list(rapidjson::Document const& doc,
+static void send_credential_list(rapidjson::Document const&,
 				Agro::websocket_ptr ws,
 				Agro::instance& instance,
 				Agro::User::Logged& user) noexcept

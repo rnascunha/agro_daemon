@@ -35,7 +35,7 @@ write_all(std::string const data) noexcept
 template<bool UseSSL>
 void
 Websocket<UseSSL>::
-write_all(std::string const data, bool text) noexcept
+write_all(std::string const data, bool) noexcept
 {
 	share_->exec_to_all(
 		std::bind(
