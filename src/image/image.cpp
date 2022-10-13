@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <sstream>
 
 #include "tt/tt.hpp"
 

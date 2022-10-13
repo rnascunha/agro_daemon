@@ -86,7 +86,7 @@ class share{
 			}
 		}
 
-		void write_all(std::shared_ptr<std::string> data) noexcept
+		void write_all(std::shared_ptr<const std::string> data) noexcept
 		{
 			std::vector<std::weak_ptr<Session>> v;
 			{

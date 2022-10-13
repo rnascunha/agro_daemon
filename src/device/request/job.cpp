@@ -2,6 +2,11 @@
 #include "../../websocket/types.hpp"
 #include "../message/device.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Device{
 namespace Request{
@@ -155,12 +160,12 @@ static std::size_t send_job_payload(
 		 * Scheduler
 		 */
 		job_packet packet;
-		packet.be_time_hour = begin["hour"].GetUint();
-		packet.be_time_minute = begin["minute"].GetUint();
-		packet.af_time_hour = end["hour"].GetUint();
-		packet.af_time_minute = end["minute"].GetUint();
+		packet.be_time_hour = static_cast<std::uint8_t>(begin["hour"].GetUint());
+		packet.be_time_minute = static_cast<std::uint8_t>(begin["minute"].GetUint());
+		packet.af_time_hour = static_cast<std::uint8_t>(end["hour"].GetUint());
+		packet.af_time_minute = static_cast<std::uint8_t>(end["minute"].GetUint());
 		packet.day_of_week = static_cast<dow>(job["dow"].GetUint());
-		packet.priority = job["priority"].GetUint();
+		packet.priority = static_cast<std::uint8_t>(job["priority"].GetUint());
 
 		std::memcpy(static_cast<std::uint8_t*>(buf) + offset, &packet, sizeof(packet));
 		offset += sizeof(packet);

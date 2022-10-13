@@ -5,6 +5,11 @@
 
 #include <cstring>
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Notify{
 namespace Message{

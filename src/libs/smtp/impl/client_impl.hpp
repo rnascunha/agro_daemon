@@ -23,11 +23,15 @@
 
 namespace SMTP{
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif /* _MSC_VER */
 [[maybe_unused]] static std::string base64_encode(const std::string& data)
 {
     using namespace boost::archive::iterators;
 
-    typedef base64_from_binary< transform_width< const char *, 6, 8 > > base64_text;
+    typedef base64_from_binary< transform_width<const char *, 6, 8>> base64_text;
 
     std::string result;
     result.reserve( data.size() * 4 / 3  );
@@ -39,7 +43,9 @@ namespace SMTP{
 
     return result;
 }
-
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif /* _MSC_VER */
 
 template<bool UsePipeline,
 		int TimeOut>

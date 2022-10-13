@@ -38,10 +38,10 @@ void group_info(rapidjson::Value& group, Group const& info, Allocator& alloc) no
 
 	group.AddMember("id", info.id(), alloc);
 	group.AddMember("name",
-			rapidjson::Value(info.name().data(), info.name().size(), alloc).Move(),
+			rapidjson::Value(info.name().data(), static_cast<rapidjson::SizeType>(info.name().size()), alloc).Move(),
 			alloc);
 	group.AddMember("description",
-				rapidjson::Value(info.description().data(), info.description().size(), alloc).Move(),
+				rapidjson::Value(info.description().data(), static_cast<rapidjson::SizeType>(info.description().size()), alloc).Move(),
 				alloc);
 	group.AddMember("size", info.size(), alloc);
 

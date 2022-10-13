@@ -21,11 +21,11 @@ static long db_time_to_epoch(std::string const& str_time)
 	std::tm tm;
 	std::stringstream ss{str_time};
 	ss >> std::get_time(&tm, "%Y-%m-%d  %H:%M:%S");
-	return std::chrono::duration_cast<std::chrono::seconds>(
+	return static_cast<long>(std::chrono::duration_cast<std::chrono::seconds>(
 			std::chrono::system_clock::from_time_t(
 					timegm(&tm)
 						).time_since_epoch())
-							.count();
+							.count());
 }
 
 bool DB::read_users_groups(User::User_List& users) noexcept
@@ -373,7 +373,7 @@ int DB::add_user_group(std::string const& name,
 	rc = res.step();
 	if(rc == SQLITE_DONE)
 	{
-		id = db_.last_insert_rowid();
+		id = static_cast<User::group_id>(db_.last_insert_rowid());
 	}
 
 	return rc;
