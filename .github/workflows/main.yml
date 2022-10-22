@@ -68,6 +68,11 @@ jobs:
         if: ${{matrix.config.name != 'Windows Latest MSVC'}}
         run: conan profile update settings.compiler.libcxx=libstdc++11 default
 
+      - name: Conan configure remotes
+        run: |
+          conan remote add owner https://rnascunha.jfrog.io/artifactory/api/conan/owner-conan
+          conan config set general.revisions_enabled=1
+
       - name: Conan install dependencies
         run: >
           conan install .
