@@ -241,7 +241,7 @@ int main(int argc, char** argv)
 	if(smtp_config[0] == 'y' || smtp_config[0] == 'Y')
 	{
 		std::cout << "SMTP server: ";
-		std::getline(std::cin, smtp_server.server);
+		std::getline(std::cin, smtp_server.addr);
 
 		std::cout << "SMTP port: ";
 		std::getline(std::cin, smtp_server.port);
@@ -284,7 +284,7 @@ int main(int argc, char** argv)
 			sqlite3::binary{password, USER_AUTH_KEY_LENGTH},
 			sqlite3::binary{salt, USER_AUTH_SALT_LENGTH},
 			telegram_bot_token,
-			smtp_server.server, smtp_server.port, smtp_server.user, smtp_server.password);
+			smtp_server.addr, smtp_server.port, smtp_server.user, smtp_server.password);
 	if(rc != SQLITE_OK)
 	{
 		std::filesystem::remove(output);
@@ -320,7 +320,7 @@ int main(int argc, char** argv)
 		}
 
 		res.finalize();
-		int groupid = db.last_insert_rowid();
+		int groupid = static_cast<int>(db.last_insert_rowid());
 		rc = db.prepare_bind("INSERT INTO policy(groupid, rules) VALUES(?,?)",
 				res, groupid, static_cast<int>(group.rules));
 

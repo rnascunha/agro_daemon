@@ -30,7 +30,7 @@ std::string make_coap_path(CoAP::Message::message const& message) noexcept
 
 	CoAP::Message::Option::Parser<> parser{message};
 	CoAP::Message::Option::option const *op;
-	while((op = parser.next()))
+	while((op = parser.next()) != nullptr)
 	{
 		if(op->ocode == CoAP::Message::Option::code::uri_path)
 		{

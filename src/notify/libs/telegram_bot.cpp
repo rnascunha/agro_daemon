@@ -1,3 +1,7 @@
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
+
 #include "telegram_bot.hpp"
 #include "pusha/helper.h"
 
@@ -104,7 +108,7 @@ void telegram_bot::receive_response()
 {
 	auto self = shared_from_this();
 	socket_.async_read_some(boost::asio::buffer(reply_, max_length),
-		[self](const boost::system::error_code& error, std::size_t length)
+		[self](const boost::system::error_code& error, std::size_t)
 		{
 			if (!error)
 			{

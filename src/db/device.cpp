@@ -18,7 +18,7 @@ bool DB::read_devices_net(Device::Net_List& net_list) noexcept
 	{
 		std::error_code ec;
 		auto str = res.text(1);
-		mesh_addr_t addr(str.data(), str.size(),ec);
+		mesh_addr_t addr(str.data(), static_cast<unsigned>(str.size()),ec);
 		if(ec) continue;
 
 		net_list.add(Device::Net{res.integer(0), addr, res.text(2)});
@@ -46,15 +46,15 @@ bool DB::read_devices(Device::Device_List& device_list, Device::Net_List const& 
 	{
 		std::error_code ec;
 		auto str = res.text(1);
-		mesh_addr_t addr(str.data(), str.size(),ec);
+		mesh_addr_t addr(str.data(), static_cast<unsigned>(str.size()),ec);
 		if(ec) continue;
 
 		auto mac_ap_str = res.text(2);
-		mesh_addr_t mac_ap(mac_ap_str.data(), mac_ap_str.size(), ec);
+		mesh_addr_t mac_ap(mac_ap_str.data(), static_cast<unsigned>(mac_ap_str.size()), ec);
 		if(ec) continue;
 
 		auto parent_str = res.text(3);
-		mesh_addr_t parent(parent_str.data(), parent_str.size(), ec);
+		mesh_addr_t parent(parent_str.data(), static_cast<unsigned>(parent_str.size()), ec);
 		if(ec) continue;
 
 		CoAP::Error ecp;
@@ -107,7 +107,7 @@ int DB::add_device(mesh_addr_t const& addr, Device::device_id& id) noexcept
 	rc = res.step();
 	if(rc == SQLITE_DONE)
 	{
-		id = db_.last_insert_rowid();
+		id = static_cast<Device::device_id>(db_.last_insert_rowid());
 	}
 
 	return rc;
@@ -130,7 +130,7 @@ int DB::add_net(mesh_addr_t const& net_addr,
 	rc = res.step();
 	if(rc == SQLITE_DONE)
 	{
-		id = db_.last_insert_rowid();
+		id = static_cast<Device::net_id>(db_.last_insert_rowid());
 	}
 
 	return rc;

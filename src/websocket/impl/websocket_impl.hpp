@@ -23,27 +23,29 @@ void
 Websocket<UseSSL>::
 write_all(std::string const data) noexcept
 {
-	share_->exec_to_all(
-		std::bind(
-			&self_type::write_share,
-			std::placeholders::_1,
-			std::make_shared<std::string const>(std::move(data))
-		)
-	);
+	// share_->exec_to_all(
+	// 	std::bind(
+	// 		&self_type::write_share,
+	// 		std::placeholders::_1,
+	// 		std::make_shared<std::string const>(std::move(data))
+	// 	)
+	// );
+	share_->write_all(std::make_shared<std::string const>(std::move(data)));
 }
 
 template<bool UseSSL>
 void
 Websocket<UseSSL>::
-write_all(std::string const data, bool text) noexcept
+write_all(std::string const data, bool) noexcept
 {
-	share_->exec_to_all(
-		std::bind(
-			&self_type::write_share,
-			std::placeholders::_1,
-			std::make_shared<std::string const>(std::move(data))
-		)
-	);
+	// share_->exec_to_all(
+	// 	std::bind(
+	// 		&self_type::write_share,
+	// 		std::placeholders::_1,
+	// 		std::make_shared<std::string const>(std::move(data))
+	// 	)
+	// );
+	share_->write_all(std::make_shared<std::string const>(std::move(data)));
 }
 
 template<bool UseSSL>
@@ -87,7 +89,7 @@ write_file(binary_type type,
 
 	std::uint8_t t = static_cast<std::uint8_t>(type);
 	ss.write(reinterpret_cast<char const*>(&t), sizeof(t));
-	std::uint16_t size = name.size();
+	std::uint16_t size = static_cast<std::uint16_t>(name.size());
 	ss.write(reinterpret_cast<char const*>(&size), sizeof(size));
 	ss << name;
 	ss << in.rdbuf();
@@ -110,7 +112,7 @@ write_binary(binary_type type,
 
 	std::uint8_t t = static_cast<std::uint8_t>(type);
 	ss.write(reinterpret_cast<char const*>(&t), sizeof(t));
-	std::uint16_t size = name.size();
+	std::uint16_t size = static_cast<std::uint16_t>(name.size());
 	ss.write(reinterpret_cast<char const*>(&size), sizeof(size));
 	ss << name;
 	ss << data;

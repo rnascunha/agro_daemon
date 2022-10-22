@@ -75,4 +75,7 @@ typedef struct {
     std::uint32_t reserv2[20];       /*!< reserv2 */
 } esp_app_desc_t;
 
+// #undef PACK
+// #undef PACKED
+
 #endif /* AGRO_DAEMON_OTA_TYPES_HPP__ */

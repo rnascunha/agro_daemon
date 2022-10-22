@@ -80,29 +80,29 @@ static void make_config_file(arguments const& args) noexcept
 	doc.SetObject();
 
 	doc.AddMember("dbfile",
-			rapidjson::Value(args.db_file.data(), args.db_file.size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(args.db_file.data(), static_cast<int>(args.db_file.size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 	doc.AddMember("notify_key",
-				rapidjson::Value(args.notify_priv_key.data(), args.notify_priv_key.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(args.notify_priv_key.data(), static_cast<int>(args.notify_priv_key.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	doc.AddMember("telegram_bot_token",
-				rapidjson::Value(args.telegram_bot_token.data(), args.telegram_bot_token.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(args.telegram_bot_token.data(), static_cast<int>(args.telegram_bot_token.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	doc.AddMember("num_threads", args.num_threads, doc.GetAllocator());
 	doc.AddMember("dev_addr",
-			rapidjson::Value(args.coap_addr.data(), args.coap_addr.size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(args.coap_addr.data(), static_cast<int>(args.coap_addr.size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 	doc.AddMember("dev_port", args.coap_port, doc.GetAllocator());
 	doc.AddMember("addr",
-				rapidjson::Value(args.addr.data(), args.addr.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(args.addr.data(), static_cast<int>(args.addr.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 
 #if USE_SSL == 1
 	doc.AddMember("key",
-				rapidjson::Value(args.key.data(), args.key.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(args.key.data(), static_cast<rapidjson::SizeType>(args.key.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	doc.AddMember("cert",
-					rapidjson::Value(args.cert.data(), args.cert.size(), doc.GetAllocator()).Move(),
+					rapidjson::Value(args.cert.data(), static_cast<rapidjson::SizeType>(args.cert.size()), doc.GetAllocator()).Move(),
 					doc.GetAllocator());
 #endif /* USE_SSL == 1 */
 

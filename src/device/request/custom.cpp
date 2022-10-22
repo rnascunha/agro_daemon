@@ -8,7 +8,7 @@ namespace Request{
 
 static void custom_response(
 		engine::endpoint const& ep,
-		mesh_addr_t const& host,
+		mesh_addr_t const&,
 		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
@@ -19,7 +19,7 @@ static void custom_response(
 	ws->write(Message::device_custom_response(request, response, ep, status));
 }
 
-extern constexpr const request_config custom = {
+const request_config custom = {
 		{request_type::custom, "custom"},
 		{},
 		custom_response

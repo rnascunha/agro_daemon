@@ -1,6 +1,9 @@
 /**
  * Agro daemon main file
  */
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
 
 #include <boost/asio.hpp>
 

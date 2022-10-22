@@ -231,28 +231,28 @@ std::string make_public_key(std::string_view const& public_key) noexcept
 	data.SetObject();
 
 	data.AddMember("key",
-			rapidjson::Value(public_key.data(), public_key.size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(public_key.data(), static_cast<int>(public_key.size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 	::Message::add_data(doc, data);
 
 	return ::Message::stringify(doc);
 }
 
-#define STRING_TO_JVALUE(m)		rapidjson::Value(m.data(), m.size(), alloc).Move()
+#define STRING_TO_JVALUE(m)		rapidjson::Value(m.data(), static_cast<rapidjson::SizeType>(m.size()), alloc).Move()
 
 template<typename Allocator>
 static void make_mail_credential(rapidjson::Value& data, mail const& mfac, Allocator& alloc) noexcept
 {
 	data.SetObject();
 
-	data.AddMember("server", STRING_TO_JVALUE(mfac.server().server), alloc);
+	data.AddMember("server", STRING_TO_JVALUE(mfac.server().addr), alloc);
 	data.AddMember("port", STRING_TO_JVALUE(mfac.server().port), alloc);
 	data.AddMember("user", STRING_TO_JVALUE(mfac.server().user), alloc);
 	data.AddMember("password", STRING_TO_JVALUE(mfac.server().password), alloc);
 }
 
 template<typename Allocator>
-static void make_push_credential(rapidjson::Value& data, push const& pfac, Allocator& alloc) noexcept
+static void make_push_credential(rapidjson::Value& data, push const&, Allocator&) noexcept
 {
 	data.SetObject();
 
@@ -299,7 +299,7 @@ std::string make_credential_list(Factory const& fac) noexcept
 		}
 		v.AddMember("enable", noti->enable(), doc.GetAllocator());
 
-		data.AddMember(rapidjson::Value(name.data(), name.size(), doc.GetAllocator()).Move(), v, doc.GetAllocator());
+		data.AddMember(rapidjson::Value(name.data(), static_cast<int>(name.size()), doc.GetAllocator()).Move(), v, doc.GetAllocator());
 	}
 
 	::Message::add_data(doc, data);

@@ -7,6 +7,11 @@ namespace Agro{
 namespace Device{
 namespace Request{
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 static void process_get_ota(instance& instance,
 		mesh_addr_t const& host,
 		std::string&& version,
@@ -84,7 +89,7 @@ static void update_ota_response(
 static std::size_t update_ota_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance& instance,
 		std::error_code& ec)
 {
@@ -128,11 +133,11 @@ static request_message const req_update_ota = {
 	update_ota_payload
 };
 
-extern constexpr const request_config get_ota = {
+const request_config get_ota = {
 		{request_type::get_ota, "get_ota_version"},
 		&req_get_ota,
 		get_ota_response};
-extern constexpr const request_config update_ota = {
+const request_config update_ota = {
 		{request_type::update_ota, "update_ota"},
 		&req_update_ota,
 		update_ota_response};

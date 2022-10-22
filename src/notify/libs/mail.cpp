@@ -1,3 +1,7 @@
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
+
 #include "mail.hpp"
 
 using SMPT_Client = SMTP::Client<false, 10>;
@@ -15,7 +19,7 @@ bool mail_factory::is_valid() const noexcept
 
 bool mail_factory::is_valid(SMTP::server const& server) noexcept
 {
-	return !server.server.empty()
+	return !server.addr.empty()
 			&& !server.port.empty()
 			&& !server.user.empty()
 			&& !server.password.empty();

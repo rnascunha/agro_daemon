@@ -29,7 +29,11 @@ enum class general_type{
 	//Jobs
 	job_running = 1 << 9,
 	job_stopped = 1 << 10,
-	all_alerts = std::numeric_limits<int>::max()
+	//all
+	all_alerts = device_new | device_connect | device_disconnect | device_updated | device_app_instaled |
+				image_add | image_delete |
+				app_add | app_delete |
+				job_running | job_stopped
 };
 
 enum class device_type{

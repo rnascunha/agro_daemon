@@ -5,6 +5,11 @@
 
 #include <cstring>
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Notify{
 namespace Message{
@@ -240,7 +245,7 @@ static void send_sensor_list(Agro::websocket_ptr ws,
 	ws->write(make_sensor_list(user.user()->notify()));
 }
 
-static void send_credential_list(rapidjson::Document const& doc,
+static void send_credential_list(rapidjson::Document const&,
 				Agro::websocket_ptr ws,
 				Agro::instance& instance,
 				Agro::User::Logged& user) noexcept
@@ -271,7 +276,7 @@ static void update_mail_credential(rapidjson::Value const& data,
 	}
 
 	SMTP::server nserver;
-	nserver.server = data["server"].GetString();
+	nserver.addr = data["server"].GetString();
 	nserver.port = data["port"].GetString();
 	nserver.user = data["user"].GetString();
 	nserver.password = data["password"].GetString();

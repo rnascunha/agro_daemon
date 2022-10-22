@@ -25,7 +25,7 @@ int main()
 //    server.port     = "465";
 
     //If you use Gmail
-    server.server   = "smtp.gmail.com";
+    server.addr   = "smtp.gmail.com";
     server.port     = "465";
 
     //Your credentions

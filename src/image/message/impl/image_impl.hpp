@@ -21,7 +21,7 @@ rapidjson::Value& make_image(std::string const& name,
 
 	data.AddMember("id", image.id, alloc);
 	data.AddMember("name",
-			rapidjson::Value(name.data(), name.size(), alloc).Move(),
+			rapidjson::Value(name.data(), static_cast<rapidjson::SizeType>(name.size()), alloc).Move(),
 			alloc);
 	data.AddMember("size", size, alloc);
 	data.AddMember("version", rapidjson::Value(desc.version, alloc).Move(), alloc);
@@ -33,7 +33,7 @@ rapidjson::Value& make_image(std::string const& name,
 	data.AddMember("secure_version", desc.secure_version, alloc);
 	data.AddMember("idf_version", rapidjson::Value(desc.idf_ver, alloc).Move(), alloc);
 	data.AddMember("description",
-			rapidjson::Value(image.description.data(), image.description.size(), alloc).Move(),
+			rapidjson::Value(image.description.data(), static_cast<rapidjson::SizeType>(image.description.size()), alloc).Move(),
 			alloc);
 	data.AddMember("uploader", image.uploader, alloc);
 	data.AddMember("date_upload", image.time, alloc);
@@ -54,7 +54,7 @@ rapidjson::Value& make_image_list(std::filesystem::path const& path,
 		if(!Agro::get_image_description(f.path(), image_description)) continue;
 		std::size_t size = std::filesystem::file_size(f);
 
-		std::string name = f.path();
+		std::string name = f.path().string();
 		name = name.substr(name.find_last_of('/') + 1);
 
 		Image imagedb;

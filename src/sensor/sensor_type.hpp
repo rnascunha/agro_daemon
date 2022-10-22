@@ -12,6 +12,7 @@ union sensor_value{
 	sensor_value(unsigned);
 	sensor_value(float);
 	sensor_value(std::uint8_t const*);
+	sensor_value(sensor_value const&);
 
 	unsigned	uint_v;
 	int		 	int_v;

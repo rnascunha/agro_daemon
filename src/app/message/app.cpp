@@ -21,7 +21,7 @@ rapidjson::Value& make_app(rapidjson::Value& data,
 	data.AddMember("uploader", app.uploader, alloc);
 	data.AddMember("date_upload", app.time, alloc);
 	data.AddMember("description",
-			rapidjson::Value(app.description.data(), app.description.size(), alloc).Move(),
+			rapidjson::Value(app.description.data(), static_cast<rapidjson::SizeType>(app.description.size()), alloc).Move(),
 			alloc);
 
 	return data;
@@ -37,7 +37,7 @@ rapidjson::Value& make_app_list(std::filesystem::path const& path,
 	{
 		std::size_t size = std::filesystem::file_size(f);
 
-		std::string name = f.path();
+		std::string name = f.path().string();
 		name = name.substr(name.find_last_of('/') + 1);
 
 //		sha256_hash hash;

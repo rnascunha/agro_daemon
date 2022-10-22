@@ -9,7 +9,7 @@ namespace Request{
 
 static void process_uptime(Agro::instance& instance,
 		mesh_addr_t const& host,
-		int64_t uptime,
+		int64_t uptime_,
 		Agro::websocket_ptr ws) noexcept
 {
 	auto* dev = instance.device_list()[host];
@@ -20,7 +20,7 @@ static void process_uptime(Agro::instance& instance,
 			host, "Device not found", "uptime", ws->user().id()));
 		return;
 	}
-	dev->update_uptime(uptime);
+	dev->update_uptime(uptime_);
 	ws->write_all_policy(Agro::Authorization::rule::view_device,
 			std::make_shared<std::string>(Agro::Device::Message::device_uptime_to_json(*dev)));
 }
@@ -54,12 +54,12 @@ static request_message const req_reset = {
 	CoAP::Message::type::nonconfirmable
 };
 
-extern constexpr const request_config uptime = {
+const request_config uptime = {
 	{request_type::uptime, "uptime"},
 	&req_uptime,
 	update_uptime_response
 };
-extern constexpr const request_config reset = {
+const request_config reset = {
 	{request_type::reset, "reset"},
 	&req_reset
 };
@@ -84,7 +84,7 @@ static void reset_reason_response(
 		return;
 	}
 
-	long reason_num = std::strtoll(reason.c_str(), nullptr, 10);
+	long reason_num = static_cast<long>(std::strtoll(reason.c_str(), nullptr, 10));
 	tt::status("[%s] reset_reason: %d / %s [%s]",
 			host.to_string().c_str(),
 			reason_num,
@@ -101,7 +101,7 @@ static request_message const req_reset_reason = {
 	}
 };
 
-extern constexpr const request_config reset_reason = {
+const request_config reset_reason = {
 	{request_type::reset_reason, "reset_reason"},
 	&req_reset_reason,
 	reset_reason_response
