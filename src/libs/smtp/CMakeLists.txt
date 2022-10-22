@@ -37,5 +37,10 @@ endif()
 
 if(WITH_EXAMPLES)
 	add_executable(smtp_client examples/smtp_client.cpp)
+	set_target_properties(smtp_client PROPERTIES
+		CXX_STANDARD 17
+		CXX_STANDARD_REQUIRED ON
+		CXX_EXTENSIONS ON
+	)
 	target_link_libraries(smtp_client PUBLIC ${PROJECT_NAME})
 endif()

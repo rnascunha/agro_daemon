@@ -28,6 +28,11 @@ if(WITH_EXAMPLES)
 	set(EXAMPLE_LIST	main_csv file_csv string_csv)
 	foreach(example ${EXAMPLE_LIST})
 		add_executable(${example} ${EXAMPLE_DIR}/${example}.cpp)
+		set_target_properties(${example} PROPERTIES
+			CXX_STANDARD 17
+			CXX_STANDARD_REQUIRED ON
+			CXX_EXTENSIONS OFF
+		)
 		target_link_libraries(${example} ${PROJECT_NAME})
 	endforeach()
 endif()

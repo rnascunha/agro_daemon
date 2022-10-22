@@ -16,7 +16,5 @@ compiler.threads=posix
 build_type=Release
 
 [env]
-# CONAN_BASH_PATH=C:/msys64/usr/bin/bash.exe
-CONAN_CMAKE_FIND_ROOT_PATH=$toolchain
 CC=$bin_path/$target_host-$cc_compiler
 CXX=$bin_path/$target_host-$cxx_compiler
