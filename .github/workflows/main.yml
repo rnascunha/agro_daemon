@@ -87,8 +87,8 @@ jobs:
           -DCMAKE_C_COMPILER=${{matrix.config.cc}}
           -DCMAKE_CXX_COMPILER=${{matrix.config.cxx}}
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -DWITH_TOOLS=${{github.event.inputs.WITH_TOOLS}}
-          -DWITH_EXAMPLES=${{github.event.inputs.WITH_EXAMPLES}}
+          -DWITH_EXAMPLES=1
+          -DWITH_SSL=${{env.WITH_SSL}}
           -B ${{github.workspace}}/build
 
       - name: Build library
