@@ -6,27 +6,27 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 option(WITH_SSL "compile SSL support" FALSE)
 set(USE_SSL 0)
-if(${WITH_SSL})
+if(WITH_SSL)
 	set(USE_SSL 1)
 endif()
 
-
-set(TT_LEVEL			type::debug)
+set(TT_LEVEL			type::status)
 if(DEFINED VERBOSE)
-  if(VERBOSE EQUAL 0)
-  	set(TT_LEVEL type::none)
-  elseif(VERBOSE EQUAL 1)
-  	set(TT_LEVEL type::error)
-  elseif(VERBOSE EQUAL 2)
-  	set(TT_LEVEL type::warning)
-  elseif(VERBOSE EQUAL 3)
-  	set(TT_LEVEL type::deprecated)
-  elseif(VERBOSE EQUAL 4)
-  	set(TT_LEVEL type::status)
-  elseif(VERBOSE EQUAL 5)
-  	set(TT_LEVEL type::debug)
-  endif()
-  unset(VERBOSE CACHE)
+	if(VERBOSE EQUAL 0)
+		set(TT_LEVEL type::none)
+	elseif(VERBOSE EQUAL 1)
+		set(TT_LEVEL type::error)
+	elseif(VERBOSE EQUAL 2)
+		set(TT_LEVEL type::warning)
+	elseif(VERBOSE EQUAL 3)
+		set(TT_LEVEL type::deprecated)
+	elseif(VERBOSE EQUAL 4)
+		set(TT_LEVEL type::status)
+	elseif(VERBOSE EQUAL 5)
+		set(TT_LEVEL type::debug)
+	endif()
+else()
+	set(VERBOSE		4)
 endif()
 
 #------------END DEFINING VARS-----------------
@@ -35,8 +35,8 @@ if(MSVC)
 	set(CMAKE_CXX_FLAGS_RELEASE "/O2")
 	add_compile_definitions(BOOST_DATE_TIME_NO_LIB BOOST_REGEX_NO_LIB)
 else()
-	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Werror")
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -Werror")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
@@ -60,32 +60,13 @@ find_package(pusha REQUIRED)
 
 ###############################
 find_package(Git REQUIRED)
-if(Git_FOUND)
-	execute_process(COMMAND
-		${GIT_EXECUTABLE} describe --always --dirty --abbrev=40
-		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
-		OUTPUT_VARIABLE GIT_COMMIT
-		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-	
-	execute_process(COMMAND
-		${GIT_EXECUTABLE} describe --always --dirty
-		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
-		OUTPUT_VARIABLE GIT_SHORT_COMMIT
-		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-		
-	execute_process(COMMAND
-		${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
-		WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/src"
-		OUTPUT_VARIABLE GIT_BRANCH
-		ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
-	configure_file("${CMAKE_SOURCE_DIR}/src/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)	
-endif()
+include("${CMAKE_SOURCE_DIR}/cmake/get_commit.cmake")
 
 add_definitions(
 				-DCOAP_TE_PORT_C_STANDARD=1
 				-DCOAP_TE_PORT_POSIX=1
 				-DCOAP_TE_LOG_COLOR=1
-				-DCOAP_TE_LOG_LEVEL=4
+				-DCOAP_TE_LOG_LEVEL=${VERBOSE}
 				-DCOAP_TE_USE_ERROR_MESSAGES=1
 				-DCOAP_TE_JSON_HELPER=1)
 
