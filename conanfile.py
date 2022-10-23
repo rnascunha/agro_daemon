@@ -1,5 +1,9 @@
-from conans import ConanFile, CMake
+from conans import ConanFile, CMake, tools
 from conans.model.version import Version
+
+def git_info():
+    git = tools.Git()
+    return git.get_branch(), git.get_revision(), git.get_revision()[0: 8]
 
 class AgroDaemonConan(ConanFile):
     name = "agro_daemon"
@@ -16,7 +20,7 @@ class AgroDaemonConan(ConanFile):
     requires = "argh/1.3.2", "sqlite3/[>3.0.0]", "boost/[>=1.70.0]", \
                 "openssl/1.1.1q", "rapidjson/cci.20220822", \
                 "tree_trunks/0.1@base/stable", \
-                "coap-te/0.1@base/stable", "pusha/0.1@base/stable",
+                "coap-te/0.1@base/stable", "pusha/0.1@base/stable"
     exports = "LICENSE", "README.md", "URL.txt", "db/scheme.sql"
     exports_sources = "*.c", "*.cpp", "*.h", "*.hpp", "*.hpp.in", "*CMakeLists.txt", "*.cmake"
 
@@ -28,12 +32,18 @@ class AgroDaemonConan(ConanFile):
             self.tool_requires("cmake/[>= 3.10]")
 
     def config_options(self):
+        self.branch, self.commit, self.short_commit = git_info()
         if self.settings.os == "Windows":
             del self.options.fPIC
 
     def build(self):
         cmake = CMake(self)
         cmake.parallel = False
+        cmake.definitions["WITH_SSL"] = 1 if self.options.ssl else 0
+        cmake.definitions["VERBOSE"] = self.options.verbose
+        cmake.definitions["GIT_BRANCH"] = self.branch
+        cmake.definitions["GIT_COMMIT"] = self.commit
+        cmake.definitions["GIT_SHORT_COMMIT"] = self.short_commit
         cmake.configure()
         cmake.build()
 
