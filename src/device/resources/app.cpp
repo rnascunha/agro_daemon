@@ -38,7 +38,7 @@ void get_app_handler(engine::message const& request,
 		return;
 	}
 
-	unsigned size = std::filesystem::file_size(p);
+	unsigned size = static_cast<unsigned>(std::filesystem::file_size(p));
 	/**
 	 * Default block2 options, if none is sent by the client
 	 */

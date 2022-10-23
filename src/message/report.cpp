@@ -4,6 +4,11 @@
 #include "../instance/agro.hpp"
 #include "../helper/utility.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Message{
 
@@ -57,10 +62,10 @@ static void set_data_report(rapidjson::Value& data, report const& report, Alloca
 
 	add_report_type(data, report.type, alloc);
 	data.AddMember("message",
-			rapidjson::Value(report.message.data(), report.message.size(), alloc).Move(),
+			rapidjson::Value(report.message.data(), static_cast<rapidjson::SizeType>(report.message.size()), alloc).Move(),
 			alloc);
 	data.AddMember("reference",
-			rapidjson::Value(report.reference.data(), report.reference.size(), alloc).Move(),
+			rapidjson::Value(report.reference.data(), static_cast<rapidjson::SizeType>(report.reference.size()), alloc).Move(),
 			alloc);
 
 	data.AddMember("time", report.time, alloc);
@@ -68,7 +73,7 @@ static void set_data_report(rapidjson::Value& data, report const& report, Alloca
 	if(!report.arg.empty())
 	{
 		data.AddMember("arg",
-				rapidjson::Value(report.arg.data(), report.arg.size(), alloc).Move(),
+				rapidjson::Value(report.arg.data(), static_cast<rapidjson::SizeType>(report.arg.size()), alloc).Move(),
 				alloc);
 	}
 }
@@ -108,17 +113,17 @@ std::string report_message(report_commands command,
 	add_report_type(data, type, doc.GetAllocator());
 
 	data.AddMember("reference",
-				rapidjson::Value(reference.data(), reference.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(reference.data(), static_cast<rapidjson::SizeType>(reference.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 
 	data.AddMember("message",
-			rapidjson::Value(message.data(), message.size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(message.data(), static_cast<rapidjson::SizeType>(message.size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 
 	if(!arg.empty())
 	{
 		data.AddMember("arg",
-				rapidjson::Value(arg.data(), arg.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(arg.data(), static_cast<rapidjson::SizeType>(arg.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	}
 

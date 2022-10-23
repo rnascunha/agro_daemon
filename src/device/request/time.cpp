@@ -2,6 +2,11 @@
 #include "../../websocket/types.hpp"
 #include "../message/device.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Device{
 namespace Request{
@@ -128,7 +133,7 @@ static void update_fuse_response(
 
 static std::size_t rtc_update_payload(rapidjson::Document const&,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code&)
 {
@@ -141,7 +146,7 @@ static std::size_t rtc_update_payload(rapidjson::Document const&,
 static std::size_t update_fuse_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code& ec)
 {
@@ -204,22 +209,22 @@ static request_message const req_update_fuse = {
 	update_fuse_payload
 };
 
-extern constexpr const request_config get_rtc = {
+const request_config get_rtc = {
 	{request_type::get_rtc, "get_rtc"},
 	&req_get_rtc,
 	get_rtc_response
 };
-extern constexpr const request_config update_rtc = {
+const request_config update_rtc = {
 	{request_type::update_rtc, "update_rtc"},
 	&req_update_rtc,
 	update_rtc_response
 };
-extern constexpr const request_config get_fuse = {
+const request_config get_fuse = {
 	{request_type::get_fuse, "get_fuse"},
 	&req_get_fuse,
 	get_fuse_response
 };
-extern constexpr const request_config update_fuse = {
+const request_config update_fuse = {
 	{request_type::update_fuse, "update_fuse"},
 	&req_update_fuse,
 	update_fuse_response

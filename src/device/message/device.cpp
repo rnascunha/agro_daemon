@@ -342,7 +342,7 @@ std::string device_edited_to_json(Device const& dev) noexcept
 
 	::Message::add_device(data, dev.mac(), doc.GetAllocator());
 	data.AddMember("name",
-			rapidjson::Value(dev.name().data(), dev.name().size(),
+			rapidjson::Value(dev.name().data(), static_cast<rapidjson::SizeType>(dev.name().size()),
 						doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 
@@ -400,7 +400,7 @@ std::string device_tree_to_json(Tree const& tree) noexcept
 	{
 		auto const& str = u.to_string();
 		un.PushBack(rapidjson::Value(str.data(),
-				str.size(),
+				static_cast<rapidjson::SizeType>(str.size()),
 				doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 	}
@@ -587,7 +587,7 @@ void add_node(rapidjson::Value& data, Tree::node const& node, Allocator& alloc) 
 	::Message::add_device(nv, node.addr, alloc);
 	std::string pt = node.parent ? node.parent->addr.to_string() : "null";
 	nv.AddMember("parent",
-			rapidjson::Value(pt.data(), pt.size(), alloc).Move(), alloc);
+			rapidjson::Value(pt.data(), static_cast<rapidjson::SizeType>(pt.size()), alloc).Move(), alloc);
 	nv.AddMember("layer", node.layer, alloc);
 
 	rapidjson::Value chv;
@@ -595,7 +595,7 @@ void add_node(rapidjson::Value& data, Tree::node const& node, Allocator& alloc) 
 	for(Tree::node const* ch = node.children; ch; ch = ch->next)
 	{
 		auto const str = ch->addr.to_string();
-		chv.PushBack(rapidjson::Value(str.data(), str.size(), alloc).Move(), alloc);
+		chv.PushBack(rapidjson::Value(str.data(), static_cast<rapidjson::SizeType>(str.size()), alloc).Move(), alloc);
 	}
 	nv.AddMember("children", chv, alloc);
 	data.PushBack(nv, alloc);
@@ -617,7 +617,7 @@ static void make_config_data(rapidjson::Value& data, Device const& dev, Allocato
 	{
 		data.AddMember("net_id",
 				rapidjson::Value(dev.net()->net_addr().to_string().data(),
-						dev.net()->net_addr().to_string().size(),
+						static_cast<rapidjson::SizeType>(dev.net()->net_addr().to_string().size()),
 				alloc).Move(), alloc);
 	}
 	data.AddMember("mac_ap", rapidjson::Value(dev.mac_ap().to_string(mac_ap, 18),
@@ -688,7 +688,7 @@ static void make_job(rapidjson::Value& data, job const& jo, Allocator& alloc) no
 
 	data.AddMember("exec", rapidjson::Value(
 								jo.app_name.data(),
-								jo.app_name.size(),
+								static_cast<rapidjson::SizeType>(jo.app_name.size()),
 								alloc).Move(),
 					alloc);
 	data.AddMember("arg", jo.argument, alloc);
@@ -715,7 +715,7 @@ static void make_app(rapidjson::Value& data, app const& app, Allocator& alloc) n
 {
 	data.SetObject();
 
-	data.AddMember("name", rapidjson::Value(app.name.data(), app.name.size(), alloc).Move(), alloc);
+	data.AddMember("name", rapidjson::Value(app.name.data(), static_cast<rapidjson::SizeType>(app.name.size()), alloc).Move(), alloc);
 	data.AddMember("size", app.size, alloc);
 
 	rapidjson::Value hash;

@@ -47,7 +47,7 @@ void Websocket<UseSSL>::get_app_file(
 	}
 
 	std::string name(&first_block[1], name_size);
-	std::string path{share_->instance().app_path().make_path(name)};
+	std::string path(share_->instance().app_path().make_path(name).string());
 
 	if(std::filesystem::exists(path))
 	{
@@ -122,7 +122,7 @@ void Websocket<UseSSL>::get_image_file(
 	}
 
 	std::string name(&first_block[1], name_size);
-	std::string path{share_->instance().image_path().make_path(name)};
+	std::string path(share_->instance().image_path().make_path(name).string());
 
 	if(std::filesystem::exists(path))
 	{

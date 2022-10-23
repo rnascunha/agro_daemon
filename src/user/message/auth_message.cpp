@@ -21,7 +21,7 @@ std::string user_error_authentication(std::error_code const& ec) noexcept
 	data.SetObject();
 	data.AddMember("authenticated", false, doc.GetAllocator());
 	data.AddMember("error_message",
-			rapidjson::Value(ec.message().data(), ec.message().size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(ec.message().data(), static_cast<int>(ec.message().size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 
 	::Message::add_data(doc, data);
@@ -42,7 +42,7 @@ std::string user_authentication(Agro::User::Logged const& user) noexcept
 	user_info(data, *user.user(), doc.GetAllocator());
 	data.AddMember("authenticated", true, doc.GetAllocator());
 	data.AddMember("sessionid",
-			rapidjson::Value(user.session_id().data(), user.session_id().size(), doc.GetAllocator()).Move(),
+			rapidjson::Value(user.session_id().data(), static_cast<int>(user.session_id().size()), doc.GetAllocator()).Move(),
 			doc.GetAllocator());
 	data.AddMember("policy", user.policy_rules(), doc.GetAllocator());
 

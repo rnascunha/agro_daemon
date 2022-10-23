@@ -1,6 +1,5 @@
 #include "agro.hpp"
 #include "tt/tt.hpp"
-#include "coap-te-debug.hpp"
 #include "../device/resources/process.hpp"
 #include "../user/policy.hpp"
 #include "../helper/time_helper.hpp"

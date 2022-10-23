@@ -179,16 +179,16 @@ static void add_user(rapidjson::Document const& doc,
 	{
 		instance.set_user_to_groups(id, groups);
 
-		auto const* user = instance.get_user(id);
-		if(!user)
+		auto const* uuser = instance.get_user(id);
+		if(!uuser)
 		{
 			tt::error("Error retriving added user value");
 			return;
 		}
 		tt::status("New user '%s'(%s) added successfully!",
-				user->info().name().c_str(), user->info().username().c_str());
+				uuser->info().name().c_str(), uuser->info().username().c_str());
 		ws->write_all_policy(Agro::Authorization::rule::user_admin,
-				std::make_shared<std::string>(Agro::User::Message::added_new_user(*user, groups)));
+				std::make_shared<std::string>(Agro::User::Message::added_new_user(*uuser, groups)));
 	}
 }
 
@@ -246,16 +246,16 @@ static void edit_user(rapidjson::Document const& doc,
 
 	if(instance.edit_user(uid, username, name, email, telegram_chat_id, groups))
 	{
-		auto const* user = instance.get_user(uid);
-		if(!user)
+		auto const* uuser = instance.get_user(uid);
+		if(!uuser)
 		{
 			tt::error("Error retriving editin user value");
 			return;
 		}
 		tt::status("Edited user '%s'(%s) successfully!",
-				user->info().name().c_str(), user->info().username().c_str());
+				uuser->info().name().c_str(), uuser->info().username().c_str());
 		ws->write_all_policy(Agro::Authorization::rule::user_admin,
-				std::make_shared<std::string>(Agro::User::Message::edited_user(*user, groups)));
+				std::make_shared<std::string>(Agro::User::Message::edited_user(*uuser, groups)));
 	}
 }
 

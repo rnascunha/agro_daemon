@@ -112,7 +112,7 @@ void add_option(rapidjson::Value& data,
 	CoAP::Message::Option::Parser parser{msg};
 
 	CoAP::Message::Option::option const* op;
-	while((op = parser.next()))
+	while((op = parser.next()) != nullptr)
 	{
 		if(op->ocode == op_code)
 		{

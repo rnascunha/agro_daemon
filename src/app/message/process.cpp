@@ -1,14 +1,23 @@
+#if _MSC_VER
+#include <SDKDDKVer.h>
+#endif /* _MSC_VER */
+
 #include "rapidjson/document.h"
 #include "../../websocket/types.hpp"
 #include "../../instance/agro.hpp"
 #include "app.hpp"
 #include "../app.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Message{
 
 static void delete_apps(rapidjson::Document const& doc,
-		Agro::websocket_ptr ws,
+		Agro::websocket_ptr,
 		instance& instance) noexcept
 {
 	if(!doc.HasMember("data") || !doc["data"].IsArray())
@@ -27,7 +36,7 @@ static void delete_apps(rapidjson::Document const& doc,
 }
 
 static void edit_app(rapidjson::Document const& doc,
-		Agro::websocket_ptr ws,
+		Agro::websocket_ptr,
 		instance& instance) noexcept
 {
 	if(!doc.HasMember("data") || !doc["data"].IsObject())

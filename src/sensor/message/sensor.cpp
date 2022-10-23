@@ -33,20 +33,20 @@ std::string sensor_types_list(Sensor_Type_List const& list) noexcept
 
 		desc.AddMember("id", d.id, doc.GetAllocator());
 		desc.AddMember("name",
-				rapidjson::Value(d.name.data(), d.name.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(d.name.data(), static_cast<rapidjson::SizeType>(d.name.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 		desc.AddMember("long_name",
-				rapidjson::Value(d.long_name.data(), d.long_name.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(d.long_name.data(), static_cast<rapidjson::SizeType>(d.long_name.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 		desc.AddMember("type", static_cast<int>(d.type), doc.GetAllocator());
 		desc.AddMember("unit",
-				rapidjson::Value(d.unit.data(), d.unit.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(d.unit.data(), static_cast<rapidjson::SizeType>(d.unit.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 		desc.AddMember("unit_name",
-				rapidjson::Value(d.unit_name.data(), d.unit_name.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(d.unit_name.data(), static_cast<rapidjson::SizeType>(d.unit_name.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 		desc.AddMember("description",
-				rapidjson::Value(d.description.data(), d.description.size(), doc.GetAllocator()).Move(),
+				rapidjson::Value(d.description.data(), static_cast<rapidjson::SizeType>(d.description.size()), doc.GetAllocator()).Move(),
 				doc.GetAllocator());
 		desc.AddMember("add_change",
 						d.add_change,

@@ -13,11 +13,11 @@ std::string generate_session_id() noexcept
 {
     std::random_device seeder;
     std::mt19937 rng(seeder());
-    std::uniform_int_distribution<char> gen('!', '~');	//All printable range
+    std::uniform_int_distribution<> gen('!', '~');	//All printable range
     std::stringstream ss;
     for(unsigned i = 0; i < Size; ++i)
     {
-    	ss << gen(rng);
+    	ss << static_cast<char>(gen(rng));
     }
 
    return ss.str();

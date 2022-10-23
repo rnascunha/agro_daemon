@@ -47,7 +47,7 @@ class instance{
 		#if USE_SSL == 1
 					std::string const& ssl_key,
 					std::string const& ssl_cert,
-		#endif /**/
+		#endif /* USE_SSL == 1 */
 					std::error_code& ec,
 					configure = configure{});
 

@@ -6,8 +6,10 @@
 #include <system_error>
 
 #include "../helper/sha256.hpp"
+#include "../helper/packed.h"
 #include "resources/types.hpp"
 #include "../error.hpp"
+
 
 static constexpr const std::size_t max_app_name_size = 12;
 
@@ -53,19 +55,19 @@ enum class dow : std::uint8_t{
 	sunday = 1 << 6
 };
 
-struct __attribute__((packed)) job_packet{
+PACK(struct job_packet{
 	std::uint8_t be_time_hour;
 	std::uint8_t be_time_minute;
 	std::uint8_t af_time_hour;
 	std::uint8_t af_time_minute;
 	dow			 day_of_week;
 	std::uint8_t priority;
-};
+});
 
-struct __attribute__((packed)) job_packet_executor{
+PACK(struct job_packet_executor{
 	std::int32_t	arg;
 	char			exec[max_app_name_size];
-};
+});
 
 struct job{
 	static constexpr const std::size_t packet_size = sizeof(job_packet) + sizeof(job_packet_executor);
@@ -101,5 +103,8 @@ struct app
 	std::size_t size;
 	sha256_hash	hash;
 };
+
+// #undef PACK
+// #undef PACKED
 
 #endif /* AGRO_MESH_DEVICE_TYPES_HPP__ */

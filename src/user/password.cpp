@@ -21,7 +21,7 @@ bool create_password(std::string const& password,
 					key_password key) noexcept
 {
 	generate_salt(salt);
-	return PKCS5_PBKDF2_HMAC(password.data(), password.size(),
+	return PKCS5_PBKDF2_HMAC(password.data(), static_cast<int>(password.size()),
 			salt, USER_AUTH_SALT_LENGTH,
 			USER_AUTH_INTERATION_NUMBER, USER_AUTH_HASH_ALGORITHM,
 			USER_AUTH_KEY_LENGTH, key);
