@@ -2,11 +2,11 @@
 #define AGRO_DAEMON_SENSOR_MESSAGE_DEF_HPP__
 
 #include <string>
-#include "../../message/types.hpp"
 #include "../sensor_type_list.hpp"
 #include "../sensor_type.hpp"
 #include "../sensor_list.hpp"
 #include "rapidjson/document.h"
+#include "../../helper/utility.hpp"
 
 namespace Agro{
 namespace Sensor{
@@ -20,7 +20,7 @@ enum class sensor_commands{
 	exportv
 };
 
-constexpr const ::Message::config<sensor_commands> sensor_config[] = {
+constexpr const config<sensor_commands> sensor_config[] = {
 	{sensor_commands::list, "list"},
 	{sensor_commands::add, "add"},
 	{sensor_commands::edit, "edit"},
@@ -28,22 +28,14 @@ constexpr const ::Message::config<sensor_commands> sensor_config[] = {
 	{sensor_commands::exportv, "export"},
 };
 
-inline constexpr ::Message::config<sensor_commands> const* get_config(sensor_commands t) noexcept
+inline constexpr auto get_sensor_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(sensor_config) / sizeof(sensor_config[0]); i++)
-	{
-		if(t == sensor_config[i].mtype) return &sensor_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, sensor_config);
 }
 
-inline constexpr ::Message::config<sensor_commands> const* get_sensor_config(const char* t) noexcept
+inline constexpr auto get_config(sensor_commands mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(sensor_config) / sizeof(sensor_config[0]); i++)
-	{
-		if(std::strcmp(t, sensor_config[i].name) == 0) return &sensor_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, sensor_config);
 }
 
 std::string sensor_types_list(Sensor_Type_List const&) noexcept;

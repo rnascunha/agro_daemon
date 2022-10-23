@@ -1,6 +1,3 @@
-[submodule "third/my_async"]
-	path = third/my_async
-	url = https://github.com/rnascunha/my_async.git
 [submodule "third/coap-te"]
 	path = third/coap-te
 	url = https://github.com/rnascunha/coap-te

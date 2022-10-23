@@ -1,14 +1,10 @@
 #include "process.hpp"
 
-#include "rapidjson/document.h"
-
 #include "types.hpp"
 #include "user.hpp"
 #include "../device/message/process.hpp"
 #include "../sensor/message/process.hpp"
 #include "../notify/message/process.hpp"
-
-#include "../websocket/types.hpp"
 
 namespace Agro{
 namespace Message{
@@ -33,7 +29,7 @@ void process(std::string&& data,
 		return;
 	}
 
-	switch(typec->mtype)
+	switch(typec->type)
 	{
 		case ::Message::type::device:
 			Device::Message::process(d, ws, instance, user);

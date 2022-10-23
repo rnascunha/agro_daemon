@@ -1,11 +1,13 @@
-#ifndef AGRO_DAEMON_DB_SQLITE3_HPP__
-#define AGRO_DAEMON_DB_SQLITE3_HPP__
+#ifndef AGRO_DAEMON_LIB_SQLITE3_HPP__
+#define AGRO_DAEMON_LIB_SQLITE3_HPP__
 
 #include <system_error>
 #include <sqlite3.h>
 #include <string_view>
 #include <string>
 #include <vector>
+
+namespace xeds{
 
 class sqlite3{
 	public:
@@ -66,6 +68,7 @@ class sqlite3{
 
 		sqlite3(const char* db_name, std::error_code&);
 		sqlite3(sqlite3&&);
+		sqlite3(sqlite3 const&) = delete;
 		~sqlite3();
 
 		std::int64_t last_insert_rowid() const noexcept;
@@ -87,7 +90,7 @@ class sqlite3{
 
 		const char* error() noexcept;
 	private:
-		sqlite3 *db_ = nullptr;
+		::sqlite3 *db_ = nullptr;
 
 		template<typename Arg>
 		int prepare_bind_impl(statement& res, int index, Arg&& arg) noexcept;
@@ -95,6 +98,8 @@ class sqlite3{
 		int prepare_bind_impl(statement& res, int index, Arg&& arg, Args&& ...args) noexcept;
 };
 
+}//xeds
+
 #include "impl/sqlite3_impl.hpp"
 
-#endif /* AGRO_DAEMON_DB_SQLITE3_HPP__ */
+#endif /* AGRO_DAEMON_LIB_SQLITE3_HPP__ */

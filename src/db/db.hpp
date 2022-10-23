@@ -1,7 +1,7 @@
 #ifndef AGRO_DAEMON_DB_HPP__
 #define AGRO_DAEMON_DB_HPP__
 
-#include "../libs/sqlite3/sqlite3.hpp"
+#include "sqlite3.hpp"
 #include <system_error>
 #include <string>
 #include <vector>
@@ -21,7 +21,7 @@
 
 #include "../message/report.hpp"
 
-#include "../notify/libs/smtp/client.hpp"
+#include "smtp/client.hpp"
 
 namespace Agro{
 
@@ -198,7 +198,7 @@ class DB{
 
 		const char* error(){ return db_.error(); };
 	private:
-		sqlite3 db_;
+		xeds::sqlite3 db_;
 };
 
 }//Agro

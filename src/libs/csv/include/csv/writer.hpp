@@ -43,6 +43,8 @@ class writer{
 
 		template<typename Value>
 		writer& operator<<(Value&&) noexcept;
+	protected:
+		void streambuffer(std::streambuf* sb) noexcept;
 	private:
 		std::ostream	os_;
 		char			sep_;

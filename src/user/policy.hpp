@@ -5,6 +5,15 @@
 #include "group.hpp"
 
 namespace Agro{
+namespace User{
+
+class Logged;
+class User;
+
+}//User
+}//Agro
+
+namespace Agro{
 namespace Authorization{
 
 static constexpr const int permission_any = -1;
@@ -31,7 +40,7 @@ enum class rule{
 	upload_app = 1 << 11,
 	install_app = 1 << 12,
 	all_app = view_app | upload_app | install_app,
-	all = std::numeric_limits<int>::max()
+	all = all_device | all_resources | all_image | all_app //std::numeric_limits<int>::max()
 };
 
 struct Policy_Type{

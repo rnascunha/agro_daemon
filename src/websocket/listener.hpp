@@ -28,20 +28,20 @@ class Listener : public std::enable_shared_from_this<Listener<Session>>
 		using ssl_context = typename std::conditional<Session::use_ssl, boost::asio::ssl::context&, empty>::type;
 		ssl_context ctx_;
 
-		std::shared_ptr<share<Session>> share_;
+		std::shared_ptr<::share<Session>> share_;
 	public:
 		static constexpr const bool use_ssl = Session::use_ssl;
 
 		Listener(
 			boost::asio::io_context& ioc,
-			std::shared_ptr<share<Session>> const& share)
+			std::shared_ptr<::share<Session>> const& share)
 			: ioc_(ioc)
 			, acceptor_(boost::asio::make_strand(ioc))
 			, share_(share){}
 		Listener(
 				boost::asio::io_context& ioc,
 				ssl_context ctx,
-				std::shared_ptr<share<Session>> const& share)
+				std::shared_ptr<::share<Session>> const& share)
 				: ioc_(ioc), acceptor_(boost::asio::make_strand(ioc))
 				, ctx_(ctx)
 				, share_(share){}
@@ -135,7 +135,7 @@ template<class Session>
 auto make_listener(
 		boost::asio::io_context& ioc,
 		boost::asio::ip::tcp::endpoint const& ep,
-		std::shared_ptr<share<Session>> const& share,
+		std::shared_ptr<::share<Session>> const& share,
     	boost::system::error_code& ec)
 {
 	static_assert(Session::use_ssl == false,
@@ -152,7 +152,7 @@ auto make_listener(
 		boost::asio::io_context& ioc,
 		boost::asio::ssl::context& ctx,
 		boost::asio::ip::tcp::endpoint const& ep,
-		std::shared_ptr<share<Session>> const& share,
+		std::shared_ptr<::share<Session>> const& share,
     	boost::system::error_code& ec)
 {
 	static_assert(Session::use_ssl == true,

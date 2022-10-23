@@ -2,6 +2,11 @@
 #include "../../websocket/types.hpp"
 #include "../message/device.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Device{
 namespace Request{
@@ -20,7 +25,7 @@ static void process_rtc_time(Agro::Device::Device_List& device_list,
 static void get_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -45,7 +50,7 @@ static void get_rtc_response(
 static void update_rtc_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -81,7 +86,7 @@ static void process_fuse(Agro::Device::Device_List& device_list,
 static void get_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -105,7 +110,7 @@ static void get_fuse_response(
 static void update_fuse_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -128,7 +133,7 @@ static void update_fuse_response(
 
 static std::size_t rtc_update_payload(rapidjson::Document const&,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code&)
 {
@@ -141,7 +146,7 @@ static std::size_t rtc_update_payload(rapidjson::Document const&,
 static std::size_t update_fuse_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code& ec)
 {
@@ -162,8 +167,8 @@ static std::size_t update_fuse_payload(
 	return 0;
 }
 
-static CoAP::Message::content_format rtc_update_content = CoAP::Message::content_format::application_octet_stream;
-static CoAP::Message::content_format rtc_get_content = CoAP::Message::content_format::application_octet_stream;
+static constexpr const CoAP::Message::content_format rtc_update_content{CoAP::Message::content_format::application_octet_stream};
+static constexpr const CoAP::Message::accept rtc_get_content{CoAP::Message::accept::application_octet_stream};
 
 static request_message const req_update_rtc = {
 	CoAP::Message::code::put,
@@ -178,19 +183,19 @@ static request_message const req_update_rtc = {
 static request_message const req_get_rtc = {
 	CoAP::Message::code::get,
 	{
-		{rtc_get_content, true},
+		{rtc_get_content},
 		{CoAP::Message::Option::code::uri_path, "rtc"},
 	}
 };
 
-static constexpr const CoAP::Message::content_format fuse_get_content = CoAP::Message::content_format::application_octet_stream;
-static constexpr const CoAP::Message::content_format fuse_update_content = CoAP::Message::content_format::application_octet_stream;
+static constexpr const CoAP::Message::accept fuse_get_content{CoAP::Message::accept::application_octet_stream};
+static constexpr const CoAP::Message::content_format fuse_update_content{CoAP::Message::content_format::application_octet_stream};
 
 static request_message const req_get_fuse = {
 	CoAP::Message::code::get,
 	{
 		{CoAP::Message::Option::code::uri_path, "fuse"},
-		{fuse_get_content, true}
+		{fuse_get_content}
 	}
 };
 
@@ -204,27 +209,23 @@ static request_message const req_update_fuse = {
 	update_fuse_payload
 };
 
-extern constexpr const request_config get_rtc = {
-	type::get_rtc,
-	"get_rtc",
+const request_config get_rtc = {
+	{request_type::get_rtc, "get_rtc"},
 	&req_get_rtc,
 	get_rtc_response
 };
-extern constexpr const request_config update_rtc = {
-	type::update_rtc,
-	"update_rtc",
+const request_config update_rtc = {
+	{request_type::update_rtc, "update_rtc"},
 	&req_update_rtc,
 	update_rtc_response
 };
-extern constexpr const request_config get_fuse = {
-	type::get_fuse,
-	"get_fuse",
+const request_config get_fuse = {
+	{request_type::get_fuse, "get_fuse"},
 	&req_get_fuse,
 	get_fuse_response
 };
-extern constexpr const request_config update_fuse = {
-	type::update_fuse,
-	"update_fuse",
+const request_config update_fuse = {
+	{request_type::update_fuse, "update_fuse"},
 	&req_update_fuse,
 	update_fuse_response
 };

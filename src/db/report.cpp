@@ -3,6 +3,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 int DB::read_all_reports(std::vector<Message::report>& reports, User::user_id id, int limit /* = 0 */) noexcept
 {
 	sqlite3::statement res;

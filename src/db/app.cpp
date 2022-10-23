@@ -4,6 +4,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 int DB::add_app(std::string const& app_name,
 					User::user_id uploader_id,
 					sha256_hash const& hash,

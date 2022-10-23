@@ -3,52 +3,63 @@
 #include "../../app/app.hpp"
 #include "../../error.hpp"
 #include "../message/device.hpp"
+#include "../helper.hpp"
+
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
 
 namespace Agro{
 namespace Device{
 namespace Request{
 
-static constexpr const unsigned app_max_name_size = 12;
-
-struct app{
-	char		name[app_max_name_size + 1];
-	unsigned 	size = 0;
-};
-
-static void process_get_app(Agro::Device::Device_List& device_list,
-		mesh_addr_t const& host,
-		const void* data, std::size_t data_len,
-		Agro::websocket_ptr ws) noexcept
-{
-	auto const dev = device_list[host];
-	if(!dev)
-	{
-		std::cerr << "Device " << host.to_string() << " not found\n";
-		return;
-	}
-
-	const std::uint8_t* data8 = static_cast<uint8_t const*>(data);
-	for(std::size_t i = 0; i < data_len; i += sizeof(app))
-	{
-		const app* mapp = reinterpret_cast<const app*>(data8);
-		dev->add_app(mapp->name, mapp->size);
-		data8 += sizeof(app);
-	}
-
-	ws->write_all(Message::device_apps_to_json(*dev));
-}
-
-static void process_send_app(CoAP::Message::message const& response,
-		mesh_addr_t const& host,
-		Agro::websocket_ptr ws) noexcept
-{
-//	ws->write_all(::Message::make_info(::Message::info::info, host, "Send app initiated"));
-}
-
 static void get_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
+		CoAP::Message::message const&,
+		CoAP::Message::message const& response,
+		CoAP::Transmission::status_t,
+		Agro::instance& instance,
+		Agro::websocket_ptr ws) noexcept
+{
+	auto dev = instance.device_list()[host];
+	if(!dev)
+	{
+		std::cerr << "Device [" << host.to_string() << "] not found\n";
+		return;
+	}
+
+	if(CoAP::Message::is_error(response.mcode)
+		&& response.mcode != CoAP::Message::code::not_found) //No app found
+	{
+		std::string p{static_cast<const char*>(response.payload), response.payload_len};
+		tt::error("[App] Error geting: %.*s [%.*s]",
+				response.payload_len, static_cast<const char*>(response.payload),
+				host.to_string().size(), host.to_string().data());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+					host, p, "GET App", ws->user().id()));
+		return;
+	}
+
+	if(response.mcode != CoAP::Message::code::not_found)
+	{
+		::read_packet_app_list(*dev, response.payload, response.payload_len);
+	}
+	else
+	{
+		::read_packet_app_list(*dev, nullptr, 0);
+	}
+
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+					std::make_shared<std::string>(Message::device_apps_to_json(*dev)));
+}
+
+static void send_app_response(
+		engine::endpoint const&,
+		mesh_addr_t const& host,
+		request_type,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -57,185 +68,184 @@ static void get_app_response(
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Error get app["
-				<< host.to_string()
-				<< "]: "
-				<< p << "\n";
-//		ws->write_all(
-//				::Message::make_info(::Message::info::warning, host, p.c_str())
-//				);
-		return;
+		tt::error("[App] Error sending: %.*s [%.*s]",
+						response.payload_len, static_cast<const char*>(response.payload),
+						host.to_string().size(), host.to_string().data());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+					host, {static_cast<const char*>(response.payload), response.payload_len},
+					"GET App", ws->user().id()));
 	}
-	process_get_app(instance.device_list(),
-			host,
-			response.payload, response.payload_len, ws);
-}
-
-static void send_app_response(
-		engine::endpoint const&,
-		mesh_addr_t const& host,
-		type,
-		CoAP::Message::message const&,
-		CoAP::Message::message const& response,
-		CoAP::Transmission::status_t,
-		Agro::instance&,
-		Agro::websocket_ptr ws) noexcept
-{
-	if(CoAP::Message::is_error(response.mcode))
-	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Error send app["
-				<< host.to_string()
-				<< "]: "
-				<< p << "\n";
-//		ws->write_all(
-//				::Message::make_info(::Message::info::warning, host, p.c_str())
-//						);
-		return;
-	}
-	process_send_app(response, host, ws);
 }
 
 static void exec_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
-		Agro::instance&,
+		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
 	if(CoAP::Message::is_error(response.mcode))
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Error exec app["
-				<< host.to_string()
-				<< "]: "
-				<< p << "\n";
-//		ws->write_all(
-//				::Message::make_info(::Message::info::warning, host, p.c_str())
-//						);
+		tt::error("[App] Error executing: %.*s [%.*s]",
+						response.payload_len, static_cast<const char*>(response.payload),
+						host.to_string().size(), host.to_string().data());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+					host, {static_cast<const char*>(response.payload), response.payload_len},
+					"Exec App", ws->user().id()));
 		return;
 	}
 
 	std::int32_t arg = *static_cast<const int*>(request.payload);
 	std::string app{static_cast<const char*>(request.payload) + sizeof(std::int32_t), request.payload_len - sizeof(std::int32_t)};
 	std::stringstream ss;
-	ss << "Exec app "
-		<< app
-		<< "(arg=" << arg << ") "
-		<< " [ret="
-		<< *static_cast<const int*>(response.payload)
-		<< "]";
+	ss << "Execute '" << app << "' [arg=" << arg << "]: ret=" << *static_cast<const int*>(response.payload);
 
-//	ws->write_all(::Message::make_info(::Message::info::success, host, ss.str().c_str()));
+	tt::status("[App] Exec %.*s [arg=%d]: ret=%d",
+						request.payload_len - sizeof(std::int32_t),
+						static_cast<const char*>(request.payload) + sizeof(std::int32_t),
+						arg,
+						*static_cast<const int*>(response.payload));
+
+	ws->write(instance.make_report(Agro::Message::report_type::info,
+						host, ss.str(),
+						"Exec App", ws->user().id()));
 }
 
 static void delete_app_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type,
+		request_type,
 		CoAP::Message::message const& request,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
 		Agro::instance& instance,
 		Agro::websocket_ptr ws) noexcept
 {
-	if(CoAP::Message::is_error(response.mcode))
+	auto dev = instance.device_list()[host];
+	if(!dev)
 	{
-		std::string p{static_cast<const char*>(response.payload), response.payload_len};
-		std::cerr << "Error delete app["
-				<< host.to_string()
-				<< "]: "
-				<< p << "\n";
-//		ws->write_all(
-//				::Message::make_info(::Message::info::warning, host, p.c_str())
-//						);
+		std::cerr << "Device [" << host.to_string() << "] not found\n";
 		return;
 	}
-	auto const dev = instance.device_list()[host];
+
+	if(CoAP::Message::is_error(response.mcode))
+	{
+		tt::error("[App] Error deleting: %.*s [%.*s]",
+						response.payload_len, static_cast<const char*>(response.payload),
+						host.to_string().size(), host.to_string().data());
+		ws->write(instance.make_report(Agro::Message::report_type::error,
+					host, {static_cast<const char*>(response.payload), response.payload_len},
+					"Delete App", ws->user().id()));
+		return;
+	}
+
 	dev->delete_app({static_cast<const char*>(request.payload), request.payload_len});
-	ws->write_all(Agro::Device::Message::device_apps_to_json(*dev));
+	instance.share()->write_all_policy(Agro::Authorization::rule::view_device,
+						std::make_shared<std::string>(Message::device_apps_to_json(*dev)));
 }
 
-static std::size_t name_app_payload(
+static std::size_t delete_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
-		std::error_code&) noexcept
+		std::error_code& ec) noexcept
 {
-	std::size_t s = 0;
-	if(doc.HasMember("payload") && doc["payload"].IsString())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		const char* c = doc["payload"].GetString();
-		s = std::strlen(c);
-		std::memcpy(buf, c, s);
+		tt::warning("Deleting app missing 'data' field or wrong type");
+		ec = make_error_code(Error::missing_field);
+		return 0;
 	}
+
+	auto const& data = doc["data"].GetObject();
+
+	if(!data.HasMember("app") || !data["app"].IsString())
+	{
+		tt::warning("Deleting app missing 'app' field or wrong type");
+		ec = make_error_code(Error::missing_field);
+		return 0;
+	}
+
+	const char* app = data["app"].GetString();
+	std::size_t s = std::strlen(app);
+	std::memcpy(buf, app, s);
+
 	return s;
 }
 
 static std::size_t exec_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance&,
 		std::error_code& ec) noexcept
 {
-	std::size_t s = 0;
-	if(doc.HasMember("payload") && doc["payload"].IsObject())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		auto const& payload = doc["payload"].GetObject();
-		std::int32_t arg = 0;
-		const char* c;
-		if(payload.HasMember("arg") && payload["arg"].IsInt())
-		{
-			arg = payload["arg"].GetInt();
-		}
-		if(payload.HasMember("app") && payload["app"].IsString())
-		{
-			c = payload["app"].GetString();
-			s = std::strlen(c);
-		}
-		else
-		{
-			ec = make_error_code(Error::missing_field);
-			return 0;
-		}
-		std::memcpy(buf, &arg, sizeof(arg));
-		std::memcpy(static_cast<std::uint8_t*>(buf) + sizeof(arg), c, s);
-	}
-	else
-	{
-		ec = make_error_code(Error::invalid_value);
+		tt::warning("Exec app missing 'data' field or wrong type");
+		ec = make_error_code(Error::missing_field);
 		return 0;
 	}
+
+	auto const& data = doc["data"].GetObject();
+
+	if((!data.HasMember("app") || !data["app"].IsString())
+		|| (!data.HasMember("arg") || !data["arg"].IsInt()))
+	{
+		tt::warning("Exec app missing field or wrong type");
+		ec = make_error_code(Error::missing_field);
+		return 0;
+	}
+
+	const char* app = data["app"].GetString();
+	std::size_t s = std::strlen(app);
+	std::int32_t arg = data["arg"].GetInt();
+
+	std::memcpy(buf, &arg, sizeof(arg));
+	std::memcpy(static_cast<std::uint8_t*>(buf) + sizeof(arg), app, s);
+
 	return s + sizeof(std::int32_t);
 }
 
 static std::size_t send_app_payload(
 		rapidjson::Document const& doc,
 		void* buf,
-		std::size_t size,
+		std::size_t,
 		instance& instance,
 		std::error_code& ec) noexcept
 {
-	std::size_t s = 0;
-	if(doc.HasMember("payload") && doc["payload"].IsString())
+	if(!doc.HasMember("data") || !doc["data"].IsObject())
 	{
-		const char* c = doc["payload"].GetString();
-		s = std::strlen(c);
-		sha256_hash hash;
-		if(!calculate_app_hash(instance.app_path(), {c, s}, hash))
-		{
-			ec = make_error_code(Error::app_not_found);
-			return 0;
-		}
-		std::memcpy(buf, hash, SHA256_DIGEST_LENGTH);
-		std::memcpy(static_cast<std::uint8_t*>(buf) + 32, c, s);
+		tt::warning("Missing 'data' field or wrong type");
+		ec = make_error_code(Error::ill_formed);
+		return 0;
 	}
+
+	auto const data = doc["data"].GetObject();
+
+	if(!data.HasMember("app") || !data["app"].IsString())
+	{
+		tt::warning("Missing 'app' field or wrong type");
+		ec = make_error_code(Error::missing_field);
+		return 0;
+	}
+	const char* app = data["app"].GetString();
+	std::size_t s = std::strlen(app);
+
+	sha256_hash hash;
+	if(!calculate_app_hash(instance.app_path(), {app, s}, hash))
+	{
+		tt::error("App '%s' not found", app);
+		ec = make_error_code(Error::app_not_found);
+		return 0;
+	}
+	std::memcpy(buf, hash, SHA256_DIGEST_LENGTH);
+	std::memcpy(static_cast<std::uint8_t*>(buf) + 32, app, s);
+
 	return s + 32;
 }
 
@@ -270,29 +280,25 @@ static request_message const req_delete_app = {
 		{CoAP::Message::Option::code::uri_path, "app"},
 	},
 	CoAP::Message::type::confirmable,
-	name_app_payload
+	delete_app_payload
 };
 
-extern constexpr const request_config get_app = {
-		type::get_app,
-		"get_app",
+const request_config get_app = {
+		{request_type::get_app, "get_app"},
 		&req_get_app,
 		get_app_response};
-extern constexpr const request_config send_app = {
-		type::send_app,
-		"send_app",
+const request_config send_app = {
+		{request_type::send_app, "send_app"},
 		&req_send_app,
 		send_app_response};
 
-extern constexpr const request_config execute_app = {
-		type::run_app,
-		"execute_app",
+const request_config execute_app = {
+		{request_type::run_app, "execute_app"},
 		&req_execute_app,
 		exec_app_response};
 
-extern constexpr const request_config delete_app = {
-		type::delete_app,
-		"delete_app",
+const request_config delete_app = {
+		{request_type::delete_app, "delete_app"},
 		&req_delete_app,
 		delete_app_response};
 

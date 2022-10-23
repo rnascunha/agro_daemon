@@ -56,6 +56,9 @@ void init(engine& coap_engine,
 			"title='Apps'",
 			std::bind(get_app_handler,
 				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+				std::ref(instance)),
+			std::bind(post_app_handler,
+				std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
 				std::ref(instance)));
 	vresource.emplace_back("info",
 			"title='Device info'",
@@ -64,6 +67,19 @@ void init(engine& coap_engine,
 			std::bind(put_info_handler,
 					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
 					std::ref(instance)));
+	vresource.emplace_back("report",
+				"title='Device report'",
+				nullptr,
+				nullptr,
+				std::bind(put_report_handler,
+						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+						std::ref(instance)));
+	vresource.emplace_back("job",
+				"title='Job info'",
+				nullptr,
+				std::bind(post_job_handler,
+						std::placeholders::_1, std::placeholders::_2, std::placeholders::_3,
+						std::ref(instance)));
 
 	for(auto& res : vresource)
 	{

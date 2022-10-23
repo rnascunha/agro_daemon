@@ -5,14 +5,14 @@ namespace Agro{
 
 bool instance::has_request_in_progress(mesh_addr_t const& address,
 		CoAP::Message::code method,
-		Device::Request::type req) const noexcept
+		Device::Request::request_type req) const noexcept
 {
 	return requests_.has(address, method, req);
 }
 
 bool instance::add_request_in_progress(mesh_addr_t const& address,
 		CoAP::Message::code method,
-		Device::Request::type req,
+		Device::Request::request_type req,
 		User::user_id id) noexcept
 {
 	return requests_.add(address, method, req, id);
@@ -20,7 +20,7 @@ bool instance::add_request_in_progress(mesh_addr_t const& address,
 
 bool instance::remove_request_in_progress(mesh_addr_t const& address,
 		CoAP::Message::code method,
-		Device::Request::type req) noexcept
+		Device::Request::request_type req) noexcept
 {
 	return requests_.remove(address, method, req);
 }

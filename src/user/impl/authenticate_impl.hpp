@@ -51,12 +51,16 @@ static bool is_auth_package(rapidjson::Document const& doc,
 		std::error_code& ec,
 		::Message::user_commands& comm) noexcept
 {
+	std::cout << "1 " << doc["type"].GetString() << "\n";
 	auto const* typec = ::Message::get_type_config(doc["type"].GetString());
+	std::cout << "1.1\n";
 	if(!typec)
 	{
+		std::cout << "2\n";
 		ec = make_error_code(Error::missing_field);
 		return false;
 	}
+	std::cout << "3\n";
 
 	if(typec->mtype != ::Message::type::user)
 	{

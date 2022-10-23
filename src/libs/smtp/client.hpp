@@ -7,13 +7,10 @@
 #include "boost/asio/ssl.hpp"
 
 #include <memory>
+#include "types.hpp"
 
 namespace SMTP{
 
-struct server
-{
-    std::string server, port, user, password;
-};
 struct data
 {
     std::string					from_email;

@@ -3,7 +3,10 @@
 namespace CSV{
 
 swriter::swriter(char sep /* = ',' */, const char* nl /* = "\r\n" */)
-	: writer(sfs_.rdbuf(), sep, nl){}
+	: writer(nullptr, sep, nl)
+{
+	this->streambuffer(sfs_.rdbuf());
+}
 
 std::string swriter::str() const noexcept
 {

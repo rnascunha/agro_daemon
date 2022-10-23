@@ -1,10 +1,11 @@
 #include "smtp/client.hpp"
 #include <memory>
-
-using SMTP_Client = SMTP::Client<false /* Use Pipeline */, 10 /* timeout */>;
+#include <iostream>
 
 int main()
 {
+	using SMTP_Client = SMTP::Client<false /* Use Pipeline */, 10 /* timeout */>;
+
     boost::asio::io_context ioc;
     boost::asio::ssl::context ctx{boost::asio::ssl::context::sslv23};
 
@@ -24,7 +25,7 @@ int main()
 //    server.port     = "465";
 
     //If you use Gmail
-    server.server   = "smtp.gmail.com";
+    server.addr   = "smtp.gmail.com";
     server.port     = "465";
 
     //Your credentions
@@ -35,7 +36,7 @@ int main()
     		//From
     		{"<your_email>@company.com", "<Your (any) name>"},
 			//To, array of who will be sent
-    		{{"<some_email>@gmail.com", "<Some Name"}, {"<other_email>@yahoo.com"}},
+    		{{"<some_email>@gmail.com", "<Some Name>"}, {"<other_email>@yahoo.com"}},
 			//Subject
 			"Subject of the email",
 			//Body message
@@ -48,12 +49,11 @@ int main()
     client->connect();
 
     boost::system::error_code ec;
-
     ioc.run(ec);
 
     if (ec)
     {
-        printf("ec: %d  %s\n", ec.value(), ec.message().c_str() );
+        std::cout << "Error: [" << ec.value() << "] " << ec.message() << "\n";
     }
     return 0;
 }

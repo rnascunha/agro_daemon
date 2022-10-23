@@ -5,8 +5,10 @@
 
 #include "rapidjson/document.h"
 
-#include "../../message/types.hpp"
+//#include "../../message/types.hpp"
 #include "../../instance/agro.hpp"
+
+#include "../../helper/utility.hpp"
 
 namespace Agro{
 namespace Message {
@@ -18,29 +20,21 @@ enum class image_commands{
 	download,
 };
 
-constexpr const ::Message::config<image_commands> img_config[] = {
+constexpr const config<image_commands> img_config[] = {
 	{image_commands::erase, "delete"},
 	{image_commands::list, "list"},
 	{image_commands::edit, "edit"},
 	{image_commands::download, "download"}
 };
 
-inline constexpr ::Message::config<image_commands> const* get_config(image_commands t) noexcept
+inline constexpr auto get_image_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(img_config) / sizeof(img_config[0]); i++)
-	{
-		if(t == img_config[i].mtype) return &img_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, img_config);
 }
 
-inline constexpr ::Message::config<image_commands> const* get_image_config(const char* t) noexcept
+inline constexpr auto get_config(image_commands mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(img_config) / sizeof(img_config[0]); i++)
-	{
-		if(std::strcmp(t, img_config[i].name) == 0) return &img_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, img_config);
 }
 
 void image_list(rapidjson::Document&, std::filesystem::path const&, instance&) noexcept;

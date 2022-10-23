@@ -14,6 +14,8 @@ sensor_value::sensor_value(uint8_t const* v)
 {
 	set(v);
 }
+sensor_value::sensor_value(sensor_value const& v)
+	: sensor_value(v.array_v){}
 
 sensor_value& sensor_value::operator=(int v) noexcept
 {

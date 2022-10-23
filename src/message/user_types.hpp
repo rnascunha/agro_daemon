@@ -3,7 +3,8 @@
 
 #include <cstdlib>
 #include <cstring>
-#include "types.hpp"
+//#include "types.hpp"
+#include "../helper/utility.hpp"
 
 namespace Message{
 
@@ -35,22 +36,14 @@ constexpr const config<user_commands> user_config[] = {
 	{user_commands::delete_group, "delete_group"}
 };
 
-inline constexpr config<user_commands> const* get_config(user_commands t) noexcept
+inline constexpr auto get_user_config(const char* name)
 {
-	for(std::size_t i = 0; i < sizeof(user_config) / sizeof(user_config[0]); i++)
-	{
-		if(t == user_config[i].mtype) return &user_config[i];
-	}
-	return nullptr;
+    return ::get_config(name, user_config);
 }
 
-inline constexpr config<user_commands> const* get_user_config(const char* t) noexcept
+inline constexpr auto get_config(user_commands mtype)
 {
-	for(std::size_t i = 0; i < sizeof(user_config) / sizeof(user_config[0]); i++)
-	{
-		if(std::strcmp(t, user_config[i].name) == 0) return &user_config[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, user_config);
 }
 
 }//Message

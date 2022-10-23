@@ -4,6 +4,11 @@
 #include "../user/authenticate_params.h"
 #include "tt/tt.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 static bool check_authentice_package(
 		rapidjson::Value const& payload,
 		std::error_code& ec) noexcept;
@@ -130,7 +135,7 @@ static bool is_auth_package(rapidjson::Document const& doc,
 		return false;
 	}
 
-	if(typec->mtype != ::Message::type::user)
+	if(typec->type != ::Message::type::user)
 	{
 		ec = make_error_code(Error::invalid_value);
 		return false;
@@ -150,8 +155,8 @@ static bool is_auth_package(rapidjson::Document const& doc,
 	}
 	rapidjson::Value const& payload = doc["data"].GetObject();
 
-	::Message::config<::Message::user_commands> const* user_type = ::Message::get_user_config(doc["command"].GetString());
-	comm = user_type->mtype;
+	auto const* user_type = ::Message::get_user_config(doc["command"].GetString());
+	comm = user_type->type;
 	switch(comm)
 	{
 		case ::Message::user_commands::autheticate:
@@ -215,8 +220,8 @@ static bool check_password(Agro::User::Logged& user,
 	}
 
 	unsigned char key[USER_AUTH_KEY_LENGTH] = {0};
-	if(!PKCS5_PBKDF2_HMAC(password, std::strlen(password),
-			salt.data(), salt.size(),
+	if(!PKCS5_PBKDF2_HMAC(password, static_cast<int>(std::strlen(password)),
+			salt.data(), static_cast<int>(salt.size()),
 			USER_AUTH_INTERATION_NUMBER, USER_AUTH_HASH_ALGORITHM,
 			USER_AUTH_KEY_LENGTH, key))
 	{

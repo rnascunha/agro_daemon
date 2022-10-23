@@ -8,6 +8,8 @@
 #include "../../instance/agro.hpp"
 #include "../../websocket/types.hpp"
 
+#include "../../helper/utility.hpp"
+
 namespace Agro{
 namespace Device{
 namespace Request{
@@ -22,13 +24,11 @@ struct request_message
 							std::error_code&)> payload = nullptr;
 };
 
-struct request_config{
-	type	mtype;
-	const char* name;
+struct request_config : ::config<request_type>{
 	request_message const* message;
 	void(*response)(engine::endpoint const&,
 			mesh_addr_t const&,
-			type,
+			request_type,
 			CoAP::Message::message const&,
 			CoAP::Message::message const&,
 			CoAP::Transmission::status_t,
@@ -98,22 +98,14 @@ const request_config rconfig[] = {
 	delete_app
 };
 
-inline constexpr request_config const* get_requests_config(type t) noexcept
+inline constexpr auto get_requests_config(const char* name) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(rconfig) / sizeof(rconfig[0]); i++)
-	{
-		if(t == rconfig[i].mtype) return &rconfig[i];
-	}
-	return nullptr;
+    return ::get_config(name, rconfig);
 }
 
-inline constexpr request_config const* get_requests_config(const char* t) noexcept
+inline constexpr auto get_config(request_type mtype) noexcept
 {
-	for(std::size_t i = 0; i < sizeof(rconfig) / sizeof(rconfig[0]); i++)
-	{
-		if(std::strcmp(t, rconfig[i].name) == 0) return &rconfig[i];
-	}
-	return nullptr;
+    return ::get_config(mtype, rconfig);
 }
 
 }//Request

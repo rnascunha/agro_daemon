@@ -5,6 +5,11 @@
 
 #include <cstring>
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Notify{
 namespace Message{
@@ -22,7 +27,7 @@ static general_type read_type(rapidjson::Value const& data) noexcept
 		return general_type::no_alert;
 	}
 
-	return config->mtype;
+	return config->type;
 }
 
 static general_type read_types(rapidjson::Value const& data) noexcept
@@ -44,7 +49,7 @@ static device_type read_device_type(rapidjson::Value const& data) noexcept
 		return device_type::no_alert;
 	}
 
-	return config->mtype;
+	return config->type;
 }
 
 static device_type read_device_types(rapidjson::Value const& data) noexcept
@@ -211,7 +216,7 @@ static void set_sensor_notify(rapidjson::Document const& doc,
 				s["sensor"]["type"].GetUint(),
 				s["sensor"]["index"].GetUint(),
 				s["enable"].GetBool(),
-				config->mtype,
+				config->type,
 				s["value"].GetFloat(),
 				false);
 	}
@@ -240,7 +245,7 @@ static void send_sensor_list(Agro::websocket_ptr ws,
 	ws->write(make_sensor_list(user.user()->notify()));
 }
 
-static void send_credential_list(rapidjson::Document const& doc,
+static void send_credential_list(rapidjson::Document const&,
 				Agro::websocket_ptr ws,
 				Agro::instance& instance,
 				Agro::User::Logged& user) noexcept
@@ -271,7 +276,7 @@ static void update_mail_credential(rapidjson::Value const& data,
 	}
 
 	SMTP::server nserver;
-	nserver.server = data["server"].GetString();
+	nserver.addr = data["server"].GetString();
 	nserver.port = data["port"].GetString();
 	nserver.user = data["user"].GetString();
 	nserver.password = data["password"].GetString();
@@ -372,7 +377,7 @@ void process(rapidjson::Document const& doc,
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case notify_commands::general_list:
 			send_general_list(ws, user);

@@ -26,7 +26,7 @@ check_authenticate(std::string const& data) noexcept
 	std::error_code ec;
 	rapidjson::Document doc;
 
-	if(base_type::stream_.got_binary()
+	if(stream_.got_binary()
 		|| doc.Parse(data.data(), data.size()).HasParseError()
 		|| !doc.IsObject())
 	{

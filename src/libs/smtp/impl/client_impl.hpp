@@ -23,11 +23,15 @@
 
 namespace SMTP{
 
-static std::string base64_encode(const std::string& data)
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4127)
+#endif /* _MSC_VER */
+[[maybe_unused]] static std::string base64_encode(const std::string& data)
 {
     using namespace boost::archive::iterators;
 
-    typedef base64_from_binary< transform_width< const char *, 6, 8 > > base64_text;
+    typedef base64_from_binary< transform_width<const char *, 6, 8>> base64_text;
 
     std::string result;
     result.reserve( data.size() * 4 / 3  );
@@ -39,7 +43,9 @@ static std::string base64_encode(const std::string& data)
 
     return result;
 }
-
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif /* _MSC_VER */
 
 template<bool UsePipeline,
 		int TimeOut>
@@ -82,10 +88,10 @@ template<bool UsePipeline,
 void Client<UsePipeline, TimeOut>::connect() noexcept
 {
 	using namespace std::placeholders;
-	boost::asio::ip::tcp::resolver::query qry(
-			server_.server,
+	boost::asio::ip::tcp::resolver::query qry{
+			server_.addr,
 			server_.port,
-			boost::asio::ip::resolver_query_base::numeric_service) ;
+			boost::asio::ip::resolver_query_base::numeric_service};
 	resolver_.async_resolve(qry,
 			std::bind(
 					&Client::on_resolve,
@@ -203,8 +209,8 @@ void Client<UsePipeline, TimeOut>::on_receive_command(std::size_t index, const b
 		}
 		else
 		{
-			boost::system::error_code ec;
-			on_send_command(++index, ec);
+			boost::system::error_code ec_;
+			on_send_command(++index, ec_);
 		}
 	}
 	else
@@ -276,12 +282,12 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 
     if constexpr(UsePipeline)
 	{
-		os << "ehlo " << server_.server << "\r\n";
+		os << "ehlo " << server_.addr << "\r\n";
 		os << "auth login\r\n";
 		os << base64_encode(server_.user) << "\r\n";
 		os << base64_encode(server_.password) << "\r\n";
 		os << "MAIL FROM: <" << data_.from_email << ">\r\n";
-		for(auto const& to: data_.to_email)
+		for(auto const& to : data_.to_email)
 		{
 			os << "RCPT TO: <" << to <<  ">\r\n";
 		}
@@ -293,7 +299,10 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 		comm_.emplace_back("", 334);
 		comm_.emplace_back("", 334);
 		comm_.emplace_back("", 235);
-		for(auto const& to: data_.to_email)
+
+		auto s = data_.to_email.size();
+//		for(auto const& to : data_.to_email)
+		while(s--)
 		{
 			comm_.emplace_back("", 250);
 		}
@@ -303,7 +312,7 @@ void Client<UsePipeline, TimeOut>::build_request() noexcept
 	}
     else
     {
-		os << "ehlo " << server_.server << "\r\n";
+		os << "ehlo " << server_.addr << "\r\n";
 		comm_.emplace_back(os.str(), 220);
 		os.clear();
 		os.str("");

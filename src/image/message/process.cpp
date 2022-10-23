@@ -6,6 +6,11 @@
 #include "../../websocket/types.hpp"
 #include "image.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Message{
 
@@ -102,14 +107,14 @@ void process_image(rapidjson::Document const& doc,
 		return;
 	}
 
-	::Message::config<image_commands> const* config = get_image_config(doc["command"].GetString());
+	auto const* config = get_image_config(doc["command"].GetString());
 	if(!config)
 	{
 		tt::warning("Image command '%s' not found", doc["command"].GetString());
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case image_commands::erase:
 			delete_images(doc, instance);

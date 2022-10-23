@@ -4,13 +4,13 @@
 #include <string>
 #include "authenticate_params.h"
 
-
 namespace Agro{
 namespace User{
 
 using salt_password = unsigned char[USER_AUTH_SALT_LENGTH];
 using key_password = unsigned char[USER_AUTH_KEY_LENGTH];
 
+bool validate_password(std::string const&) noexcept;
 void generate_salt(salt_password) noexcept;
 bool create_password(std::string const& password,
 					salt_password,

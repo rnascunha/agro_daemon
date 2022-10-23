@@ -7,6 +7,16 @@
 
 namespace Message{
 
+template<typename Allocator>
+void make_array(rapidjson::Value& data, const std::uint8_t* arr, std::size_t size, Allocator& alloc) noexcept
+{
+	data.SetArray();
+	for(std::size_t i = 0; i < size; i++)
+	{
+		data.PushBack(arr[i], alloc);
+	}
+}
+
 template<typename Message, typename Allocator>
 bool add_device(rapidjson::Value& value, Message const& msg, Allocator& alloc) noexcept
 {
@@ -102,7 +112,7 @@ void add_option(rapidjson::Value& data,
 	CoAP::Message::Option::Parser parser{msg};
 
 	CoAP::Message::Option::option const* op;
-	while((op = parser.next()))
+	while((op = parser.next()) != nullptr)
 	{
 		if(op->ocode == op_code)
 		{

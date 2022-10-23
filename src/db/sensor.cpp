@@ -6,6 +6,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 int DB::read_sensor_types(Sensor::Sensor_Type_List& list) noexcept
 {
 	sqlite3::statement res;

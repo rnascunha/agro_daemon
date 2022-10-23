@@ -26,7 +26,7 @@ static void process_ac_load(Agro::instance& instance,
 static void ac_load_response(
 		engine::endpoint const&,
 		mesh_addr_t const& host,
-		type req,
+		request_type req,
 		CoAP::Message::message const&,
 		CoAP::Message::message const& response,
 		CoAP::Transmission::status_t,
@@ -41,12 +41,12 @@ static void ac_load_response(
 
 	switch(req)
 	{
-		case type::ac_load1_on:
-		case type::ac_load1_off:
-		case type::ac_load2_on:
-		case type::ac_load2_off:
-		case type::ac_load3_on:
-		case type::ac_load3_off:
+		case request_type::ac_load1_on:
+		case request_type::ac_load1_off:
+		case request_type::ac_load2_on:
+		case request_type::ac_load2_off:
+		case request_type::ac_load3_on:
+		case request_type::ac_load3_off:
 			process_ac_load(instance, ws, host, *static_cast<Sensor::sensor_type const*>(response.payload));
 		break;
 		default:
@@ -70,39 +70,33 @@ AC_LOAD(ac2_off, 2, "0");
 AC_LOAD(ac3_on, 3, "1");
 AC_LOAD(ac3_off, 3, "0");
 
-extern constexpr const request_config ac1_on = {
-	type::ac_load1_on,
-	"ac1_on",
+const request_config ac1_on = {
+	{request_type::ac_load1_on, "ac1_on"},
 	&req_ac1_on,
 	ac_load_response
 };
-extern constexpr const request_config ac1_off = {
-	type::ac_load1_off,
-	"ac1_off",
+const request_config ac1_off = {
+	{request_type::ac_load1_off, "ac1_off"},
 	&req_ac1_off,
 	ac_load_response
 };
-extern constexpr const request_config ac2_on = {
-	type::ac_load2_on,
-	"ac2_on",
+const request_config ac2_on = {
+	{request_type::ac_load2_on, "ac2_on"},
 	&req_ac2_on,
 	ac_load_response
 };
-extern constexpr const request_config ac2_off = {
-	type::ac_load2_off,
-	"ac2_off",
+const request_config ac2_off = {
+	{request_type::ac_load2_off, "ac2_off"},
 	&req_ac2_off,
 	ac_load_response
 };
-extern constexpr const request_config ac3_on = {
-	type::ac_load3_on,
-	"ac3_on",
+const request_config ac3_on = {
+	{request_type::ac_load3_on, "ac3_on"},
 	&req_ac3_on,
 	ac_load_response
 };
-extern constexpr const request_config ac3_off = {
-	type::ac_load3_off,
-	"ac3_off",
+const request_config ac3_off = {
+	{request_type::ac_load3_off, "ac3_off"},
 	&req_ac3_off,
 	ac_load_response
 };

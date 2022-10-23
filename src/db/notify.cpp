@@ -2,6 +2,8 @@
 
 namespace Agro{
 
+using xeds::sqlite3;
+
 int DB::read_general_notify(User::user_id id, Notify::Notify& notify) noexcept
 {
 	sqlite3::statement res;
@@ -210,7 +212,7 @@ int DB::notify_mail_server_info(SMTP::server& server, bool& enable) noexcept
 		return rc;
 	}
 
-	server.server = res.text(0);
+	server.addr = res.text(0);
 	server.port = res.text(1);
 	server.user = res.text(2);
 	server.password = res.text(3);
@@ -224,7 +226,7 @@ int DB::update_mail_server_info(SMTP::server const& server, bool enable) noexcep
 	sqlite3::statement res;
 	int rc = db_.prepare_bind("UPDATE instance SET "
 				"smtp_server = ?, smtp_port = ?, smtp_user = ?, smtp_password = ?, mail_enable = ?",
-			res, server.server, server.port, server.user, server.password, enable);
+			res, server.addr, server.port, server.user, server.password, enable);
 	if(rc != SQLITE_OK)
 	{
 		return rc;

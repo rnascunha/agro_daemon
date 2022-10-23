@@ -26,13 +26,19 @@
 #include "../message/report.hpp"
 #include "../device/request/in_progress.hpp"
 
-static constexpr const char* images_path = "images";
-static constexpr const char* apps_path = "apps";
-
 namespace Agro{
 
 class instance{
 	public:
+		struct configure{
+			configure(){};
+
+			int interval_check 					= 15000; 	//seconds
+			std::uint32_t time_invalidate_node	= 31000; 	//milliseconds
+			const char* images_path 			= "images";
+			const char* apps_path 				= "apps";
+		};
+
 		instance(boost::asio::io_context& ioc,
 					DB&&,
 					Notify::Factory&&,
@@ -41,8 +47,9 @@ class instance{
 		#if USE_SSL == 1
 					std::string const& ssl_key,
 					std::string const& ssl_cert,
-		#endif /**/
-					std::error_code& ec);
+		#endif /* USE_SSL == 1 */
+					std::error_code& ec,
+					configure = configure{});
 
 		template<unsigned TimeoutMs>
 		void run(int num_threads, CoAP::Error& ecp) noexcept;
@@ -133,8 +140,11 @@ class instance{
 				std::vector<Notify::sensor_temp_notify> const&) noexcept;
 
 		/**
-		 *
+		 * Device
 		 */
+		std::pair<Device::Device*, bool>
+		add_or_get_device(mesh_addr_t const&) noexcept;
+		void device_connected(std::vector<Device::Device const*> const&) noexcept;
 		bool process_device_request(engine::message const&,
 				Device::Device**,
 				CoAP::Message::Option::option&) noexcept;
@@ -146,14 +156,14 @@ class instance{
 		 */
 		bool has_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				Device::Request::type) const noexcept;
+				Device::Request::request_type) const noexcept;
 		bool add_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				Device::Request::type,
+				Device::Request::request_type,
 				User::user_id) noexcept;
 		bool remove_request_in_progress(mesh_addr_t const&,
 				CoAP::Message::code,
-				Device::Request::type) noexcept;
+				Device::Request::request_type) noexcept;
 
 		/**
 		 * Sensor
@@ -250,6 +260,8 @@ class instance{
 		void check_network_roots() noexcept;
 		bool check_root(mesh_addr_t const& addr) noexcept;
 
+		configure			configure_{};
+
 		Image_Path			image_;
 		App_Path			app_;
 
@@ -270,12 +282,14 @@ class instance{
 		User::User_List		users_;
 
 		User::User root_{User::root_id,
-							User::Info{
+						User::Info{
 							User::root_username,
 							User::root_name,
 							User::Info::status::active,
 							"" /* email */,
-							"" /* telegram_chat_id */}};
+							"" /* telegram_chat_id */
+							}
+						};
 
 		Device::Request::Request_in_Pogress_List requests_;
 

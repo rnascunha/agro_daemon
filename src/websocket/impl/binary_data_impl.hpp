@@ -14,6 +14,16 @@ static constexpr const std::size_t image_name_max_size = 31;
 static constexpr const std::size_t app_name_max_size = 12;
 
 template<bool UseSSL>
+void Websocket<UseSSL>::clear_read_buffer() noexcept
+{
+	char buffer[1024];
+	while(!stream_.is_message_done())
+	{
+		stream_.read_some(boost::asio::buffer(buffer, 1024));
+	}
+}
+
+template<bool UseSSL>
 void Websocket<UseSSL>::get_app_file(
 		const char* first_block, std::size_t block_size) noexcept
 {
@@ -32,17 +42,12 @@ void Websocket<UseSSL>::get_app_file(
 		/**
 		 * Clear buffer
 		 */
-		char buffer[1024];
-		do
-		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
-		}
-		while(!base_type::stream_.is_message_done());
+		clear_read_buffer();
 		return;
 	}
 
 	std::string name(&first_block[1], name_size);
-	std::string path{share_->instance().app_path().make_path(name)};
+	std::string path(share_->instance().app_path().make_path(name).string());
 
 	if(std::filesystem::exists(path))
 	{
@@ -56,12 +61,7 @@ void Websocket<UseSSL>::get_app_file(
 		/**
 		 * Clear buffer
 		 */
-		char buffer[1024];
-		do
-		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
-		}
-		while(!base_type::stream_.is_message_done());
+		clear_read_buffer();
 		return;
 	}
 
@@ -69,12 +69,12 @@ void Websocket<UseSSL>::get_app_file(
 	t.write(&first_block[1 + name_size], block_size - 1 - name_size);
 
 	char buffer[1024];
-	do
+	while(!stream_.is_message_done())
 	{
-		std::size_t s = base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+		std::size_t s = stream_.read_some(boost::asio::buffer(buffer, 1024));
 		t.write(buffer, s);
 	}
-	while(!base_type::stream_.is_message_done());
+
 	t.close();
 
 	if(!share_->instance().add_app(name, user_.id()))
@@ -87,6 +87,7 @@ void Websocket<UseSSL>::get_app_file(
 		std::filesystem::remove(path);
 		return;
 	}
+
 	tt::status("App '%s' uploaded successfully!", name.c_str());
 
 	std::stringstream ss;
@@ -116,17 +117,12 @@ void Websocket<UseSSL>::get_image_file(
 		/**
 		 * Clear buffer
 		 */
-		char buffer[1024];
-		do
-		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
-		}
-		while(!base_type::stream_.is_message_done());
+		clear_read_buffer();
 		return;
 	}
 
 	std::string name(&first_block[1], name_size);
-	std::string path{share_->instance().image_path().make_path(name)};
+	std::string path(share_->instance().image_path().make_path(name).string());
 
 	if(std::filesystem::exists(path))
 	{
@@ -139,12 +135,7 @@ void Websocket<UseSSL>::get_image_file(
 		/**
 		 * Clear buffer
 		 */
-		char buffer[1024];
-		do
-		{
-			base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
-		}
-		while(!base_type::stream_.is_message_done());
+		clear_read_buffer();
 		return;
 	}
 
@@ -152,12 +143,11 @@ void Websocket<UseSSL>::get_image_file(
 	t.write(&first_block[1 + name_size], block_size - 1 - name_size);
 
 	char buffer[1024];
-	do
+	while(!stream_.is_message_done())
 	{
-		std::size_t s = base_type::stream_.read_some(boost::asio::buffer(buffer, 1024));
+		std::size_t s = stream_.read_some(boost::asio::buffer(buffer, 1024));
 		t.write(buffer, s);
 	}
-	while(!base_type::stream_.is_message_done());
 	t.close();
 
 	if(!Agro::check_image(path))

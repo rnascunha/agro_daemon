@@ -3,7 +3,10 @@
 namespace HTML{
 
 swriter::swriter()
-	: writer(sfs_.rdbuf()){}
+	: writer(nullptr)
+{
+	this->streambuffer(sfs_.rdbuf());
+}
 
 std::string swriter::str() const noexcept
 {

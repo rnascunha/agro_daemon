@@ -1,6 +1,11 @@
 #include "process.hpp"
 #include "sensor.hpp"
 
+//https://github.com/Tencent/rapidjson/issues/1448
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#undef GetObject
+#endif
+
 namespace Agro{
 namespace Sensor{
 namespace Message{
@@ -213,7 +218,7 @@ void process(rapidjson::Document const& doc,
 		return;
 	}
 
-	switch(config->mtype)
+	switch(config->type)
 	{
 		case sensor_commands::list:
 			ws->write(sensor_types_list(instance.sensor_list()));
