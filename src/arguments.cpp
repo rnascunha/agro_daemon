@@ -240,9 +240,9 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 
 	if(cmdl[{"-v", "--version"}])
 	{
-		std::cout << AGRO_DAEMON_NAME << " " << AGRO_DAEMON_GIT_SHORT_COMMIT <<
-				" " << AGRO_DAEMON_GIT_BRANCH << "\n"
-				<< __DATE__ << " " << __TIME__ << "\n";
+		std::cout << AGRO_DAEMON_NAME 
+			<< " " << AGRO_DAEMON_VERSION
+			<< "\n" << __DATE__ << " " << __TIME__ << "\n";
 		exit(EXIT_SUCCESS);
 	}
 

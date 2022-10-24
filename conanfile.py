@@ -1,10 +1,6 @@
 from conans import ConanFile, CMake, tools
 from conans.model.version import Version
 
-def git_info():
-    git = tools.Git()
-    return git.get_branch(), git.get_revision(), git.get_revision()[0: 8]
-
 class AgroDaemonConan(ConanFile):
     name = "agro_daemon"
     version = "0.1"
@@ -32,7 +28,6 @@ class AgroDaemonConan(ConanFile):
             self.tool_requires("cmake/[>= 3.10]")
 
     def config_options(self):
-        self.branch, self.commit, self.short_commit = git_info()
         if self.settings.os == "Windows":
             del self.options.fPIC
 
@@ -41,9 +36,6 @@ class AgroDaemonConan(ConanFile):
         cmake.parallel = False
         cmake.definitions["WITH_SSL"] = 1 if self.options.ssl else 0
         cmake.definitions["VERBOSE"] = self.options.verbose
-        cmake.definitions["GIT_BRANCH"] = self.branch
-        cmake.definitions["GIT_COMMIT"] = self.commit
-        cmake.definitions["GIT_SHORT_COMMIT"] = self.short_commit
         cmake.configure()
         cmake.build()
 
