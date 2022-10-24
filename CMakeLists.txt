@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.10)
-project (agro_daemon VERSION 0.1)
+project (agro_daemon VERSION 0.1 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR})
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
@@ -47,7 +47,7 @@ add_definitions(#-DBOOST_SYSTEM_USE_UTF8		#Make windows error output UTF8 / Igno
 string(TIMESTAMP TIME_NOW "%Y/%m/%d %H:%M:%SZ" UTC)
 add_definitions(-DCOMPILE_TIME=${TIME_NOW})
 
-###############################
+# Required packages
 
 find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS REQUIRED)
@@ -58,10 +58,10 @@ find_package(tree_trunks REQUIRED)
 find_package(coap-te REQUIRED)
 find_package(pusha REQUIRED)
 
-###############################
-find_package(Git REQUIRED)
-include("${CMAKE_SOURCE_DIR}/cmake/get_commit.cmake")
+# Creating version file
+configure_file("${CMAKE_SOURCE_DIR}/cmake/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)
 
+# Definitions
 add_definitions(
 				-DCOAP_TE_PORT_C_STANDARD=1
 				-DCOAP_TE_PORT_POSIX=1
@@ -115,28 +115,11 @@ if(WIN32)
 	target_link_libraries(${PROJECT_NAME} wsock32 ws2_32)
 endif()
 
-################
-#tools
-################
+# tools
 include(tools/tools.cmake)
 
-########################################
 # Installing
-########################################
-install(TARGETS agro_daemon init_db DESTINATION bin)
-install(FILES db/scheme.sql DESTINATION bin)
+include(cmake/install.cmake)
 
-##########################################
-## Packing // https://cmake.org/cmake/help/latest/module/CPack.html
-##########################################
-include(InstallRequiredSystemLibraries)
-set(CPACK_PACKAGE_NAME			"Agro Project Daemon")
-set(CPACK_PACKAGE_VENDOR		"xeds corp")
-set(CPACK_PACKAGE_DESCRIPTION	"Agro Project Daemon. Responsable to connect the field devices to the interface")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Agro Project central controller")
-set(CPACK_PACKAGE_HOMEPAGE_URL 	"https://rnascunha.github.io/agro")
-set(CPACK_RESOURCE_FILE_README 	"${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-#set(CPACK_PACKAGE_VERSION_MAJOR "${agro_daemon_VERSION_MAJOR}")
-#set(CPACK_PACKAGE_VERSION_MINOR "${agro_daemon_VERSION_MINOR}")
-include(CPack)
+# Packing 
+include(cmake/package.cmake)
