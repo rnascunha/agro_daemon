@@ -58,6 +58,9 @@ find_package(tree_trunks REQUIRED)
 find_package(coap-te REQUIRED)
 find_package(pusha REQUIRED)
 
+# Creating version file
+configure_file("${CMAKE_SOURCE_DIR}/cmake/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)
+
 # Definitions
 add_definitions(
 				-DCOAP_TE_PORT_C_STANDARD=1
