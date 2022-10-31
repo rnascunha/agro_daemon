@@ -29,6 +29,11 @@ else()
 	set(VERBOSE		4)
 endif()
 
+set(AGRO_DB_SCHEME		"${PROJECT_SOURCE_DIR}/db/scheme.sql")
+if (DEFINED AGRO_DB_SCHEME_FILE)
+set(AGRO_DB_SCHEME		${AGRO_DB_SCHEME_FILE})
+endif()
+
 #------------END DEFINING VARS-----------------
 if(MSVC)
 	set(CMAKE_CXX_FLAGS "/W4 /EHsc")
@@ -59,6 +64,7 @@ find_package(coap-te REQUIRED)
 find_package(pusha REQUIRED)
 
 # Creating version file
+file(READ ${AGRO_DB_SCHEME} AGRO_DB_SCHEME_CONTENT)
 configure_file("${CMAKE_SOURCE_DIR}/cmake/version.hpp.in" "${CMAKE_SOURCE_DIR}/src/version.hpp" @ONLY)
 
 # Definitions

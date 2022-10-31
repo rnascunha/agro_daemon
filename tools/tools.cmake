@@ -17,6 +17,8 @@ target_link_libraries(add_user PUBLIC OpenSSL::SSL
 								sqlite3_wrapper)
 
 ##### init db
+configure_file("${CMAKE_SOURCE_DIR}/cmake/scheme.hpp.in" "${CMAKE_SOURCE_DIR}/tools/scheme.hpp" @ONLY)
+
 add_executable(init_db tools/init_db.cpp 
 						${SRC_DIR}/error.cpp
 						${USER_DIR}/password.cpp)

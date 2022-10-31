@@ -1,0 +1,12 @@
+#ifndef AGRO_DAEMON_DB_SCHEME_HPP__
+#define AGRO_DAEMON_DB_SCHEME_HPP__
+
+#include <string_view>
+
+namespace Agro {
+
+static constexpr std::string_view db_default_scheme = R"(@AGRO_DB_SCHEME_CONTENT@)";
+
+}//Agro
+
+#endif /* AGRO_DAEMON_DB_SCHEME_HPP__ */
