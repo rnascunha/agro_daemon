@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  daemon:
+    image: rnascunha/agro_daemon:v1.0
+    working_dir: /app
+    network_mode: "host"
+    volumes: 
+      - agro_db:/app
+  web:
+    image: rnascunha/agro_web:v1.0
+    ports:
+      - 8080:80
+
+volumes:
+  agro_db:
+    external: true

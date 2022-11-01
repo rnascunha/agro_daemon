@@ -18,4 +18,4 @@ COPY --from=build /app/agro_daemon/build/install_dir/* /agro
 ENV PATH=${PATH}:/agro
 WORKDIR /app
 ENTRYPOINT [ "/agro/agro_daemon" ]
-CMD [ "8080" ]
+CMD [ "8081" ]

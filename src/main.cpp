@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 	 * Open database
 	 */
 	std::error_code ecb;
-	Agro::DB db{args.db_file, ecb};
+	Agro::DB db(args.db_file, ecb);
 	if(ecb)
 	{
 		tt::error("Error opening DB! [%s]", args.db_file.c_str());

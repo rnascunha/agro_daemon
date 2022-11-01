@@ -53,7 +53,7 @@ To see all options:
 $ ./agro_daemon -h
 ```
 
-### Using docker
+### Using Docker
 
 To build the container:
 ```bash
@@ -70,7 +70,29 @@ For the first use, you must create the database:
 $ docker run --rm -it --entrypoint init_db -v $PWD:/app agro_daemon
 ```
 
-This will output a `agro.db` file at your local directory. Now, run the `agro_daemon` application at `some port`:
+This will output a `agro.db` file at your local directory. Now, run the `agro_daemon` application:
 ```
-$ docker run --rm -v $PWD:/app -p 5683:5683 -p 8080:<some_port> -t agro_daemon 
+$ docker run --rm -v $PWD:/app -it --network host agro_daemon
+```
+
+You can also run from the image from the repository:
+```bash
+# Configure DB
+$ docker run --rm -it --entrypoint init_db -v $PWD:/app rnascunha/agro_daemon:latest
+# Run application
+$ docker run --rm -v $PWD:/app -it --network host rnascunha/agro_daemon:latest
+```
+
+### Using Docker compose
+
+If you want to run the **daemon** and the [web interface](https://github.com/rnascunha/agro_web) at the same server, you can use the docker compose option.
+
+First, create the database at a named volume `agro_db`:
+```bash
+$ docker run --rm -it --entrypoint init_db -v agro_db:/app rnascunha/agro_daemon:v1.0
+```
+
+Then, at the root directory of the project:
+```bash
+$ docker compose up
 ```
