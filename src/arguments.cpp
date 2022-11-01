@@ -383,7 +383,8 @@ void read_parameters(int, char** argv, arguments& args) noexcept
 
 	if(!is_file(args.db_file))
 	{
-		tt::status("Database file '%s' will be created.", args.db_file.c_str());
+		tt::error(stderr, "Database file %s not found!", args.db_file.c_str());
+		exit(EXIT_FAILURE);
 	}
 
 	tt::enable_if<tt::type::debug>([&]{
