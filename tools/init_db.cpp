@@ -16,8 +16,8 @@
 #include "../src/user/policy.hpp"
 #include "../src/sensor/sensor_type_list.hpp"
 #include "../src/libs/smtp/types.hpp"
+#include "scheme.hpp"
 
-constexpr const char* default_scheme = "../db/scheme.sql";
 constexpr const char* default_db = "agro.db";
 
 struct group{
@@ -96,7 +96,6 @@ Where:
 		This help message.
 	-s <sql_scheme>
 		Define the SQL scheme that the database will be created.
-		Default: )" << default_scheme << R"(
 	-f
 		If <output_file> exists, remove it.
 	[<output_file>]
@@ -110,7 +109,7 @@ int main(int argc, char** argv)
 
 	bool force = false, set_output = false;
 	const char* output = default_db;
-	const char* scheme = default_scheme;
+	const char* scheme = nullptr;
 
 	for(int i = 1; i != argc; ++i)
 	{
@@ -143,7 +142,7 @@ int main(int argc, char** argv)
 	}
 
 	//Checking if scheme file exists
-	if(!std::filesystem::is_regular_file(scheme))
+	if(scheme != nullptr && !std::filesystem::is_regular_file(scheme))
 	{
 		std::cerr << "- Scheme file '" << scheme << "' not found! Quitting!\n";
 		return EXIT_FAILURE;
@@ -177,17 +176,22 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	std::ifstream ifs{scheme};
-	if(!ifs)
-	{
-		std::filesystem::remove(output);
-		std::cerr << "- Error opening scheme file. [" << scheme << "]\n";
-		return EXIT_FAILURE;
+	int rc;
+	if (scheme) {
+		std::ifstream ifs(scheme);
+		if(!ifs)
+		{
+			std::filesystem::remove(output);
+			std::cerr << "- Error opening scheme file. [" << scheme << "]\n";
+			return EXIT_FAILURE;
+		}
+		char buffer[8192];
+		std::size_t size = ifs.readsome(buffer, 8192);
+		buffer[size] = '\0';
+		rc = db.exec(buffer);
+	} else {
+		rc = db.exec(Agro::db_default_scheme.data());
 	}
-	char buffer[8192];
-	std::size_t size = ifs.readsome(buffer, 8192);
-	buffer[size] = '\0';
-	int rc = db.exec(buffer);
 	if(rc != SQLITE_OK)
 	{
 		std::filesystem::remove(output);

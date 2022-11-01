@@ -2,9 +2,10 @@
 .settings/
 .project
 build/
-src/version.hpp
 Debug/
 Release/
 .vs/
 out/
 third/
+tools/scheme.hpp
+src/version.hpp
