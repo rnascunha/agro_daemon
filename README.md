@@ -89,10 +89,12 @@ If you want to run the **daemon** and the [web interface](https://github.com/rna
 
 First, create the database at a named volume `agro_db`:
 ```bash
-$ docker run --rm -it --entrypoint init_db -v agro_db:/app rnascunha/agro_daemon:v1.0
+$ docker run --rm -it --entrypoint init_db -v agro_db:/app rnascunha/agro_daemon:v1.0-alpine
 ```
 
 Then, at the root directory of the project:
 ```bash
 $ docker compose up
 ```
+
+This will run the interface at port `8080`, CoAP port at `5683` and Websocket at `8081`.

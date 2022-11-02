@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   daemon:
-    image: rnascunha/agro_daemon:v1.0
+    image: rnascunha/agro_daemon:v1.0-alpine
     working_dir: /app
     network_mode: "host"
     volumes: 
